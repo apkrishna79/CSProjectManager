@@ -1,13 +1,15 @@
 /*
  * Prologue: Program.cs
- * Programmers: Anakha Krishna
+ * Programmers: Anakha Krishna, Ginny Ke
  * Date Created: 2/13/25
- * Date Revised: 2/16/25
+ * Date Revised: 2/21/25 - GK
  * Purpose: Configures and starts the web application using ASP.NET Core with Razor Pages.
  *
  * Preconditions:
  * - .NET SDK and required dependencies installed
  * - Application run within valid ASP.NET Core environment
+ * - MongoDB configuration and database connection
+ * - Whitelist IP address in MongoDB configuration
  *
  * Postconditions:
  * - Web application initialized and running
@@ -30,6 +32,9 @@
  * Other faults: N/A
  */
 
+
+using CS_Project_Manager.Services; // integrates services file for database connection
+
 var builder = WebApplication.CreateBuilder(args); // Create web application builder instance to initialize the application
 
 builder.Services.AddRazorPages(); // Register Razor Pages services in dependency injection container
@@ -39,6 +44,12 @@ builder.Services.AddMvc().AddRazorPagesOptions(options =>
 {
     options.Conventions.AddPageRoute("/Landing", ""); // Set "/Landing" as the default route
 });
+
+// MongoDB connection string for connecting to the database
+const string connectionUri = "mongodb+srv://ginnyk10:Gk7856212727%24@csproman.v6xg6.mongodb.net/CSProMan?retryWrites=true&w=majority";
+
+// Registers MongoDBService as a singleton, providing database connectivity throughout the application
+builder.Services.AddSingleton(new MongoDBService(connectionUri));
 
 var app = builder.Build(); // Build app from configured builder
 
