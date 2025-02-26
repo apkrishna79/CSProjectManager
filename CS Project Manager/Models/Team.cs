@@ -14,7 +14,8 @@ namespace CS_Project_Manager.Models
         public required string Name { get; set; }
 
         [Required]
-        public required string AssociatedClass { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public required ObjectId AssociatedClass { get; set; }
 
         public List<ObjectId> Members = [];
     }
