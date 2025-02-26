@@ -60,6 +60,14 @@ namespace CS_Project_Manager.Pages
                 return Page();
             }
 
+            // Check if an account already exists with the given username
+            var existingUser = await _studentUserService.GetUserByUsernameAsync(Username);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError(string.Empty, "Username is already in use.");
+                return Page(); // Display error if email is already in use
+            }
+
             var newUser = new StudentUser
             {
                 Username = Username,
