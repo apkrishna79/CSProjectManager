@@ -105,18 +105,24 @@ namespace CS_Project_Manager.Pages
 
         public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string[] cs)
         {
-            var classIds = await _classes
+            var classMapping = await _classes
                 .Find(c => cs.Contains(c.Name))
-                .Project(c => c.Id)
+                .Project(c => new { c.Id, c.Name })
                 .ToListAsync();
+
+            var classIdToName = classMapping.ToDictionary(c => c.Id, c => c.Name);
 
             var teamsForSelectedClasses = await _teams
-                .Find(t => classIds.Contains(t.AssociatedClass))
+                .Find(t => classIdToName.Keys.Contains(t.AssociatedClass))
                 .ToListAsync();
 
-            var teamList = teamsForSelectedClasses.Select(t => new { name = t.Name }).ToList();
+            var teamList = teamsForSelectedClasses.Select(t => new
+            {
+                name = $"{t.Name} ({classIdToName[t.AssociatedClass]})"
+            }).ToList();
 
             return new JsonResult(teamList);
         }
+
     }
 }

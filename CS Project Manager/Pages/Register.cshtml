@@ -73,6 +73,7 @@
                 data: { "cs": selectedClasses },
                 traditional: true,
                 success: function (data) {
+                    console.log("Team data received");
                     teamData = data.map(item => ({ id: item.name, text: item.name }));
                     initializeTeamDropdown();
                 }
