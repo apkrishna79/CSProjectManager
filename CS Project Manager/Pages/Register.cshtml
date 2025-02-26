@@ -1,7 +1,115 @@
 ﻿@page
-@model CS_Project_Manager.Pages.RegisterModel
+@model RegisterModel
 @{
     ViewData["Title"] = "Register";
 }
 
-<h1>Register</h1>
+<h2>Register a New Student</h2>
+
+<form method="post">
+    <div>
+        <label>Username</label>
+        <input asp-for="Username" required maxlength="100" />
+    </div>
+
+    <div>
+        <label>Password</label>
+        <input asp-for="Password" type="password" required />
+    </div>
+
+    <div>
+        <label>First Name</label>
+        <input asp-for="FirstName" required maxlength="100" />
+    </div>
+
+    <div>
+        <label>Last Name</label>
+        <input asp-for="LastName" required maxlength="100" />
+    </div>
+
+    <div>
+        <label>Contact Email</label>
+        <input asp-for="ContactEmail" type="email" maxlength="255" />
+    </div>
+
+    <div>
+        <label>Enrolled Classes</label>
+        <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;" maxlength="100"></select>
+    </div>
+
+    <div>
+        <label>Groups</label>
+        <select id="groups" name="Groups" multiple="multiple" style="width: 100%;"></select>
+    </div>
+
+    <button type="submit">Register</button>
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+
+<script>
+    $(document).ready(function () {
+        let classData = [];
+
+        // Fetch all classes initially and store them
+        $.ajax({
+            url: '/Register?handler=GetClasses',
+            dataType: 'json',
+            success: function (data) {
+                classData = data.map(item => ({ id: item.name, text: item.name }));
+                initializeClassDropdown();
+            }
+        });
+
+        function initializeClassDropdown() {
+            $('#enrolledClasses').select2({
+                tags: true,
+                placeholder: "Select or add a class",
+                data: classData,
+
+                matcher: (params, data) => {
+                    let term = $.trim(params.term).toLowerCase();
+                    return term === '' || data.text.toLowerCase().includes(term) ? data : null;
+                },
+
+                createTag: (params) => {
+                    let term = $.trim(params.term);
+                    if (!term || classData.some(item => item.text.toLowerCase().includes(term))) return null;
+
+                    // Enforce character limit
+                    if (term.length > 100) {
+                        return null;
+                    }
+
+                    return { id: term, text: `Add New Class: ${term}`, newTag: true };
+                },
+
+                templateSelection: (data) => data.newTag ? data.id : data.text,
+
+                insertTag: (data, tag) => {
+                    if (!data.some(existingTag => existingTag.text === tag.text)) {
+                        data.unshift(tag);
+                    }
+                }
+            });
+
+            
+            $('#enrolledClasses').trigger('change');
+        }
+
+        $('#groups').select2({
+            tags: true,
+            placeholder: "Select or add a group",
+            ajax: {
+                url: () => '/Register?handler=GetTeams&classNames=' + encodeURIComponent($('#enrolledClasses').val()),
+                dataType: 'json',
+                processResults: (data) => ({
+                    results: data.map(item => ({ id: item.id, text: item.name }))
+                })
+            }
+        });
+    });
+</script>
+
