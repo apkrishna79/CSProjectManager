@@ -11,16 +11,16 @@ namespace CS_Project_Manager.Pages
 {
     public class RegisterModel : PageModel
     {
-        private readonly IMongoCollection<Team> _teams;
         private readonly StudentUserService _studentUserService;
         private readonly ClassService _classService;
+        private readonly TeamService _teamService;
 
-        public RegisterModel(IMongoClient client, StudentUserService studentUserService, ClassService classService)
+        public RegisterModel(IMongoClient client, StudentUserService studentUserService, ClassService classService, TeamService teamService)
         {
             var database = client.GetDatabase("CSProMan");
-            _teams = database.GetCollection<Team>("Teams");
             _studentUserService = studentUserService;
             _classService = classService;
+            _teamService = teamService;
         }
 
         [BindProperty]
@@ -125,8 +125,7 @@ namespace CS_Project_Manager.Pages
                     continue; // Skip if the class isn't valid
                 }
 
-                var existingTeam = await _teams.Find(t => t.Name == teamName && t.AssociatedClass == classId)
-                                               .FirstOrDefaultAsync();
+                var existingTeam = await _teamService.GetTeamByNameAndClassId(teamName, classId);
 
                 if (existingTeam == null)
                 {
@@ -136,14 +135,13 @@ namespace CS_Project_Manager.Pages
                         AssociatedClass = classId,
                         Members = new List<ObjectId> { studentUserId }
                     };
-                    await _teams.InsertOneAsync(newTeam);
+                    await _teamService.CreateTeamAsync(newTeam);
                 }
                 else
                 {
                     if (!existingTeam.Members.Contains(studentUserId))
                     {
-                        var update = Builders<Team>.Update.AddToSet(t => t.Members, studentUserId);
-                        await _teams.UpdateOneAsync(t => t.Id == existingTeam.Id, update);
+                        await _teamService.AddStudentToTeamAsync(existingTeam.Id, studentUserId);
                     }
                 }
             }
@@ -163,9 +161,7 @@ namespace CS_Project_Manager.Pages
         {
             var classIdToName = await _classService.GetClassIdToName(cs);
 
-            var teamsForSelectedClasses = await _teams
-                .Find(t => classIdToName.Keys.Contains(t.AssociatedClass))
-                .ToListAsync();
+            var teamsForSelectedClasses = await _teamService.GetTeamsByClassNames(classIdToName);
 
             var teamList = teamsForSelectedClasses.Select(t => new
             {
