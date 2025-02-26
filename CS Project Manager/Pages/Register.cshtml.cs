@@ -15,9 +15,8 @@ namespace CS_Project_Manager.Pages
         private readonly ClassService _classService;
         private readonly TeamService _teamService;
 
-        public RegisterModel(IMongoClient client, StudentUserService studentUserService, ClassService classService, TeamService teamService)
+        public RegisterModel(StudentUserService studentUserService, ClassService classService, TeamService teamService)
         {
-            var database = client.GetDatabase("CSProMan");
             _studentUserService = studentUserService;
             _classService = classService;
             _teamService = teamService;

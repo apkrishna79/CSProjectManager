@@ -1,11 +1,4 @@
-﻿/*
-Name: Isabel Loney
-Date Created: 2/24/25
-Date Revised: 2/25/25
-Purpose: StudentUser model for MongoDB storage.
-*/
-
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
