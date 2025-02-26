@@ -50,9 +50,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
 
 <script>
-    $(document).ready(function () {
+        $(document).ready(function () {
         let classData = [];
         let teamData = [];
+        let selectedClasses = [];
 
         // Fetch all classes initially and store them
         $.ajax({
@@ -88,7 +89,7 @@
                 data: classData,
                 createTag: (params) => {
                     let term = $.trim(params.term);
-                    if (!term || classData.some(item => item.text.toLowerCase().includes(term))) return null;
+                    if (!term || classData.some(item => item.text.toLowerCase() === term.toLowerCase())) return null;
                     if (term.length > 100) return null;
                     return { id: term, text: `Add New Class: ${term}`, newTag: true };
                 },
@@ -101,7 +102,7 @@
             });
 
             $('#enrolledClasses').on('change', function () {
-                let selectedClasses = $(this).val();
+                selectedClasses = $(this).val() || [];
                 fetchTeamsForClasses(selectedClasses);
             });
 
@@ -109,38 +110,39 @@
         }
 
         // Initialize team dropdown
-            function initializeTeamDropdown() {
-                $('#team').select2({
-                    tags: true,
-                    placeholder: "Select or add a team",
-                    data: teamData,
-                    createTag: function (params) {
-                        let term = $.trim(params.term);
-                        let selectedClasses = $('#enrolledClasses').val();
+        function initializeTeamDropdown() {
+            $('#team').select2({
+                tags: true,
+                placeholder: "Select or add a team",
+                data: teamData,
+                createTag: function (params) {
+                    let term = $.trim(params.term);
+                    if (!term || selectedClasses.length === 0) return null;
 
-                        if (!term || selectedClasses.length === 0) return null;
+                    let newTags = [];
+                    selectedClasses.forEach(cls => {
+                        let fullTeamName = `${term} (${cls})`;
 
-                        let newTags = selectedClasses.map(cls => ({
-                            id: `${term} (${cls})`,
-                            text: `Add New Team: ${term} (${cls})`,
-                            newTag: true
-                        }));
+                        // Check if this team-class combination already exists
+                        if (!teamData.some(item => item.text === fullTeamName)) {
+                            newTags.push({ id: fullTeamName, text: `Add New Team: ${fullTeamName}`, newTag: true });
+                        }
+                    });
 
-                        return newTags;
-                    },
-                    insertTag: function (data, newTags) {
-                        newTags.forEach(tag => {
-                            if (!data.some(existingTag => existingTag.text === tag.text)) {
-                                data.push(tag);
-                            }
-                        });
-                    },
-                    templateSelection: function (data) {
-                        return data.newTag ? data.id : data.text;
-                    }
-                });
-            }
-
+                    return newTags.length > 0 ? newTags : null;
+                },
+                insertTag: function (data, newTags) {
+                    newTags.forEach(tag => {
+                        if (!data.some(existingTag => existingTag.text === tag.text)) {
+                            data.push(tag);
+                        }
+                    });
+                },
+                templateSelection: function (data) {
+                    return data.newTag ? data.id : data.text;
+                }
+            });
+        }
 
     });
 </script>
