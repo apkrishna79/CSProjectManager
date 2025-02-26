@@ -72,9 +72,11 @@ namespace CS_Project_Manager.Pages
             await _studentUserService.CreateUserAsync(newUser);
             var studentUserId = (await _studentUserService.GetUserByUsernameAsync(Username)).Id;
 
+            // Map classes to ObjectIds
+            var classIdMap = new Dictionary<string, ObjectId>();
+
             foreach (var className in EnrolledClasses)
             {
-                // Check if the class already exists
                 var existingClass = await _classes.Find(c => c.Name == className).FirstOrDefaultAsync();
                 ObjectId classId;
 
@@ -85,57 +87,64 @@ namespace CS_Project_Manager.Pages
                         Name = className,
                         EnrolledStudents = new List<ObjectId> { studentUserId }
                     };
-                    // Insert new class since it doesn't exist
                     await _classes.InsertOneAsync(newClass);
                     classId = newClass.Id;
                 }
                 else
                 {
                     classId = existingClass.Id;
-                    // If class exists, ensure the student is added to its EnrolledStudents list
+
                     if (!existingClass.EnrolledStudents.Contains(studentUserId))
                     {
                         var update = Builders<Class>.Update.AddToSet(c => c.EnrolledStudents, studentUserId);
-                        await _classes.UpdateOneAsync(c => c.Name == className, update);
+                        await _classes.UpdateOneAsync(c => c.Id == classId, update);
                     }
                 }
 
-                // Handle team assignment
-                foreach (var teamSelection in Teams)
+                classIdMap[className] = classId;
+            }
+
+            // Handle team assignment
+            foreach (var teamSelection in Teams)
+            {
+                if (!teamSelection.Contains("(") || !teamSelection.Contains(")"))
+                    continue; // Skip invalid formats
+
+                var teamName = teamSelection.Split(" (")[0]; // Extract just the team name
+                var className = teamSelection.Split(" (")[1].TrimEnd(')'); // Extract the class name
+
+                if (!classIdMap.TryGetValue(className, out ObjectId classId))
                 {
-                    if (!teamSelection.Contains('(') || !teamSelection.Contains(')'))
-                        continue; // Skip invalid formats
-
-                    var teamName = teamSelection.Split(" (")[0]; // Extract just the team name
-
-                    var existingTeam = await _teams.Find(t => t.Name == teamName && t.AssociatedClass == classId)
-                                                   .FirstOrDefaultAsync();
-
-                    if (existingTeam == null)
-                    {
-                        var newTeam = new Team
-                        {
-                            Name = teamName,
-                            AssociatedClass = classId,
-                            Members = [studentUserId]
-                        };
-                        await _teams.InsertOneAsync(newTeam);
-                    }
-                    else
-                    {
-                        if (!existingTeam.Members.Contains(studentUserId))
-                        {
-                            var update = Builders<Team>.Update.AddToSet(t => t.Members, studentUserId);
-                            await _teams.UpdateOneAsync(t => t.Id == existingTeam.Id, update);
-                        }
-                    }
+                    continue; // Skip if the class isn't valid
                 }
 
+                var existingTeam = await _teams.Find(t => t.Name == teamName && t.AssociatedClass == classId)
+                                               .FirstOrDefaultAsync();
 
+                if (existingTeam == null)
+                {
+                    var newTeam = new Team
+                    {
+                        Name = teamName,
+                        AssociatedClass = classId,
+                        Members = new List<ObjectId> { studentUserId }
+                    };
+                    await _teams.InsertOneAsync(newTeam);
+                }
+                else
+                {
+                    if (!existingTeam.Members.Contains(studentUserId))
+                    {
+                        var update = Builders<Team>.Update.AddToSet(t => t.Members, studentUserId);
+                        await _teams.UpdateOneAsync(t => t.Id == existingTeam.Id, update);
+                    }
+                }
             }
 
             return RedirectToPage("/Dashboard");
         }
+
+
 
         public async Task<IActionResult> OnGetGetClassesAsync()
         {
