@@ -11,16 +11,16 @@ namespace CS_Project_Manager.Pages
 {
     public class RegisterModel : PageModel
     {
-        private readonly IMongoCollection<Class> _classes;
         private readonly IMongoCollection<Team> _teams;
         private readonly StudentUserService _studentUserService;
+        private readonly ClassService _classService;
 
-        public RegisterModel(IMongoClient client, StudentUserService studentUserService)
+        public RegisterModel(IMongoClient client, StudentUserService studentUserService, ClassService classService)
         {
             var database = client.GetDatabase("CSProMan");
-            _classes = database.GetCollection<Class>("Classes");
             _teams = database.GetCollection<Team>("Teams");
             _studentUserService = studentUserService;
+            _classService = classService;
         }
 
         [BindProperty]
@@ -78,14 +78,14 @@ namespace CS_Project_Manager.Pages
             };
 
             await _studentUserService.CreateUserAsync(newUser);
-            var studentUserId = (await _studentUserService.GetUserByUsernameAsync(Username)).Id;
+            var studentUserId = newUser.Id;
 
             // Map classes to ObjectIds
             var classIdMap = new Dictionary<string, ObjectId>();
 
             foreach (var className in EnrolledClasses)
             {
-                var existingClass = await _classes.Find(c => c.Name == className).FirstOrDefaultAsync();
+                var existingClass = await _classService.GetClassByNameAsync(className);
                 ObjectId classId;
 
                 if (existingClass == null)
@@ -95,7 +95,7 @@ namespace CS_Project_Manager.Pages
                         Name = className,
                         EnrolledStudents = new List<ObjectId> { studentUserId }
                     };
-                    await _classes.InsertOneAsync(newClass);
+                    await _classService.CreateClassAsync(newClass);
                     classId = newClass.Id;
                 }
                 else
@@ -104,8 +104,7 @@ namespace CS_Project_Manager.Pages
 
                     if (!existingClass.EnrolledStudents.Contains(studentUserId))
                     {
-                        var update = Builders<Class>.Update.AddToSet(c => c.EnrolledStudents, studentUserId);
-                        await _classes.UpdateOneAsync(c => c.Id == classId, update);
+                        await _classService.AddStudentToClassAsync(classId, studentUserId);
                     }
                 }
 
@@ -156,18 +155,13 @@ namespace CS_Project_Manager.Pages
 
         public async Task<IActionResult> OnGetGetClassesAsync()
         {
-            var classList = await _classes.Find(_ => true).ToListAsync();
+            var classList = await _classService.GetAllClasses();
             return new JsonResult(classList.Select(c => new { name = c.Name }));
         }
 
         public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string[] cs)
         {
-            var classMapping = await _classes
-                .Find(c => cs.Contains(c.Name))
-                .Project(c => new { c.Id, c.Name })
-                .ToListAsync();
-
-            var classIdToName = classMapping.ToDictionary(c => c.Id, c => c.Name);
+            var classIdToName = await _classService.GetClassIdToName(cs);
 
             var teamsForSelectedClasses = await _teams
                 .Find(t => classIdToName.Keys.Contains(t.AssociatedClass))

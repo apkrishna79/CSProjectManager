@@ -3,19 +3,10 @@ using CS_Project_Manager.Models;
 
 namespace CS_Project_Manager.Services
 {
-    public class StudentUserService
+    public class StudentUserService(MongoDBService mongoDBService)
     {
-        // MongoDB collection that stores User documents
-        private readonly IMongoCollection<StudentUser> _studentUsers;
-
-        public StudentUserService(MongoDBService mongoDBService)
-        {
-            _studentUsers = mongoDBService.GetCollection<StudentUser>("StudentUsers"); 
-        }
-
-        // Retrieves a User document based on the provided email; returns null if not found
-        public async Task<StudentUser> GetUserByEmailAsync(string email) =>
-            await _studentUsers.Find(user => user.Email == email).FirstOrDefaultAsync();
+        // MongoDB collection that stores StudentUser documents
+        private readonly IMongoCollection<StudentUser> _studentUsers = mongoDBService.GetCollection<StudentUser>("StudentUsers");
 
         // Retrieves a User document based on the provided username; returns null if not found
         public async Task<StudentUser> GetUserByUsernameAsync(string username)
