@@ -109,12 +109,38 @@
         }
 
         // Initialize team dropdown
-        function initializeTeamDropdown() {
-            $('#team').select2({
-                placeholder: "Select a team",
-                data: teamData
-            });
-        }
+            function initializeTeamDropdown() {
+                $('#team').select2({
+                    tags: true,
+                    placeholder: "Select or add a team",
+                    data: teamData,
+                    createTag: function (params) {
+                        let term = $.trim(params.term);
+                        let selectedClasses = $('#enrolledClasses').val();
+
+                        if (!term || selectedClasses.length === 0) return null;
+
+                        let newTags = selectedClasses.map(cls => ({
+                            id: `${term} (${cls})`,
+                            text: `Add New Team: ${term} (${cls})`,
+                            newTag: true
+                        }));
+
+                        return newTags;
+                    },
+                    insertTag: function (data, newTags) {
+                        newTags.forEach(tag => {
+                            if (!data.some(existingTag => existingTag.text === tag.text)) {
+                                data.push(tag);
+                            }
+                        });
+                    },
+                    templateSelection: function (data) {
+                        return data.newTag ? data.id : data.text;
+                    }
+                });
+            }
+
 
     });
 </script>
