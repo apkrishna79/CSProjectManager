@@ -34,12 +34,12 @@
 
     <div>
         <label>Enrolled Classes</label>
-        <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;" maxlength="100"></select>
+        <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;"></select>
     </div>
 
     <div>
-        <label>Groups</label>
-        <select id="groups" name="Groups" multiple="multiple" style="width: 100%;"></select>
+        <label>Team</label>
+        <select id="team" name="Team" multiple="multiple" style="width: 100%;"></select>
     </div>
 
     <button type="submit">Register</button>
@@ -52,6 +52,7 @@
 <script>
     $(document).ready(function () {
         let classData = [];
+        let teamData = [];
 
         // Fetch all classes initially and store them
         $.ajax({
@@ -63,31 +64,34 @@
             }
         });
 
+        // Fetch teams for the selected classes
+        function fetchTeamsForClasses(selectedClasses) {
+            console.log("Selected Classes:", selectedClasses);
+            $.ajax({
+                type: 'get',
+                url: '/Register?handler=GetTeamsForClasses',
+                data: { "cs": selectedClasses },
+                traditional: true,
+                success: function (data) {
+                    teamData = data.map(item => ({ id: item.name, text: item.name }));
+                    initializeTeamDropdown();
+                }
+            });
+        }
+
+        // Initialize class dropdown
         function initializeClassDropdown() {
             $('#enrolledClasses').select2({
                 tags: true,
                 placeholder: "Select or add a class",
                 data: classData,
-
-                matcher: (params, data) => {
-                    let term = $.trim(params.term).toLowerCase();
-                    return term === '' || data.text.toLowerCase().includes(term) ? data : null;
-                },
-
                 createTag: (params) => {
                     let term = $.trim(params.term);
                     if (!term || classData.some(item => item.text.toLowerCase().includes(term))) return null;
-
-                    // Enforce character limit
-                    if (term.length > 100) {
-                        return null;
-                    }
-
+                    if (term.length > 100) return null;
                     return { id: term, text: `Add New Class: ${term}`, newTag: true };
                 },
-
                 templateSelection: (data) => data.newTag ? data.id : data.text,
-
                 insertTag: (data, tag) => {
                     if (!data.some(existingTag => existingTag.text === tag.text)) {
                         data.unshift(tag);
@@ -95,21 +99,22 @@
                 }
             });
 
-            
+            $('#enrolledClasses').on('change', function () {
+                let selectedClasses = $(this).val();
+                fetchTeamsForClasses(selectedClasses);
+            });
+
             $('#enrolledClasses').trigger('change');
         }
 
-        $('#groups').select2({
-            tags: true,
-            placeholder: "Select or add a group",
-            ajax: {
-                url: () => '/Register?handler=GetTeams&classNames=' + encodeURIComponent($('#enrolledClasses').val()),
-                dataType: 'json',
-                processResults: (data) => ({
-                    results: data.map(item => ({ id: item.id, text: item.name }))
-                })
-            }
-        });
+        // Initialize team dropdown
+        function initializeTeamDropdown() {
+            $('#team').select2({
+                placeholder: "Select a team",
+                data: teamData
+            });
+        }
+
     });
 </script>
 

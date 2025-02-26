@@ -1,11 +1,8 @@
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using CS_Project_Manager.Utilities;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Security.Claims;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
@@ -52,9 +49,6 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty]
         public List<string> EnrolledClasses { get; set; } = [];
-
-        [BindProperty]
-        public List<string> Groups { get; set; } = [];
 
         public async Task<IActionResult> OnPostAsync()
         {
@@ -109,13 +103,20 @@ namespace CS_Project_Manager.Pages
             return new JsonResult(classList.Select(c => new { name = c.Name }));
         }
 
-        public async Task<IActionResult> OnGetGetTeamsAsync([FromQuery] List<string> classNames)
+        public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string[] cs)
         {
-            Console.WriteLine("Recieved GetClasses request...");
-            var teamsList = await _teams.Find(t => classNames.Contains(t.AssociatedClass)).ToListAsync();
-            return new JsonResult(teamsList.Select(t => new { id = t.Id, name = t.Name }));
+            var classIds = await _classes
+                .Find(c => cs.Contains(c.Name))
+                .Project(c => c.Id)
+                .ToListAsync();
+
+            var teamsForSelectedClasses = await _teams
+                .Find(t => classIds.Contains(t.AssociatedClass))
+                .ToListAsync();
+
+            var teamList = teamsForSelectedClasses.Select(t => new { name = t.Name }).ToList();
+
+            return new JsonResult(teamList);
         }
-
-
     }
 }
