@@ -1,8 +1,8 @@
 /*
  * Prologue: Program.cs
- * Programmers: Anakha Krishna, Ginny Ke
+ * Programmers: Anakha Krishna, Ginny Ke, Jackson Wunderlich
  * Date Created: 2/13/25
- * Date Revised: 2/21/25 - GK
+ * Date Revised: 2/27/25 - JW
  * Purpose: Configures and starts the web application using ASP.NET Core with Razor Pages.
  *
  * Preconditions:
