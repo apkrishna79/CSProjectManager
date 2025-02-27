@@ -68,6 +68,7 @@ builder.Services.AddSingleton<IMongoClient>(sp => { return new MongoClient(conne
 builder.Services.AddScoped<StudentUserService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<TeamService>();
+builder.Services.AddScoped<ProjectService>();
 
 var app = builder.Build(); // Build app from configured builder
 
