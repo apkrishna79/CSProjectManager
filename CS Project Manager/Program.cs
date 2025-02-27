@@ -33,7 +33,8 @@
  */
 
 
-using CS_Project_Manager.Services; // integrates services file for database connection
+using CS_Project_Manager.Services;
+using MongoDB.Driver; // integrates services file for database connection
 
 var builder = WebApplication.CreateBuilder(args); // Create web application builder instance to initialize the application
 
@@ -50,6 +51,11 @@ const string connectionUri = "mongodb+srv://ginnyk10:Gk7856212727%24@csproman.v6
 
 // Registers MongoDBService as a singleton, providing database connectivity throughout the application
 builder.Services.AddSingleton(new MongoDBService(connectionUri));
+builder.Services.AddSingleton<IMongoClient>(sp => { return new MongoClient(connectionUri);  });
+
+builder.Services.AddScoped<StudentUserService>();
+builder.Services.AddScoped<ClassService>();
+builder.Services.AddScoped<TeamService>();
 
 var app = builder.Build(); // Build app from configured builder
 
