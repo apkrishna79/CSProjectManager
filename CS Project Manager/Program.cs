@@ -34,9 +34,21 @@
 
 
 using CS_Project_Manager.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using MongoDB.Driver; // integrates services file for database connection
 
 var builder = WebApplication.CreateBuilder(args); // Create web application builder instance to initialize the application
+
+// Add services to the container
+// Configures the application to use cookie-based authentication with specified login and logout paths
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options =>
+        {
+            options.LoginPath = "/Login";   // Redirects to /Login if the user is not authenticated
+            options.LogoutPath = "/Logout"; // Redirects to /Logout after the user logs out
+        });
+
+
 
 builder.Services.AddRazorPages(); // Register Razor Pages services in dependency injection container
 

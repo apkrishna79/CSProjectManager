@@ -22,6 +22,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -165,6 +168,16 @@ namespace CS_Project_Manager.Pages
                     }
                 }
             }
+
+            // Generate claims for the new user to support authentication
+            var claims = new List<Claim>
+                {
+                    new(ClaimTypes.Name, Username), // Claim for the user's name
+                };
+
+            // Create an identity and sign in the user automatically after registration
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             // Redirect the user to the dashboard after successful registration
             return RedirectToPage("/Dashboard");

@@ -7,3 +7,15 @@
 <div class="text-center">
     <h1 class="display-4">CS Project Manager Dashboard</h1>
 </div>
+
+<!-- Displaying user login status -->
+<div class="navbar-text">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <span>Hello, @User.Identity.Name!</span>
+    }
+    else
+    {
+        <span>Not logged in</span>
+    }
+</div>
