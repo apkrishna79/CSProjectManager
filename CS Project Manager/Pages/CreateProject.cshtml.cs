@@ -3,13 +3,13 @@
 Created By: Jackson Wunderlich
 Date Created: 2/19/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 2/26/25
+Date Revised: 3/1/25
 Purpose: Handles project creation
-Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Project model must be correctly defined
+Preconditions: MongoDBService, ProjectService, TeamService, ClassService instances properly initialized and injected; Project, Class, Team models must be correctly defined
 Postconditions: new project is created and stored in the database if the inputs are valid
 Error and exceptions: ArgumentNullException (required field empty)
 Side effects: N/A
-Invariants: _projectService field is always initialized with valid instance, OnPostAsync method always returns an IActionResult
+Invariants: _projectService, _teamService, _classService fields are always initialized with valid instance, OnPostAsync method always returns an IActionResult
 Other faults: N/A
 */
 
@@ -17,40 +17,73 @@ using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
 namespace CS_Project_Manager.Pages
 {
-    public class ProjectModel(ProjectService projectService) : PageModel
+    public class ProjectModel : PageModel
     {
-        // initializes injected service for operations using projects
-        private readonly ProjectService _projectService = projectService;
+        // initializes injected service for operations using projects, teams, and classes
+        private readonly ProjectService _projectService;
+        private readonly TeamService _teamService;
+        private readonly ClassService _classService;
+
+        // bound property for list of teams
+        [BindProperty]
+        public List<Team> Teams { get; set; }
 
         // creates bound properties for project creation form input
         [BindProperty]
         [Required]
         [MaxLength(100)]
-        public required string project_name { get; set; }
+        public required string ProjectName { get; set; }
 
         [BindProperty]
         [Required]
-        public required string description { get; set; }
+        public required string Description { get; set; }
 
         [BindProperty]
-        public List<string> StudentMembers { get; set; } = [];
+        [Required]
+        public required ObjectId SelectedTeamId { get; set; }
+
+        // dictionary to form team-class pairs for user input
+        public Dictionary<Team, string> TeamAndClass { get; set; } = [];
+
+        public ProjectModel(ProjectService projectService, TeamService teamService, ClassService classService)
+        {
+            // initialize services
+            _projectService = projectService;
+            _teamService = teamService;
+            _classService = classService;
+            // create list and dictionary needed for operations
+            Teams = new List<Team>();
+            TeamAndClass = new Dictionary<Team, string>();
+        }
+        
+        public async Task OnGetAsync()
+        {
+            Teams = await _teamService.GetAllTeamsAsync();
+            // create a dictionary with key: Team object and value: corresponding class name
+            foreach (var team in Teams)
+            {
+                var class_name = await _classService.GetClassByIdAsync(team.AssociatedClass);
+                TeamAndClass.Add(team, class_name.Name);
+            }
+        }
 
         // runs when the create project button is pressed
         public async Task<IActionResult> OnPostAsync()
         {
+            // creates a new project with the provided inputs
             var newProject = new Project
             {
-                project_name = "test",
-                description = "awesome",
-                StudentMembers = []
+                project_name = ProjectName,
+                description = Description,
+                AssociatedTeam = SelectedTeamId
             };
 
+            // adds the new project to database
             await _projectService.CreateProjectAsync(newProject);
 
             return RedirectToPage("/Dashboard");

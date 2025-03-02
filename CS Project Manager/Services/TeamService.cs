@@ -2,8 +2,8 @@
 * Prologue
 Created By: Isabel Loney
 Date Created: 2/25/25
-Last Revised By: Isabel Loney
-Date Revised: 2/26/25
+Last Revised By: Jackson Wunderlich
+Date Revised: 3/1/25
 Purpose: Provides data access methods for team-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, Teams table exists, Team model defined
@@ -27,6 +27,13 @@ namespace CS_Project_Manager.Services
         // Inserts a new Team document into the collection asynchronously
         public async Task CreateTeamAsync(Team team) =>
             await _teams.InsertOneAsync(team);
+
+        public async Task<List<Team>> GetAllTeamsAsync()
+        {
+            var filter = Builders<Team>.Filter.Empty;
+            var team_list = await _teams.Find(filter).ToListAsync();
+            return team_list;
+        }
 
         public async Task<Team> GetTeamByNameAndClassId(string teamName, ObjectId classId)
         {

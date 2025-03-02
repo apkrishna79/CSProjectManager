@@ -7,5 +7,24 @@
 <h1>Create Project</h1>
 
 <form method="post">
-    <button type="submit">Create Project</button>
+    <div>
+        <label>Project Name:</label>
+        <input asp-for="ProjectName" required maxlength="100" />
+    </div>
+
+    <div>
+        <label>Project Description:</label>
+        <textarea asp-for="Description" required></textarea>
+    </div>
+
+    <div>
+        <label>Team Working on this Project</label>
+        <select asp-for="SelectedTeamId">
+            @foreach (var team in Model.TeamAndClass)
+            {
+                <option value="@team.Key.Id">@team.Key.Name (@team.Value)</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Project</button>
 </form>

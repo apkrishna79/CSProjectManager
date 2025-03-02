@@ -3,7 +3,7 @@
 Created By: Jackson Wunderlich
 Date Created: 2/25/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 2/26/25
+Date Revised: 3/1/25
 Purpose: Provides data access methods for project-related operations in the MongoDB database
 Preconditions: MongoDB setup, Project table exists, Project model defined
 Postconditions: new Projects can be added, Projects can be retrieved by name and ID, a student can be added to a Project
@@ -38,13 +38,6 @@ namespace CS_Project_Manager.Services
         public async Task<Project> GetProjectById(ObjectId projectId)
         {
             return await _projects.Find(p => p.Id == projectId).FirstOrDefaultAsync();
-        }
-
-        // adds a student to the list of students in a Project given by the project ID and student ID
-        public async Task AddStudentToProjectAsync(ObjectId projectId, ObjectId studentId)
-        {
-            var update = Builders<Project>.Update.AddToSet(p => p.StudentMembers, studentId);
-            await _projects.UpdateOneAsync(p => p.Id == projectId, update);
         }
     }
 }

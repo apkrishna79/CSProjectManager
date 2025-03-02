@@ -13,6 +13,11 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         <span>Hello, @User.Identity.Name!</span>
+        <!-- need to access a user's projects to display them, which is a bit convoluted -->
+        <!-- userID -> check student lists in all teams until user is found -> get projects related to that team -->
+        <form method="get" asp-page="/CreateProject">
+            <button type="submit" class="btn btn-primary">Create Project</button>
+        </form>
     }
     else
     {

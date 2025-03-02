@@ -1,3 +1,4 @@
+using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CS_Project_Manager.Pages
@@ -6,12 +7,15 @@ namespace CS_Project_Manager.Pages
     {
         private readonly ILogger<DashboardModel> _logger;
 
-        public DashboardModel(ILogger<DashboardModel> logger)
+        private readonly ProjectService _projectService;
+
+        public DashboardModel(ILogger<DashboardModel> logger, ProjectService projectService)
         {
             _logger = logger;
+            _projectService = projectService;
         }
 
-        public void OnGet()
+        public void OnGetAsync()
         {
 
         }
