@@ -86,8 +86,9 @@ namespace CS_Project_Manager.Pages
             // adds the new project to database
             await _projectService.CreateProjectAsync(newProject);
 
-            return RedirectToPage("/Dashboard");
+            return RedirectToPage("/RequirementsStack", new { projectId = newProject.Id.ToString() });
+
         }
-        
+
     }
 }

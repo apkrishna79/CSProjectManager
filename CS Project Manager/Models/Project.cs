@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace CS_Project_Manager.Models
 {
@@ -20,5 +21,10 @@ namespace CS_Project_Manager.Models
         [Required]
         [BsonRepresentation(BsonType.ObjectId)]
         public required ObjectId AssociatedTeam { get; set; }
+
+        public List<Requirement> Requirements { get; set; } = new();
+
     }
+
+
 }
