@@ -2,8 +2,8 @@
 * Prologue
 Created By: Isabel Loney
 Date Created: 2/25/25
-Last Revised By: Isabel Loney
-Date Revised: 2/26/25
+Last Revised By: Anakha Krishna
+Date Revised: 3/2/25
 Purpose: Provides data access methods for user-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, StudentUsers table exists, StudentUser model defined
@@ -17,6 +17,7 @@ Other faults: N/A
 
 using MongoDB.Driver;  
 using CS_Project_Manager.Models;
+using MongoDB.Bson;
 
 namespace CS_Project_Manager.Services
 {
@@ -34,5 +35,11 @@ namespace CS_Project_Manager.Services
         // Inserts a new User document into the collection asynchronously
         public async Task CreateUserAsync(StudentUser user) =>
             await _studentUsers.InsertOneAsync(user);
+
+        public async Task UpdateUserEmailAsync(ObjectId studentId, string newEmail) =>
+            await _studentUsers.UpdateOneAsync(
+                u => u.Id == studentId,
+                Builders<StudentUser>.Update.Set(u => u.Email, newEmail)
+            );
     }
 }

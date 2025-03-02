@@ -1,0 +1,83 @@
+﻿@page
+@model AccountEditModel
+@{
+    ViewData["Title"] = "Account Edit";
+}
+
+<h2>Edit Account</h2>
+
+@if (!ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <p>@Model.ErrorMessage</p>
+    </div>
+}
+
+<form method="post" asp-page-handler="EmailChanged">
+    <div>
+        <label>Email</label>
+        <input asp-for="Email" type="email" maxlength="255" />
+    </div>
+    <button type="submit">Update email</button>
+</form>
+
+<h3>Enrolled Classes</h3>
+<ul>
+    @foreach (var enrolledClass in Model.EnrolledClasses)
+    {
+        <li>
+            @enrolledClass.Name
+            <form method="post" asp-page-handler="RemoveClass" style="display:inline;">
+                <input type="hidden" name="classId" value="@enrolledClass.Id" />
+                <button type="submit">Remove</button>
+            </form>
+        </li>
+    }
+</ul>
+
+<h3>Add Class</h3>
+<form method="post" asp-page-handler="AddClass">
+    <select asp-for="SelectedClassId">
+        @foreach (var availableClass in Model.AvailableClasses)
+        {
+            <option value="@availableClass.Id">@availableClass.Name</option>
+        }
+    </select>
+    <button type="submit">Add Class</button>
+</form>
+
+<h3>Teams</h3>
+<ul>
+    @foreach (var team in Model.Teams)
+    {
+        <li>
+            @team.Name (@Model.ClassIdToName[team.AssociatedClass])
+            <form method="post" asp-page-handler="RemoveTeam" style="display:inline;">
+                <input type="hidden" name="teamId" value="@team.Id" />
+                <button type="submit">Remove</button>
+            </form>
+        </li>
+    }
+</ul>
+
+<h3>Add Team</h3>
+<form method="post" asp-page-handler="AddTeam">
+    <select asp-for="SelectedTeamId">
+        @foreach (var team in Model.AvailableTeams)
+        {
+            <option value="@team.Id">@team.Name</option>
+        }
+    </select>
+    <button type="submit">Add Team</button>
+</form>
+<a href="/Account" class="btn btn-primary">Back to account page</a>

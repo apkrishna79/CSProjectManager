@@ -1,0 +1,74 @@
+﻿@page
+@model CS_Project_Manager.Pages.AccountModel
+@{
+    ViewData["Title"] = "Account";
+}
+
+<h1>Account</h1>
+
+@if (Model.StudentUser != null)
+{
+    <form method="get">
+        <center>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Username</th>
+                    <td>@Model.StudentUser.Username</td>
+                </tr>
+                <tr>
+                    <th>First Name</th>
+                    <td>@Model.StudentUser.FirstName</td>
+                </tr>
+                <tr>
+                    <th>Last Name</th>
+                    <td>@Model.StudentUser.LastName</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>@Model.StudentUser.Email</td>
+                </tr>
+                <tr>
+                    <th>Enrolled Classes</th>
+                    <td>
+                        @if (Model.EnrolledClasses.Count > 0)
+                        {
+                            <ul>
+                                @foreach (var cls in Model.EnrolledClasses)
+                                {
+                                    <li>@cls.Name</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p>No enrolled classes.</p>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th>Team</th>
+                    <td>
+                        @if (Model.Teams.Count > 0)
+                        {
+                            <ul>
+                                @foreach (var team in Model.Teams)
+                                {
+                                    <li>@team.Name (@Model.ClassIdToName[team.AssociatedClass])</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p>No team assigned.</p>
+                        }
+                    </td>
+                </tr>
+            </table>
+            <a href="@Url.Page("/AccountEdit")" class="btn btn-primary">Edit Details</a>
+        </center>
+    </form>
+}
+else
+{
+    <p>User not found or not logged in.</p>
+}
