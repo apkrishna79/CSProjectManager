@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Prologue
 Created By: Isabel Loney
 Date Created: 2/25/25
@@ -32,6 +32,12 @@ namespace CS_Project_Manager.Services
         public async Task<Class> GetClassByNameAsync(string name)
         {
             return await _classes.Find(c => c.Name == name).FirstOrDefaultAsync();
+        }
+
+        // gets a class by its ObjectId
+        public async Task<Class> GetClassByIdAsync(ObjectId id)
+        {
+            return await _classes.Find(c => c.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task AddStudentToClassAsync(ObjectId classId, ObjectId studentId)

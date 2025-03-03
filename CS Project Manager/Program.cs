@@ -1,8 +1,8 @@
 /*
  * Prologue: Program.cs
- * Programmers: Anakha Krishna, Ginny Ke
+ * Programmers: Anakha Krishna, Ginny Ke, Jackson Wunderlich
  * Date Created: 2/13/25
- * Date Revised: 2/21/25 - GK
+ * Date Revised: 2/27/25 - JW
  * Purpose: Configures and starts the web application using ASP.NET Core with Razor Pages.
  *
  * Preconditions:
@@ -68,6 +68,7 @@ builder.Services.AddSingleton<IMongoClient>(sp => { return new MongoClient(conne
 builder.Services.AddScoped<StudentUserService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<TeamService>();
+builder.Services.AddScoped<ProjectService>();
 
 var app = builder.Build(); // Build app from configured builder
 

@@ -1,0 +1,76 @@
+﻿@page
+@model RequirementsStackModel
+@{
+    ViewData["Title"] = "Requirements Stack";
+}
+
+<h1>Requirements Stack</h1>
+
+<table id="requirementsTable" class="table">
+    <thead>
+        <tr>
+            <th>Requirement ID</th>
+            <th>Description</th>
+            <th>Story Points</th>
+            <th>Priority</th>
+            <th>Sprint No.</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var requirement in Model.Requirements)
+        {
+            <tr>
+                <td><input type="text" value="@requirement.RequirementID" class="form-control" /></td>
+                <td><input type="text" value="@requirement.Description" class="form-control" /></td>
+                <td><input type="number" value="@requirement.StoryPoints" class="form-control" /></td>
+                <td><input type="text" value="@requirement.Priority" class="form-control" /></td>
+                <td><input type="number" value="@requirement.SprintNo" class="form-control" /></td>
+                <td>
+                    <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" onclick="addRequirement()">Add Requirement</button>
+
+<script>
+    function addRequirement() {
+        let table = document.getElementById("requirementsTable").getElementsByTagName('tbody')[0];
+        let newRow = table.insertRow();
+        
+        for (let i = 0; i < 5; i++) {
+            let cell = newRow.insertCell(i);
+            cell.innerHTML = '<input type="text" class="form-control">';
+        }
+
+        let actionsCell = newRow.insertCell(5);
+        actionsCell.innerHTML = `
+            <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
+            <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
+        `;
+    }
+
+    function removeRequirement(button) {
+        let row = button.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+    }
+
+    function updateRequirement(button) {
+        let row = button.parentNode.parentNode;
+        let cells = row.getElementsByTagName('input');
+
+        let updatedRequirement = {
+            RequirementID: cells[0].value,
+            Description: cells[1].value,
+            StoryPoints: cells[2].value,
+            Priority: cells[3].value,
+            SprintNo: cells[4].value
+        };
+
+        console.log("Updated Requirement:", updatedRequirement);
+    }
+</script>
