@@ -1,9 +1,9 @@
-﻿/*
+/*
 * Prologue
 Created By: Isabel Loney
 Date Created: 2/25/25
-Last Revised By: Jackson Wunderlich
-Date Revised: 3/1/25
+Last Revised By: Anakha Krishna
+Date Revised: 3/2/25
 Purpose: Provides data access methods for team-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, Teams table exists, Team model defined
@@ -51,6 +51,29 @@ namespace CS_Project_Manager.Services
         {
             var update = Builders<Team>.Update.AddToSet(t => t.Members, studentId);
             await _teams.UpdateOneAsync(t => t.Id == teamId, update);
+        }
+
+        public async Task<List<Team>> GetTeamsByStudentIdAsync(ObjectId studentId)
+        {
+            return await _teams
+                .Find(t => t.Members.Contains(studentId)) // Check if studentId is in the members array
+                .ToListAsync();
+        }
+
+        public async Task<List<Team>> GetAllTeams()
+        {
+            return await _teams.Find(_ => true).ToListAsync();
+        }
+
+        public async Task RemoveStudentFromTeamAsync(ObjectId teamId, ObjectId studentId)
+        {
+            var update = Builders<Team>.Update.Pull(t => t.Members, studentId);
+            await _teams.UpdateOneAsync(t => t.Id == teamId, update);
+        }
+
+        public async Task<Team> GetTeamByIdAsync(ObjectId teamId)
+        {
+            return await _teams.Find(t => t.Id == teamId).FirstOrDefaultAsync();
         }
     }
 }
