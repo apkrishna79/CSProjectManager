@@ -21,10 +21,10 @@
         @foreach (var requirement in Model.Requirements)
         {
             <tr>
-                <td><input type="number" value="@requirement.RequirementID" class="form-control" /></td>
+                <td><input type="text" value="@requirement.RequirementID" class="form-control" /></td>
                 <td><input type="text" value="@requirement.Description" class="form-control" /></td>
                 <td><input type="number" value="@requirement.StoryPoints" class="form-control" /></td>
-                <td><input type="number" value="@requirement.Priority" class="form-control" /></td>
+                <td><input type="text" value="@requirement.Priority" class="form-control" /></td>
                 <td><input type="number" value="@requirement.SprintNo" class="form-control" /></td>
                 <td>
                     <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
@@ -41,7 +41,7 @@
     function addRequirement() {
         let table = document.getElementById("requirementsTable").getElementsByTagName('tbody')[0];
         let newRow = table.insertRow();
-
+        
         for (let i = 0; i < 5; i++) {
             let cell = newRow.insertCell(i);
             cell.innerHTML = '<input type="text" class="form-control">';
@@ -49,9 +49,9 @@
 
         let actionsCell = newRow.insertCell(5);
         actionsCell.innerHTML = `
-                <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
-                <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
-            `;
+            <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
+            <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
+        `;
     }
 
     function removeRequirement(button) {

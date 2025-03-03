@@ -39,62 +39,57 @@ namespace CS_Project_Manager.Pages
             _projectService = projectService;
         }
 
+        // Handles the GET request to load the project and its requirements
         public async Task<IActionResult> OnGetAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId))
             {
                 return NotFound();
             }
-
             ProjectId = projectId;
             CurrentProject = await _projectService.GetProjectById(new ObjectId(ProjectId));
-
             if (CurrentProject == null)
             {
                 return NotFound();
             }
-
             Requirements = CurrentProject.Requirements ?? new List<Requirement>();
-
             return Page();
         }
 
+        // Handles POST request to add a new requirement to the project
         public async Task<IActionResult> OnPostAddRequirementAsync(Requirement newRequirement)
         {
             if (string.IsNullOrEmpty(ProjectId))
             {
                 return NotFound();
             }
-
             await _projectService.AddRequirementAsync(new ObjectId(ProjectId), newRequirement);
             return RedirectToPage(new { projectId = ProjectId });
         }
 
+        // Handles POST request to remove an existing requirement from the project
         public async Task<IActionResult> OnPostRemoveRequirementAsync(string requirementId)
         {
             if (string.IsNullOrEmpty(ProjectId))
             {
                 return NotFound();
             }
-
             await _projectService.RemoveRequirementAsync(new ObjectId(ProjectId), requirementId);
             return RedirectToPage(new { projectId = ProjectId });
         }
 
+        // Handles POST request to update an existing requirement in the project
         public async Task<IActionResult> OnPostUpdateRequirementAsync(Requirement requirement)
         {
             if (string.IsNullOrEmpty(ProjectId))
             {
                 return NotFound();
             }
-
             var project = await _projectService.GetProjectById(new ObjectId(ProjectId));
-
             if (project == null)
             {
                 return NotFound();
             }
-
             var existingRequirement = project.Requirements.FirstOrDefault(r => r.RequirementID == requirement.RequirementID);
             if (existingRequirement != null)
             {
@@ -105,7 +100,6 @@ namespace CS_Project_Manager.Pages
 
                 await _projectService.UpdateProjectAsync(project);
             }
-
             return RedirectToPage(new { projectId = ProjectId });
         }
     }
