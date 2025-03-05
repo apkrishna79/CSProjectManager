@@ -2,7 +2,7 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 2/25/25
-Last Revised By: Dylan Sailors
+Last Revised By: Jackson Wunderlich
 Date Revised: 3/2/25
 Revision: Added support to add requirements to a project along with updating it and removing it
 Purpose: Provides data access methods for project-related operations in the MongoDB database
@@ -43,6 +43,13 @@ namespace CS_Project_Manager.Services
         {
             var filter = Builders<Project>.Filter.Eq(p => p.Id, updatedProject.Id);
             await _projects.ReplaceOneAsync(filter, updatedProject);
+        }
+
+        public async Task<List<Project>> GetProjectsByTeamIdAsync(ObjectId teamId)
+        {
+            var filter = Builders<Project>.Filter.Eq(p => p.AssociatedTeam, teamId);
+            var projects = await _projects.Find(filter).ToListAsync();
+            return projects;
         }
 
         // Adds a new requirement to a project
