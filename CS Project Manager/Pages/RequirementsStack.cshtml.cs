@@ -40,20 +40,36 @@ namespace CS_Project_Manager.Pages
         }
 
         // Handles the GET request to load the project and its requirements
-        public async Task<IActionResult> OnGetAsync(string projectId)
+        public async Task<IActionResult> OnGetAsync()
         {
-            if (string.IsNullOrEmpty(projectId))
+            var path = Request.QueryString.ToString();
+            var index = path.IndexOf("=") + 1;
+            var projId = path.Substring(index);
+            Console.WriteLine(projId);
+            if (string.IsNullOrEmpty(projId))
             {
                 return NotFound();
             }
-            ProjectId = projectId;
-            CurrentProject = await _projectService.GetProjectById(new ObjectId(ProjectId));
+            ProjectId = projId;
+            CurrentProject = await _projectService.GetProjectById(ObjectId.Parse(projId));
             if (CurrentProject == null)
             {
                 return NotFound();
             }
             Requirements = CurrentProject.Requirements ?? new List<Requirement>();
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostUpdateStackAsync()
+        {
+            var project = await _projectService.GetProjectById(CurrentProject.Id);
+            await _projectService.RemoveAllRequirementsAsync(CurrentProject.Id);
+            foreach (var requirement in Requirements)
+            {
+                Console.Write(CurrentProject.Id);
+                await _projectService.AddRequirementAsync(CurrentProject.Id, requirement);
+            }
+            return RedirectToPage("/RequirementsStack", ProjectId);
         }
 
         // Handles POST request to add a new requirement to the project

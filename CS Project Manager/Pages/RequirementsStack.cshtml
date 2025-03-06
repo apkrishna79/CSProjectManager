@@ -34,8 +34,10 @@
         }
     </tbody>
 </table>
-
 <button class="btn btn-primary" onclick="addRequirement()">Add Requirement</button>
+<form method="post">
+    <button type="submit" class="btn btn-primary" formaction="/RequirementsStack?handler=UpdateStack">Update Stack</button>
+</form>
 
 <script>
     function addRequirement() {
