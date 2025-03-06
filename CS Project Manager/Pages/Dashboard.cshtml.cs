@@ -2,8 +2,7 @@ using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MongoDB.Bson;
-using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -18,6 +17,7 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public List<Team> Teams { get; set; }
 
+        [BindProperty]
         public List<Project> Projects { get; set; }
 
         private readonly ILogger<DashboardModel> _logger;
@@ -35,7 +35,7 @@ namespace CS_Project_Manager.Pages
 
         public async void OnGetAsync()
         {
-            var username = User.Identity.Name;
+            var username = User.FindFirstValue(ClaimTypes.Name);
             var userObj = await _userService.GetUserByUsernameAsync(username);
             Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
             foreach (var team in Teams)
@@ -46,6 +46,7 @@ namespace CS_Project_Manager.Pages
                     Projects.Add(project);
                 }
             }
+            // this works
             // foreach (var project in Projects) { Console.WriteLine(project.project_name); }
         }
     }
