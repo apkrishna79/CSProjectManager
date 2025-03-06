@@ -33,7 +33,7 @@ namespace CS_Project_Manager.Pages
             Projects = new List<Project>();
         }
 
-        public async void OnGetAsync()
+        public async Task OnGetAsync()
         {
             var username = User.FindFirstValue(ClaimTypes.Name);
             var userObj = await _userService.GetUserByUsernameAsync(username);

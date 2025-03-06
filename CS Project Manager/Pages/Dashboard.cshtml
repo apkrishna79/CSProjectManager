@@ -14,6 +14,7 @@
     {
         <span>Hello, @User.Identity.Name!</span>
         <p>Your Projects</p>
+        <table>
         <thead>
             <tr>
                 <th>Project Name</th>
@@ -29,6 +30,7 @@
                 </tr>
             }
         </tbody>
+        </table>
         <form method="get" asp-page="/CreateProject">
             <button type="submit" class="btn btn-primary">Create Project</button>
         </form>
