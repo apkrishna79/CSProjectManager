@@ -23,18 +23,18 @@ namespace CS_Project_Manager.Services
 {
     public class ProjectService(MongoDBService mongoDBService)
     {
-        // MongoDB collection that stores Projects
+        // MongoDB collection that stores projects
         private readonly IMongoCollection<Project> _projects = mongoDBService.GetCollection<Project>("Projects");
 
-        // adds a new Project to the MongoDB collection
+        // adds a new project to the MongoDB collection
         public async Task CreateProjectAsync(Project newProj) =>
             await _projects.InsertOneAsync(newProj);
 
-        // gets a Project by the provided name, returns null if no project exists
+        // gets a project by the provided name, returns null if no project exists
         public async Task<Project?> GetProjectByNameAsync(string name) =>
             await _projects.Find(p => p.project_name == name).FirstOrDefaultAsync();
 
-        // gets a Project by the provided project ID, returns null if no project exists
+        // gets a project by the provided project ID, returns null if no project exists
         public async Task<Project?> GetProjectById(ObjectId projectId) =>
             await _projects.Find(p => p.Id == projectId).FirstOrDefaultAsync();
 
@@ -45,6 +45,7 @@ namespace CS_Project_Manager.Services
             await _projects.ReplaceOneAsync(filter, updatedProject);
         }
 
+        // gets all projects by a given team ID
         public async Task<List<Project>> GetProjectsByTeamIdAsync(ObjectId teamId)
         {
             var filter = Builders<Project>.Filter.Eq(p => p.AssociatedTeam, teamId);

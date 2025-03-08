@@ -1,3 +1,18 @@
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 2/16/25
+Last Revised By: Jackson Wunderlich
+Date Revised: 3/2/25
+Purpose: 
+
+Preconditions: MongoDBService, ProjectService, TeamService instances properly initialized and injected; Project and Team models must be correctly defined
+Postconditions: shows a user a list of their projects and allows them to create a new one
+Error and exceptions: ArgumentNullException: username is null or empty; MongoException: issue with the MongoDB connection or operation; InvalidOperationException: data cannot be retrieved
+Side effects: N/A
+Other faults: N/A
+*/
+
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +26,6 @@ namespace CS_Project_Manager.Pages
         private readonly ProjectService _projectService;
         private readonly TeamService _teamService;
         private readonly StudentUserService _userService;
-        // private readonly ClassService _classService;
 
         // bound property for list of teams and projects
         [BindProperty]
@@ -35,6 +49,7 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGetAsync()
         {
+            // gets a list of all projects related to the user
             var username = User.FindFirstValue(ClaimTypes.Name);
             var userObj = await _userService.GetUserByUsernameAsync(username);
             Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
@@ -46,8 +61,6 @@ namespace CS_Project_Manager.Pages
                     Projects.Add(project);
                 }
             }
-            // this works
-            // foreach (var project in Projects) { Console.WriteLine(project.project_name); }
         }
     }
 }
