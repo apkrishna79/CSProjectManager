@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/2/25
+Date Revised: 3/9/25 DS
 Purpose: Let users add/update/remove requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -28,7 +28,6 @@ namespace CS_Project_Manager.Pages
         private readonly RequirementService _requirementService;
         private readonly ProjectService _projectService;
 
-        // Bound properties for the form and existing requirements
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
 
@@ -73,8 +72,6 @@ namespace CS_Project_Manager.Pages
             {
                 return NotFound();
             }
-
-            // Get the updated requirement from the bound Requirements list
             var updatedRequirement = Requirements.Find(r => r.Id == id);
             if (updatedRequirement != null)
             {

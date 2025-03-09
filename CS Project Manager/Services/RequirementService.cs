@@ -1,16 +1,15 @@
 ﻿/*
 * Prologue
-Created By: Jackson Wunderlich
-Date Created: 2/25/25
+Created By: Dylan Sailors
+Date Created: 3/8/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/2/25
-Revision: Added support to add requirements to a project along with updating it and removing it
-Purpose: Provides data access methods for project-related operations in the MongoDB database
-Preconditions: MongoDB setup, Project table exists, Project model defined
-Postconditions: new Projects can be added, Projects can be retrieved by name and ID, a student can be added to a Project
-Error and exceptions: MongoDB.Driver.MongoException (thrown if there is an issue with the MongoDB connection or operations), ArgumentNullException (thrown if the email, username, or user parameter is null)
+Date Revised: 3/8/25
+Purpose: Provides data access methods for requirements-related operations in the MongoDB database
+Preconditions: MongoDB setup, Requirements table exists, RequirementsStack model defined
+Postconditions: new Requirements can be added, Requirements can be updated and removed
+Error and exceptions: MongoDB.Driver.MongoException (thrown if there is an issue with the MongoDB connection or operations)
 Side effects: N/A
-Invariants: _projects collection is always initialized with the "Projects" collection from the MongoDB database
+Invariants: _requirements collection is always initialized with the "Requirements" collection from the MongoDB database
 Other faults: N/A
 */
 
