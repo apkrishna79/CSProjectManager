@@ -18,7 +18,6 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
-using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -27,12 +26,7 @@ namespace CS_Project_Manager.Pages
     public class RequirementsStackModel : PageModel
     {
         private readonly RequirementService _requirementService;
-
-        public RequirementsStackModel(RequirementService requirementService)
-        {
-            _requirementService = requirementService;
-            Requirements = new List<Requirement>();
-        }
+        private readonly ProjectService _projectService;
 
         [BindProperty]
         public Requirement NewRequirement { get; set; } = new Requirement
@@ -40,73 +34,63 @@ namespace CS_Project_Manager.Pages
             Description = string.Empty
         };
 
-        public List<Requirement> Requirements { get; set; }
+        public List<Requirement> Requirements { get; set; } = new();
 
-        public async Task OnGetAsync(string projectId)
+        public ObjectId ProjectId { get; set; }
+
+        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService)
         {
-            if (!ObjectId.TryParse(projectId, out ObjectId projectObjectId))
-            {
-                Requirements = new List<Requirement>();
-                return;
-            }
-
-            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectObjectId);
+            _requirementService = requirementService;
+            _projectService = projectService;
         }
 
+        // Runs when the page is accessed (fetches requirements for a specific project)
+        public async Task<IActionResult> OnGetAsync(string projectId)
+        {
+            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
+            {
+                return BadRequest("Invalid project ID.");
+            }
 
+            ProjectId = parsedProjectId;
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(ProjectId);
 
+            return Page();
+        }
+
+        // Handler for adding a new requirement
         public async Task<IActionResult> OnPostAddAsync(string projectId)
         {
-            if (!ObjectId.TryParse(projectId, out ObjectId projectObjectId))
+            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
             {
-                return BadRequest("Invalid project ID");
+                return BadRequest("Invalid project ID.");
             }
 
-            if (!ModelState.IsValid)
-            {
-                await OnGetAsync(projectId);  // Ensure the page reloads with the correct project data
-                return Page();
-            }
+            NewRequirement.AssocProjectId = parsedProjectId;
+            await _requirementService.AddRequirementAsync(NewRequirement);
 
-            // Associate the new requirement with the project
-            NewRequirement.AssocProjectId = projectObjectId;
-
-            await _requirementService.CreateRequirementAsync(NewRequirement);
-            return RedirectToPage(new { projectId = projectId }); // Redirect with the projectId to keep context
+            return RedirectToPage(new { projectId });
         }
 
-
-        public async Task<IActionResult> OnPostUpdateAsync(string Id, int RequirementID, string Description, int StoryPoints, int Priority, int SprintNo)
+        // Handler for updating an existing requirement
+        public async Task<IActionResult> OnPostUpdateAsync(ObjectId id)
         {
-            if (!ObjectId.TryParse(Id, out ObjectId objectId))
+            var requirementToUpdate = await _requirementService.GetRequirementByIdAsync(id);
+            if (requirementToUpdate != null)
             {
-                return BadRequest("Invalid requirement ID");
+                // Update logic (e.g., fetch new values from a form if needed)
+                await _requirementService.UpdateRequirementAsync(requirementToUpdate);
             }
 
-            var updatedRequirement = new Requirement
-            {
-                Id = objectId,
-                RequirementID = RequirementID,
-                Description = Description,
-                StoryPoints = StoryPoints,
-                Priority = Priority,
-                SprintNo = SprintNo
-            };
-
-            await _requirementService.UpdateRequirementAsync(objectId, updatedRequirement);
-            return RedirectToPage();
+            return RedirectToPage(new { projectId = requirementToUpdate.AssocProjectId.ToString() });
         }
 
-        public async Task<IActionResult> OnPostRemoveAsync(string Id)
+        // Handler for removing an existing requirement
+        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id)
         {
-            if (!ObjectId.TryParse(Id, out ObjectId objectId))
-            {
-                return BadRequest("Invalid requirement ID");
-            }
+            await _requirementService.RemoveRequirementAsync(id);
 
-            await _requirementService.DeleteRequirementAsync(objectId);
-            return RedirectToPage();
+            return RedirectToPage(new { projectId = NewRequirement.AssocProjectId.ToString() });
         }
-
     }
 }

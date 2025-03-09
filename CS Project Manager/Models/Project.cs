@@ -22,6 +22,8 @@ namespace CS_Project_Manager.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public required ObjectId AssociatedTeam { get; set; }
 
+        public List<Requirement> Requirements { get; set; } = new();
+
     }
 
 

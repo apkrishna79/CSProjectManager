@@ -14,68 +14,50 @@ Invariants: _projects collection is always initialized with the "Projects" colle
 Other faults: N/A
 */
 
-using MongoDB.Driver;
 using CS_Project_Manager.Models;
-using System;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Bson;
 
 namespace CS_Project_Manager.Services
 {
     public class RequirementService
     {
-        private readonly IMongoCollection<Requirement> _requirementsCollection;
+        private readonly IMongoCollection<Requirement> _requirements;
 
-        public RequirementService(IMongoClient mongoClient)
+        public RequirementService(MongoDBService mongoDBService)
         {
-            var database = mongoClient.GetDatabase("CSProMan");
-            _requirementsCollection = database.GetCollection<Requirement>("requirements");
+            _requirements = mongoDBService.GetCollection<Requirement>("Requirements");
         }
 
-        // Create Requirement and associate with Project ID
-        public async Task CreateRequirementAsync(Requirement requirement)
-        {
-            if (requirement.AssocProjectId == ObjectId.Empty)
-            {
-                throw new ArgumentException("Requirement must be associated with a project.");
-            }
+        // Adds a new requirement to the collection
+        public async Task AddRequirementAsync(Requirement newRequirement) =>
+            await _requirements.InsertOneAsync(newRequirement);
 
-            await _requirementsCollection.InsertOneAsync(requirement);
+        // Gets all requirements for a specific project by project ID
+        public async Task<List<Requirement>> GetRequirementsByProjectIdAsync(ObjectId projectId)
+        {
+            var filter = Builders<Requirement>.Filter.Eq(r => r.AssocProjectId, projectId);
+            return await _requirements.Find(filter).ToListAsync();
         }
 
+        // Gets a requirement by its ID
+        public async Task<Requirement?> GetRequirementByIdAsync(ObjectId id) =>
+            await _requirements.Find(r => r.Id == id).FirstOrDefaultAsync();
 
-        // Get All Requirements for a Project
-        public async Task<List<Requirement>> GetRequirementsByProjectIdAsync(ObjectId projectObjectId)
+        // Updates a requirement
+        public async Task UpdateRequirementAsync(Requirement updatedRequirement)
         {
-            var filter = Builders<Requirement>.Filter.Eq(r => r.AssocProjectId, projectObjectId);
-            return await _requirementsCollection.Find(filter).ToListAsync();
+            var filter = Builders<Requirement>.Filter.Eq(r => r.Id, updatedRequirement.Id);
+            await _requirements.ReplaceOneAsync(filter, updatedRequirement);
         }
 
-
-        // Update Requirement
-        public async Task UpdateRequirementAsync(ObjectId id, Requirement updatedRequirement)
+        // Removes a requirement by its ID
+        public async Task RemoveRequirementAsync(ObjectId id)
         {
             var filter = Builders<Requirement>.Filter.Eq(r => r.Id, id);
-            var update = Builders<Requirement>.Update
-                .Set(r => r.Description, updatedRequirement.Description)
-                .Set(r => r.StoryPoints, updatedRequirement.StoryPoints)
-                .Set(r => r.Priority, updatedRequirement.Priority)
-                .Set(r => r.SprintNo, updatedRequirement.SprintNo);
-
-            var result = await _requirementsCollection.UpdateOneAsync(filter, update);
-            if (result.MatchedCount == 0)
-            {
-                throw new Exception($"Requirement with ID {id} not found.");
-            }
-        }
-
-
-        // Delete Requirement
-        public async Task DeleteRequirementAsync(ObjectId id)
-        {
-            var filter = Builders<Requirement>.Filter.Eq(r => r.Id, id);
-            await _requirementsCollection.DeleteOneAsync(filter);
+            await _requirements.DeleteOneAsync(filter);
         }
     }
 }
