@@ -46,33 +46,43 @@ namespace CS_Project_Manager.Pages
             _projectService = projectService;
         }
 
-        public async Task OnGetAsync(ObjectId projectId)
+        public async Task OnGetAsync(string projectId)
         {
-            ProjectId = projectId;
-            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
+            {
+                throw new ArgumentException("Invalid project ID format");
+            }
+            ProjectId = parsedProjectId;
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(parsedProjectId);
         }
 
-        public async Task<IActionResult> OnPostAddAsync()
+        // Add a new requirement
+        public async Task<IActionResult> OnPostAddAsync(ObjectId projectId)
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
-
+            ProjectId = projectId;
+            var project = await _projectService.GetProjectById(ProjectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
             NewRequirement.AssocProjectId = ProjectId;
             await _requirementService.AddRequirementAsync(NewRequirement);
             return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
 
         // Update an existing requirement
-        public async Task<IActionResult> OnPostUpdateAsync(ObjectId id)
+        public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
         {
             var existingRequirement = await _requirementService.GetRequirementByIdAsync(id);
             if (existingRequirement == null)
             {
                 return NotFound();
             }
-            var updatedRequirement = Requirements.Find(r => r.Id == id);
+            var updatedRequirement = Requirements.FirstOrDefault(r => r.Id == id);
             if (updatedRequirement != null)
             {
                 existingRequirement.RequirementID = updatedRequirement.RequirementID;
@@ -80,17 +90,22 @@ namespace CS_Project_Manager.Pages
                 existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
-
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
-
-            return RedirectToPage(new { projectId = ProjectId.ToString() });
+            return RedirectToPage(new { projectId = projectId.ToString() });
         }
 
-        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id)
+        // Remove an existing requirement
+        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
         {
+            var requirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (requirement == null)
+            {
+                return NotFound();
+            }
             await _requirementService.RemoveRequirementAsync(id);
-            return RedirectToPage(new { projectId = ProjectId.ToString() });
+            return RedirectToPage(new { projectId = projectId.ToString() });
         }
+
     }
 }

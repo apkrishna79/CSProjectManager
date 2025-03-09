@@ -4,6 +4,7 @@
 <h2>Requirements Stack</h2>
 
 <form method="post">
+    <input type="hidden" name="ProjectId" value="@Model.ProjectId" />
     <table class="table">
         <thead>
             <tr>
@@ -48,7 +49,6 @@
             {
                 <tr>
                     <input type="hidden" asp-for="Requirements[i].Id" />
-
                     <td><input asp-for="Requirements[i].RequirementID" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].Description" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
@@ -56,8 +56,16 @@
                     <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
 
                     <td>
-                        <button type="submit" asp-page-handler="Update" asp-route-id="@Model.Requirements[i].Id" class="btn btn-warning">Update</button>
-                        <button type="submit" asp-page-handler="Remove" asp-route-id="@Model.Requirements[i].Id" class="btn btn-danger">Remove</button>
+                        <button type="submit" asp-page-handler="Update"
+                                asp-route-id="@Model.Requirements[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-warning">Update
+                        </button>                        
+                        <button type="submit" asp-page-handler="Remove"
+                                asp-route-id="@Model.Requirements[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-danger">Remove
+                        </button>
                     </td>
                 </tr>
             }

@@ -81,9 +81,7 @@ namespace CS_Project_Manager.Pages
                 description = Description,
                 AssociatedTeam = SelectedTeamId
             };
-
             await _projectService.CreateProjectAsync(newProject);
-
             return RedirectToPage("/RequirementsStack", new { projectId = newProject.Id.ToString() });
         }
 

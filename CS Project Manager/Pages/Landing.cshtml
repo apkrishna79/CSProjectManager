@@ -1,14 +1,37 @@
-﻿@page
+﻿@* * Prologue
+Created By: Anakha Krishna
+Date Created: 2/25/25
+Last Revised By: Ginny Ke -- styling changes
+Date Revised: 3/08/25
+Purpose: Landing page for website with login and Register options.*@
+
+
+
+@page
 @model CS_Project_Manager.Pages.LandingModel
 @{
     ViewData["Title"] = "Welcome!";
 }
 
-<h1>Landing Page</h1>
-<form method="get" asp-page="/Login">
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
-<br />
-<form method="get" asp-page="/Register">
-    <button type="submit" class="btn btn-primary">Register</button>
-</form>
+<div class="container mt-5 text-center">
+    <!-- Hero Section -->
+    <div class="jumbotron bg-light p-4 rounded shadow">
+        <h1 class="display-4">Welcome to CS Project Manager</h1>
+        <p class="lead">Track, manage, and collaborate on computer science projects efficiently.</p>
+    </div>
+
+    <!-- Button Section -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h3>Get Started</h3>
+                <form method="get" asp-page="/Login">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Login</button>
+                </form>
+                <br />
+                <form method="get" asp-page="/Register">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
