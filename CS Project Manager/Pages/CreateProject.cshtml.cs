@@ -75,7 +75,6 @@ namespace CS_Project_Manager.Pages
         // runs when the create project button is pressed
         public async Task<IActionResult> OnPostAsync()
         {
-            // creates a new project with the provided inputs
             var newProject = new Project
             {
                 project_name = ProjectName,
@@ -83,12 +82,11 @@ namespace CS_Project_Manager.Pages
                 AssociatedTeam = SelectedTeamId
             };
 
-            // adds the new project to database
             await _projectService.CreateProjectAsync(newProject);
 
             return RedirectToPage("/RequirementsStack", new { projectId = newProject.Id.ToString() });
-
         }
+
 
     }
 }

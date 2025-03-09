@@ -44,25 +44,5 @@ namespace CS_Project_Manager.Services
             var filter = Builders<Project>.Filter.Eq(p => p.Id, updatedProject.Id);
             await _projects.ReplaceOneAsync(filter, updatedProject);
         }
-
-        // Adds a new requirement to a project
-        public async Task AddRequirementAsync(ObjectId projectId, Requirement newRequirement)
-        {
-            var project = await GetProjectById(projectId);
-            if (project == null) return;
-
-            project.Requirements.Add(newRequirement);
-            await UpdateProjectAsync(project);
-        }
-
-        // Removes a requirement from a project
-        public async Task RemoveRequirementAsync(ObjectId projectId, string requirementId)
-        {
-            var project = await GetProjectById(projectId);
-            if (project == null) return;
-
-            project.Requirements.RemoveAll(r => !string.IsNullOrEmpty(r.RequirementID) && r.RequirementID == requirementId);
-            await UpdateProjectAsync(project);
-        }
     }
 }

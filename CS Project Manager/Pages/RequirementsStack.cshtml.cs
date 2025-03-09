@@ -18,89 +18,95 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
 {
     public class RequirementsStackModel : PageModel
     {
-        private readonly ProjectService _projectService;
+        private readonly RequirementService _requirementService;
+
+        public RequirementsStackModel(RequirementService requirementService)
+        {
+            _requirementService = requirementService;
+            Requirements = new List<Requirement>();
+        }
 
         [BindProperty]
-        public string ProjectId { get; set; }
-
-        [BindProperty]
-        public Project? CurrentProject { get; set; }
-
-        public List<Requirement> Requirements { get; set; } = new List<Requirement>();
-
-        public RequirementsStackModel(ProjectService projectService)
+        public Requirement NewRequirement { get; set; } = new Requirement
         {
-            _projectService = projectService;
+            Description = string.Empty
+        };
+
+        public List<Requirement> Requirements { get; set; }
+
+        public async Task OnGetAsync(string projectId)
+        {
+            if (!ObjectId.TryParse(projectId, out ObjectId projectObjectId))
+            {
+                Requirements = new List<Requirement>();
+                return;
+            }
+
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectObjectId);
         }
 
-        // Handles the GET request to load the project and its requirements
-        public async Task<IActionResult> OnGetAsync(string projectId)
+
+
+        public async Task<IActionResult> OnPostAddAsync(string projectId)
         {
-            if (string.IsNullOrEmpty(projectId))
+            if (!ObjectId.TryParse(projectId, out ObjectId projectObjectId))
             {
-                return NotFound();
+                return BadRequest("Invalid project ID");
             }
-            ProjectId = projectId;
-            CurrentProject = await _projectService.GetProjectById(new ObjectId(ProjectId));
-            if (CurrentProject == null)
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                await OnGetAsync(projectId);  // Ensure the page reloads with the correct project data
+                return Page();
             }
-            Requirements = CurrentProject.Requirements ?? new List<Requirement>();
-            return Page();
+
+            // Associate the new requirement with the project
+            NewRequirement.AssocProjectId = projectObjectId;
+
+            await _requirementService.CreateRequirementAsync(NewRequirement);
+            return RedirectToPage(new { projectId = projectId }); // Redirect with the projectId to keep context
         }
 
-        // Handles POST request to add a new requirement to the project
-        public async Task<IActionResult> OnPostAddRequirementAsync(Requirement newRequirement)
+
+        public async Task<IActionResult> OnPostUpdateAsync(string Id, int RequirementID, string Description, int StoryPoints, int Priority, int SprintNo)
         {
-            if (string.IsNullOrEmpty(ProjectId))
+            if (!ObjectId.TryParse(Id, out ObjectId objectId))
             {
-                return NotFound();
+                return BadRequest("Invalid requirement ID");
             }
-            await _projectService.AddRequirementAsync(new ObjectId(ProjectId), newRequirement);
-            return RedirectToPage(new { projectId = ProjectId });
+
+            var updatedRequirement = new Requirement
+            {
+                Id = objectId,
+                RequirementID = RequirementID,
+                Description = Description,
+                StoryPoints = StoryPoints,
+                Priority = Priority,
+                SprintNo = SprintNo
+            };
+
+            await _requirementService.UpdateRequirementAsync(objectId, updatedRequirement);
+            return RedirectToPage();
         }
 
-        // Handles POST request to remove an existing requirement from the project
-        public async Task<IActionResult> OnPostRemoveRequirementAsync(string requirementId)
+        public async Task<IActionResult> OnPostRemoveAsync(string Id)
         {
-            if (string.IsNullOrEmpty(ProjectId))
+            if (!ObjectId.TryParse(Id, out ObjectId objectId))
             {
-                return NotFound();
+                return BadRequest("Invalid requirement ID");
             }
-            await _projectService.RemoveRequirementAsync(new ObjectId(ProjectId), requirementId);
-            return RedirectToPage(new { projectId = ProjectId });
+
+            await _requirementService.DeleteRequirementAsync(objectId);
+            return RedirectToPage();
         }
 
-        // Handles POST request to update an existing requirement in the project
-        public async Task<IActionResult> OnPostUpdateRequirementAsync(Requirement requirement)
-        {
-            if (string.IsNullOrEmpty(ProjectId))
-            {
-                return NotFound();
-            }
-            var project = await _projectService.GetProjectById(new ObjectId(ProjectId));
-            if (project == null)
-            {
-                return NotFound();
-            }
-            var existingRequirement = project.Requirements.FirstOrDefault(r => r.RequirementID == requirement.RequirementID);
-            if (existingRequirement != null)
-            {
-                existingRequirement.Description = requirement.Description;
-                existingRequirement.StoryPoints = requirement.StoryPoints;
-                existingRequirement.Priority = requirement.Priority;
-                existingRequirement.SprintNo = requirement.SprintNo;
-
-                await _projectService.UpdateProjectAsync(project);
-            }
-            return RedirectToPage(new { projectId = ProjectId });
-        }
     }
 }
