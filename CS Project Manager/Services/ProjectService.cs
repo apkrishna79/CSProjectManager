@@ -69,7 +69,6 @@ namespace CS_Project_Manager.Services
             var project = await GetProjectById(projectId);
             if (project == null) return;
 
-            project.Requirements.RemoveAll(r => !string.IsNullOrEmpty(r.RequirementID) && r.RequirementID == requirementId);
             await UpdateProjectAsync(project);
         }
     }

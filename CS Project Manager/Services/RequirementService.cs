@@ -15,8 +15,8 @@ Other faults: N/A
 */
 
 using CS_Project_Manager.Models;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Bson;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -31,33 +31,27 @@ namespace CS_Project_Manager.Services
             _requirements = mongoDBService.GetCollection<Requirement>("Requirements");
         }
 
-        // Adds a new requirement to the collection
+        // Adds a new requirement
         public async Task AddRequirementAsync(Requirement newRequirement) =>
             await _requirements.InsertOneAsync(newRequirement);
 
-        // Gets all requirements for a specific project by project ID
-        public async Task<List<Requirement>> GetRequirementsByProjectIdAsync(ObjectId projectId)
-        {
-            var filter = Builders<Requirement>.Filter.Eq(r => r.AssocProjectId, projectId);
-            return await _requirements.Find(filter).ToListAsync();
-        }
-
-        // Gets a requirement by its ID
+        // Gets a requirement by its ObjectId
         public async Task<Requirement?> GetRequirementByIdAsync(ObjectId id) =>
             await _requirements.Find(r => r.Id == id).FirstOrDefaultAsync();
 
-        // Updates a requirement
+        // Gets all requirements associated with a project by project ID
+        public async Task<List<Requirement>> GetRequirementsByProjectIdAsync(ObjectId projectId) =>
+            await _requirements.Find(r => r.AssocProjectId == projectId).ToListAsync();
+
+        // Updates an existing requirement
         public async Task UpdateRequirementAsync(Requirement updatedRequirement)
         {
             var filter = Builders<Requirement>.Filter.Eq(r => r.Id, updatedRequirement.Id);
             await _requirements.ReplaceOneAsync(filter, updatedRequirement);
         }
 
-        // Removes a requirement by its ID
-        public async Task RemoveRequirementAsync(ObjectId id)
-        {
-            var filter = Builders<Requirement>.Filter.Eq(r => r.Id, id);
-            await _requirements.DeleteOneAsync(filter);
-        }
+        // Removes a requirement by its ObjectId
+        public async Task RemoveRequirementAsync(ObjectId id) =>
+            await _requirements.DeleteOneAsync(r => r.Id == id);
     }
 }

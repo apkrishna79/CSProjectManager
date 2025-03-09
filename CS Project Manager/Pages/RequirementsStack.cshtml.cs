@@ -28,14 +28,17 @@ namespace CS_Project_Manager.Pages
         private readonly RequirementService _requirementService;
         private readonly ProjectService _projectService;
 
+        // Bound properties for the form and existing requirements
+        [BindProperty]
+        public List<Requirement> Requirements { get; set; } = new List<Requirement>();
+
         [BindProperty]
         public Requirement NewRequirement { get; set; } = new Requirement
         {
             Description = string.Empty
         };
 
-        public List<Requirement> Requirements { get; set; } = new();
-
+        [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
 
         public RequirementsStackModel(RequirementService requirementService, ProjectService projectService)
@@ -44,53 +47,53 @@ namespace CS_Project_Manager.Pages
             _projectService = projectService;
         }
 
-        // Runs when the page is accessed (fetches requirements for a specific project)
-        public async Task<IActionResult> OnGetAsync(string projectId)
+        public async Task OnGetAsync(ObjectId projectId)
         {
-            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
-            {
-                return BadRequest("Invalid project ID.");
-            }
-
-            ProjectId = parsedProjectId;
-            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(ProjectId);
-
-            return Page();
+            ProjectId = projectId;
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
         }
 
-        // Handler for adding a new requirement
-        public async Task<IActionResult> OnPostAddAsync(string projectId)
+        public async Task<IActionResult> OnPostAddAsync()
         {
-            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid project ID.");
+                return Page();
             }
 
-            NewRequirement.AssocProjectId = parsedProjectId;
+            NewRequirement.AssocProjectId = ProjectId;
             await _requirementService.AddRequirementAsync(NewRequirement);
-
-            return RedirectToPage(new { projectId });
+            return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
 
-        // Handler for updating an existing requirement
+        // Update an existing requirement
         public async Task<IActionResult> OnPostUpdateAsync(ObjectId id)
         {
-            var requirementToUpdate = await _requirementService.GetRequirementByIdAsync(id);
-            if (requirementToUpdate != null)
+            var existingRequirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (existingRequirement == null)
             {
-                // Update logic (e.g., fetch new values from a form if needed)
-                await _requirementService.UpdateRequirementAsync(requirementToUpdate);
+                return NotFound();
             }
 
-            return RedirectToPage(new { projectId = requirementToUpdate.AssocProjectId.ToString() });
+            // Get the updated requirement from the bound Requirements list
+            var updatedRequirement = Requirements.Find(r => r.Id == id);
+            if (updatedRequirement != null)
+            {
+                existingRequirement.RequirementID = updatedRequirement.RequirementID;
+                existingRequirement.Description = updatedRequirement.Description;
+                existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
+                existingRequirement.Priority = updatedRequirement.Priority;
+                existingRequirement.SprintNo = updatedRequirement.SprintNo;
+
+                await _requirementService.UpdateRequirementAsync(existingRequirement);
+            }
+
+            return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
 
-        // Handler for removing an existing requirement
         public async Task<IActionResult> OnPostRemoveAsync(ObjectId id)
         {
             await _requirementService.RemoveRequirementAsync(id);
-
-            return RedirectToPage(new { projectId = NewRequirement.AssocProjectId.ToString() });
+            return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
     }
 }
