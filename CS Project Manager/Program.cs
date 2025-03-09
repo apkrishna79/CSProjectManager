@@ -35,7 +35,8 @@
 
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MongoDB.Driver; // integrates services file for database connection
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args); // Create web application builder instance to initialize the application
 
@@ -48,12 +49,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             options.LogoutPath = "/Logout"; // Redirects to /Logout after the user logs out
         });
 
-
-
 builder.Services.AddRazorPages(); // Register Razor Pages services in dependency injection container
 
 // Add MVC services with Razor Pages options and configure routing conventions
-builder.Services.AddMvc().AddRazorPagesOptions(options => 
+builder.Services.AddMvc().AddRazorPagesOptions(options =>
 {
     options.Conventions.AddPageRoute("/Landing", ""); // Set "/Landing" as the default route
 });
@@ -63,12 +62,14 @@ const string connectionUri = "mongodb+srv://ginnyk10:Gk7856212727%24@csproman.v6
 
 // Registers MongoDBService as a singleton, providing database connectivity throughout the application
 builder.Services.AddSingleton(new MongoDBService(connectionUri));
-builder.Services.AddSingleton<IMongoClient>(sp => { return new MongoClient(connectionUri);  });
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(connectionUri));
 
+// Registering required services for dependency injection
 builder.Services.AddScoped<StudentUserService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<RequirementService>();
 
 var app = builder.Build(); // Build app from configured builder
 
