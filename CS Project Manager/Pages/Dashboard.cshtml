@@ -13,8 +13,32 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         <span>Hello, @User.Identity.Name!</span>
-        <!-- need to access a user's projects to display them, which is a bit convoluted -->
-        <!-- userID -> check student lists in all teams until user is found -> get projects related to that team -->
+        <br><br>
+        <b>Your Projects</b>
+        <br>
+        @if (Model.Projects.Count > 0)
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var project in Model.Projects)
+                {
+                    <tr>
+                        <td>@project.project_name</td>
+                        <td>@project.description</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        } else
+        {
+            <span>You have no projects!</span>
+        }
         <form method="get" asp-page="/CreateProject">
             <button type="submit" class="btn btn-primary">Create Project</button>
         </form>

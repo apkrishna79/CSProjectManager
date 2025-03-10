@@ -25,6 +25,4 @@ namespace CS_Project_Manager.Models
         public List<Requirement> Requirements { get; set; } = new();
 
     }
-
-
 }
