@@ -21,5 +21,7 @@ namespace CS_Project_Manager.Models
 
         [Range(1, int.MaxValue, ErrorMessage = "Sprint number must be at least 1")]
         public int SprintNo { get; set; }
+
+        public List<ObjectId> Assignees { get; set; } = [];
     }
 }

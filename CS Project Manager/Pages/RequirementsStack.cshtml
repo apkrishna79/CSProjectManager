@@ -14,6 +14,7 @@
             <th>Story Points</th>
             <th>Priority</th>
             <th>Sprint No.</th>
+            <th>Assignee(s)</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -26,6 +27,7 @@
                 <td><input type="number" value="@requirement.StoryPoints" class="form-control" /></td>
                 <td><input type="text" value="@requirement.Priority" class="form-control" /></td>
                 <td><input type="number" value="@requirement.SprintNo" class="form-control" /></td>
+                <td><select class="assignedUsersSelect" name="AssignedUsers" multiple="multiple" style="width: 100%;"></select></td>
                 <td>
                     <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
                     <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
@@ -37,7 +39,16 @@
 
 <button class="btn btn-primary" onclick="addRequirement()">Add Requirement</button>
 
+<!--import select2 functionality-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+
 <script>
+    $(document).ready(function () {
+        fetchAndPopulateTeamMembers(); // Initial population for existing rows
+    });
+
     function addRequirement() {
         let table = document.getElementById("requirementsTable").getElementsByTagName('tbody')[0];
         let newRow = table.insertRow();
@@ -47,11 +58,21 @@
             cell.innerHTML = '<input type="text" class="form-control">';
         }
 
-        let actionsCell = newRow.insertCell(5);
+        let selectCell = newRow.insertCell(5);
+        let selectElement = document.createElement("select");
+        selectElement.className = "assignedUsersSelect"; // Assign the class for select2
+        selectElement.name = "AssignedUsers";
+        selectElement.setAttribute("multiple", "multiple");
+        selectCell.appendChild(selectElement);
+
+        let actionsCell = newRow.insertCell(6);
         actionsCell.innerHTML = `
             <button class="btn btn-success btn-sm" onclick="updateRequirement(this)">Update</button>
             <button class="btn btn-danger btn-sm" onclick="removeRequirement(this)">Remove</button>
         `;
+
+        // Reinitialize select2 for the new row
+        fetchAndPopulateTeamMembers();
     }
 
     function removeRequirement(button) {
@@ -72,5 +93,25 @@
         };
 
         console.log("Updated Requirement:", updatedRequirement);
+    }
+
+    let projectId = new URLSearchParams(window.location.search).get("projectId");
+
+    // Function to fetch team members and populate the select dropdowns
+    function fetchAndPopulateTeamMembers() {
+        $.ajax({
+            url: `/RequirementsStack?handler=GetTeamMembers&projectId=${projectId}`, // Backend endpoint to get members
+           type: "GET",
+            dataType: 'json',
+            success: function (data) {
+                $('.assignedUsersSelect').each(function () {
+                    $(this).select2({
+                        data: data.map(member => ({ id: member.id, text: member.name })),
+                        placeholder: "Select assignees",
+                        allowClear: true
+                    });
+                });
+            }
+        });
     }
 </script>

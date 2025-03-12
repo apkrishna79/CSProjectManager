@@ -22,22 +22,21 @@ using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
 {
-    public class RequirementsStackModel : PageModel
+    public class RequirementsStackModel(ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
     {
-        private readonly ProjectService _projectService;
+        private readonly ProjectService _projectService = projectService;
+        private readonly TeamService _teamService = teamService;
+        private readonly StudentUserService _studentUserService = studentUserService;
 
         [BindProperty]
         public string ProjectId { get; set; }
 
         [BindProperty]
         public Project? CurrentProject { get; set; }
+        [BindProperty]
+        public List<string> AssignedUsers { get; set; } = [];
 
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
-
-        public RequirementsStackModel(ProjectService projectService)
-        {
-            _projectService = projectService;
-        }
 
         // Handles the GET request to load the project and its requirements
         public async Task<IActionResult> OnGetAsync(string projectId)
@@ -101,6 +100,30 @@ namespace CS_Project_Manager.Pages
                 await _projectService.UpdateProjectAsync(project);
             }
             return RedirectToPage(new { projectId = ProjectId });
+        }
+
+        public async Task<IActionResult> OnGetGetTeamMembersAsync(string projectId)
+        {
+            // Fetch the current project and associated team in parallel
+            if (projectId == null) return NotFound("No Project Id Provided");
+            var currentProjectTask = _projectService.GetProjectById(new ObjectId(projectId));
+
+            var currentProject = await currentProjectTask;
+            if (currentProject == null) return NotFound("Project not found.");
+
+            var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
+            if (curTeam == null) return NotFound("Team not found.");
+
+            // Fetch all team members in parallel
+            var teamMemberTasks = curTeam.Members.Select(memberId => _studentUserService.GetUserByIdAsync(memberId));
+            var teamMemberStudents = await Task.WhenAll(teamMemberTasks);
+
+            // Convert to JSON-friendly format
+            var result = teamMemberStudents
+                .Where(m => m != null) // Ensure no null values
+                .Select(m => new { id = m.Id, name = $"{m.FirstName} {m.LastName}" });
+
+            return new JsonResult(result);
         }
     }
 }
