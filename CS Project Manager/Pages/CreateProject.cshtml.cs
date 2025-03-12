@@ -28,6 +28,7 @@ namespace CS_Project_Manager.Pages
         private readonly ProjectService _projectService;
         private readonly TeamService _teamService;
         private readonly ClassService _classService;
+        private readonly StudentUserService _userService;
 
         // bound property for list of teams
         [BindProperty]
@@ -50,12 +51,13 @@ namespace CS_Project_Manager.Pages
         // dictionary to form team-class pairs for user input
         public Dictionary<Team, string> TeamAndClass { get; set; } = [];
 
-        public ProjectModel(ProjectService projectService, TeamService teamService, ClassService classService)
+        public ProjectModel(ProjectService projectService, TeamService teamService, ClassService classService, StudentUserService userService)
         {
             // initialize services
             _projectService = projectService;
             _teamService = teamService;
             _classService = classService;
+            _userService = userService;
             // create list and dictionary needed for operations
             Teams = new List<Team>();
             TeamAndClass = new Dictionary<Team, string>();
@@ -63,7 +65,9 @@ namespace CS_Project_Manager.Pages
         
         public async Task OnGetAsync()
         {
-            Teams = await _teamService.GetAllTeamsAsync();
+            var username = User.Identity.Name;
+            var userObj = await _userService.GetUserByUsernameAsync(username);
+            Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
             // create a dictionary with key: Team object and value: corresponding class name
             foreach (var team in Teams)
             {
@@ -75,20 +79,16 @@ namespace CS_Project_Manager.Pages
         // runs when the create project button is pressed
         public async Task<IActionResult> OnPostAsync()
         {
-            // creates a new project with the provided inputs
             var newProject = new Project
             {
                 project_name = ProjectName,
                 description = Description,
                 AssociatedTeam = SelectedTeamId
             };
-
-            // adds the new project to database
             await _projectService.CreateProjectAsync(newProject);
-
             return RedirectToPage("/RequirementsStack", new { projectId = newProject.Id.ToString() });
-
         }
+
 
     }
 }
