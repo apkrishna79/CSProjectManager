@@ -70,6 +70,7 @@ builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<RequirementService>();
+builder.Services.AddScoped<TodoService>();
 
 var app = builder.Build(); // Build app from configured builder
 
