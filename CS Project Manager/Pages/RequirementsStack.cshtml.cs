@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/2/25
+Date Revised: 3/9/25 DS
 Purpose: Let users add/update/remove requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -18,112 +18,94 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
 {
     public class RequirementsStackModel(ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
     {
-        private readonly ProjectService _projectService = projectService;
-        private readonly TeamService _teamService = teamService;
-        private readonly StudentUserService _studentUserService = studentUserService;
+        private readonly RequirementService _requirementService;
+        private readonly ProjectService _projectService;
 
         [BindProperty]
-        public string ProjectId { get; set; }
-
-        [BindProperty]
-        public Project? CurrentProject { get; set; }
-        [BindProperty]
-        public List<string> AssignedUsers { get; set; } = [];
-
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
 
-        // Handles the GET request to load the project and its requirements
-        public async Task<IActionResult> OnGetAsync(string projectId)
+        [BindProperty]
+        public Requirement NewRequirement { get; set; } = new Requirement
         {
-            if (string.IsNullOrEmpty(projectId))
+            Description = string.Empty
+        };
+
+        [BindProperty(SupportsGet = true)]
+        public ObjectId ProjectId { get; set; }
+
+        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService)
+        {
+            _requirementService = requirementService;
+            _projectService = projectService;
+        }
+
+        public async Task OnGetAsync(string projectId)
+        {
+            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
             {
-                return NotFound();
+                throw new ArgumentException("Invalid project ID format");
+            }
+            ProjectId = parsedProjectId;
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(parsedProjectId);
+        }
+
+        // Add a new requirement
+        public async Task<IActionResult> OnPostAddAsync(ObjectId projectId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page();
             }
             ProjectId = projectId;
-            CurrentProject = await _projectService.GetProjectById(new ObjectId(ProjectId));
-            if (CurrentProject == null)
-            {
-                return NotFound();
-            }
-            Requirements = CurrentProject.Requirements ?? new List<Requirement>();
-            return Page();
-        }
-
-        // Handles POST request to add a new requirement to the project
-        public async Task<IActionResult> OnPostAddRequirementAsync(Requirement newRequirement)
-        {
-            if (string.IsNullOrEmpty(ProjectId))
-            {
-                return NotFound();
-            }
-            await _projectService.AddRequirementAsync(new ObjectId(ProjectId), newRequirement);
-            return RedirectToPage(new { projectId = ProjectId });
-        }
-
-        // Handles POST request to remove an existing requirement from the project
-        public async Task<IActionResult> OnPostRemoveRequirementAsync(string requirementId)
-        {
-            if (string.IsNullOrEmpty(ProjectId))
-            {
-                return NotFound();
-            }
-            await _projectService.RemoveRequirementAsync(new ObjectId(ProjectId), requirementId);
-            return RedirectToPage(new { projectId = ProjectId });
-        }
-
-        // Handles POST request to update an existing requirement in the project
-        public async Task<IActionResult> OnPostUpdateRequirementAsync(Requirement requirement)
-        {
-            if (string.IsNullOrEmpty(ProjectId))
-            {
-                return NotFound();
-            }
-            var project = await _projectService.GetProjectById(new ObjectId(ProjectId));
+            var project = await _projectService.GetProjectById(ProjectId);
             if (project == null)
             {
                 return NotFound();
             }
-            var existingRequirement = project.Requirements.FirstOrDefault(r => r.RequirementID == requirement.RequirementID);
-            if (existingRequirement != null)
-            {
-                existingRequirement.Description = requirement.Description;
-                existingRequirement.StoryPoints = requirement.StoryPoints;
-                existingRequirement.Priority = requirement.Priority;
-                existingRequirement.SprintNo = requirement.SprintNo;
-
-                await _projectService.UpdateProjectAsync(project);
-            }
-            return RedirectToPage(new { projectId = ProjectId });
+            NewRequirement.AssocProjectId = ProjectId;
+            await _requirementService.AddRequirementAsync(NewRequirement);
+            return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
 
-        public async Task<IActionResult> OnGetGetTeamMembersAsync(string projectId)
+        // Update an existing requirement
+        public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
         {
-            // Fetch the current project and associated team in parallel
-            if (projectId == null) return NotFound("No Project Id Provided");
-            var currentProjectTask = _projectService.GetProjectById(new ObjectId(projectId));
-
-            var currentProject = await currentProjectTask;
-            if (currentProject == null) return NotFound("Project not found.");
-
-            var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
-            if (curTeam == null) return NotFound("Team not found.");
-
-            // Fetch all team members in parallel
-            var teamMemberTasks = curTeam.Members.Select(memberId => _studentUserService.GetUserByIdAsync(memberId));
-            var teamMemberStudents = await Task.WhenAll(teamMemberTasks);
-
-            // Convert to JSON-friendly format
-            var result = teamMemberStudents
-                .Where(m => m != null) // Ensure no null values
-                .Select(m => new { id = m.Id, name = $"{m.FirstName} {m.LastName}" });
-
-            return new JsonResult(result);
+            var existingRequirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (existingRequirement == null)
+            {
+                return NotFound();
+            }
+            var updatedRequirement = Requirements.FirstOrDefault(r => r.Id == id);
+            if (updatedRequirement != null)
+            {
+                existingRequirement.RequirementID = updatedRequirement.RequirementID;
+                existingRequirement.Description = updatedRequirement.Description;
+                existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
+                existingRequirement.Priority = updatedRequirement.Priority;
+                existingRequirement.SprintNo = updatedRequirement.SprintNo;
+                await _requirementService.UpdateRequirementAsync(existingRequirement);
+            }
+            return RedirectToPage(new { projectId = projectId.ToString() });
         }
+
+        // Remove an existing requirement
+        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
+        {
+            var requirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (requirement == null)
+            {
+                return NotFound();
+            }
+            await _requirementService.RemoveRequirementAsync(id);
+            return RedirectToPage(new { projectId = projectId.ToString() });
+        }
+
     }
 }
