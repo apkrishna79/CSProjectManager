@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model DashboardModel
 @{
     ViewData["Title"] = "Dashboard";
@@ -29,8 +29,11 @@
                 @foreach (var project in Model.Projects)
                 {
                     <tr>
-                        <td>@project.project_name</td>
+                        <td>
+                            <a asp-page="/RequirementsStack" asp-route-projectId="@project.Id.ToString()">@project.project_name</a>
+                        </td>
                         <td>@project.description</td>
+
                     </tr>
                 }
                 </tbody>
