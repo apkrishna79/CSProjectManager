@@ -23,10 +23,12 @@ using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
 {
-    public class RequirementsStackModel(ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
+    public class RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
     {
-        private readonly RequirementService _requirementService;
-        private readonly ProjectService _projectService;
+        private readonly RequirementService _requirementService = requirementService;
+        private readonly ProjectService _projectService = projectService;
+        private readonly TeamService _teamService = teamService;
+        private readonly StudentUserService _studentUserService = studentUserService;
 
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
@@ -39,12 +41,6 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
-
-        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService)
-        {
-            _requirementService = requirementService;
-            _projectService = projectService;
-        }
 
         public async Task OnGetAsync(string projectId)
         {
