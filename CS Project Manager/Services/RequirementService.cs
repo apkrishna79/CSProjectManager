@@ -21,14 +21,9 @@ using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Services
 {
-    public class RequirementService
+    public class RequirementService(MongoDBService mongoDBService)
     {
-        private readonly IMongoCollection<Requirement> _requirements;
-
-        public RequirementService(MongoDBService mongoDBService)
-        {
-            _requirements = mongoDBService.GetCollection<Requirement>("Requirements");
-        }
+        private readonly IMongoCollection<Requirement> _requirements = mongoDBService.GetCollection<Requirement>("Requirements");
 
         // Adds a new requirement
         public async Task AddRequirementAsync(Requirement newRequirement) =>
@@ -52,5 +47,31 @@ namespace CS_Project_Manager.Services
         // Removes a requirement by its ObjectId
         public async Task RemoveRequirementAsync(ObjectId id) =>
             await _requirements.DeleteOneAsync(r => r.Id == id);
+
+        // Get requirements from multiple projects
+        public async Task<List<Requirement>> GetRequirementsByProjectIdsAsync(List<ObjectId> projectIds)
+        {
+            var filter = Builders<Requirement>.Filter.In(r => r.AssocProjectId, projectIds);
+            return await _requirements.Find(filter).ToListAsync();
+        }
+
+        // Update Multiple requirements at once
+        // Batch update reduces number of DB calls and latency as opposed to using UdpateRequirement in a loop
+        public async Task UpdateRequirementsAsync(List<Requirement> requirements)
+        {
+            var bulkOps = new List<WriteModel<Requirement>>();
+
+            foreach (var req in requirements)
+            {
+                var filter = Builders<Requirement>.Filter.Eq(r => r.Id, req.Id);
+                var update = Builders<Requirement>.Update.Set(r => r.Assignees, req.Assignees);
+                bulkOps.Add(new UpdateOneModel<Requirement>(filter, update));
+            }
+
+            if (bulkOps.Any())
+            {
+                await _requirements.BulkWriteAsync(bulkOps);
+            }
+        }
     }
 }
