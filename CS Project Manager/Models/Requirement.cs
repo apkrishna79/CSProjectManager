@@ -19,6 +19,7 @@ namespace CS_Project_Manager.Models
         [BsonElement("AssocProjectId")]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId AssocProjectId { get; set; }
+        public List<ObjectId> Assignees { get; set; } = [];
     }
 
 }
