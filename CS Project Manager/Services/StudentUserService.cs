@@ -26,6 +26,11 @@ namespace CS_Project_Manager.Services
         // MongoDB collection that stores StudentUser documents
         private readonly IMongoCollection<StudentUser> _studentUsers = mongoDBService.GetCollection<StudentUser>("StudentUsers");
 
+        public async Task<StudentUser> GetUserByIdAsync(ObjectId id)
+        {
+            return await _studentUsers.Find(user => user.Id == id).FirstOrDefaultAsync();
+        }
+
         // Retrieves a User document based on the provided username; returns null if not found
         public async Task<StudentUser> GetUserByUsernameAsync(string username)
         {

@@ -23,10 +23,12 @@ using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
 {
-    public class RequirementsStackModel : PageModel
+    public class RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
     {
-        private readonly RequirementService _requirementService;
-        private readonly ProjectService _projectService;
+        private readonly RequirementService _requirementService = requirementService;
+        private readonly ProjectService _projectService = projectService;
+        private readonly TeamService _teamService = teamService;
+        private readonly StudentUserService _studentUserService = studentUserService;
 
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
@@ -39,12 +41,7 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
-
-        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService)
-        {
-            _requirementService = requirementService;
-            _projectService = projectService;
-        }
+        public List<StudentUser> TeamMembers = [];
 
         public async Task OnGetAsync(string projectId)
         {
@@ -54,6 +51,17 @@ namespace CS_Project_Manager.Pages
             }
             ProjectId = parsedProjectId;
             Requirements = await _requirementService.GetRequirementsByProjectIdAsync(parsedProjectId);
+
+            // Fetch the project and team
+            var currentProject = await _projectService.GetProjectById(ProjectId);
+            var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
+
+            // Retrieve all team members
+            TeamMembers = (await Task.WhenAll(curTeam.Members
+                .Select(member => _studentUserService.GetUserByIdAsync(member)))).ToList<StudentUser>();
+
+            // Fetch project requirements
+            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(ProjectId);
         }
 
         // Add a new requirement
@@ -90,6 +98,7 @@ namespace CS_Project_Manager.Pages
                 existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
+                existingRequirement.Assignees = updatedRequirement.Assignees;
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
             return RedirectToPage(new { projectId = projectId.ToString() });

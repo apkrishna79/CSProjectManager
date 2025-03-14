@@ -36,12 +36,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Requirement ID</th>
-                <th>Description</th>
-                <th>Story Points</th>
-                <th>Priority</th>
-                <th>Sprint No</th>
-                <th>Actions</th>
+                <th style="width: 12%;">Requirement ID</th>
+                <th style="width: 30%;">Description</th>
+                <th style="width: 11%;">Story Points</th>
+                <th style="width: 8%;">Priority</th>
+                <th style="width: 8%;">Sprint No</th>
+                <th style="width: 20%;">Assignees</th>
+                <th style="width: 11%;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -54,6 +55,17 @@
                     <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].Priority" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
+
+                    <td>
+                        <select asp-for="Requirements[i].Assignees" class="form-control assignedUsers" multiple="multiple">
+                            @foreach (var member in Model.TeamMembers)
+                            {
+                                <option value="@member.Id" selected="@Model.Requirements[i].Assignees.Contains(member.Id)">
+                                    @member.FirstName @member.LastName
+                                </option>
+                            }
+                        </select>
+                    </td>
 
                     <td>
                         <button type="submit" asp-page-handler="Update"
@@ -72,3 +84,17 @@
         </tbody>
     </table>
 </form>
+
+<!--import select2 functionality-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+
+<script>
+    $(document).ready(function () {
+        $(".assignedUsers").select2({
+            placeholder: "Select team members",
+            allowClear: true
+        });
+    });
+</script>
