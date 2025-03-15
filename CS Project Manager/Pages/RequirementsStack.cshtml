@@ -8,12 +8,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Requirement ID</th>
-                <th>Description</th>
-                <th>Story Points</th>
-                <th>Priority</th>
-                <th>Sprint No</th>
-                <th>Actions</th>
+                <th style="width: 12%;">Requirement ID</th>
+                <th style="width: 30%;">Description</th>
+                <th style="width: 11%;">Story Points</th>
+                <th style="width: 8%;">Priority</th>
+                <th style="width: 8%;">Sprint No</th>
+                <th style="width: 20%;">Assignees</th>
+                <th style="width: 11%;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -23,6 +24,18 @@
                 <td><input asp-for="NewRequirement.StoryPoints" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.Priority" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.SprintNo" class="form-control" /></td>
+
+                <td>
+                    <select asp-for="NewRequirement.Assignees" class="form-control assignedUsers" multiple="multiple">
+                        @foreach (var member in Model.TeamMembers)
+                        {
+                            <option value="@member.Id" selected="@Model.NewRequirement.Assignees.Contains(member.Id)">
+                                @member.FirstName @member.LastName
+                            </option>
+                        }
+                    </select>
+                </td>
+
                 <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add Requirement</button></td>
             </tr>
         </tbody>

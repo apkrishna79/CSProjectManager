@@ -17,23 +17,18 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
-    public class AccountEditModel : PageModel
+    public class AccountEditModel(StudentUserService studentUserService, ClassService classService, TeamService teamService, ProjectService projectService, RequirementService requirementService) : PageModel
     {
-        private readonly StudentUserService _studentUserService;
-        private readonly ClassService _classService;
-        private readonly TeamService _teamService;
-
-        // Initialize services
-        public AccountEditModel(StudentUserService studentUserService, ClassService classService, TeamService teamService)
-        {
-            _studentUserService = studentUserService;
-            _classService = classService;
-            _teamService = teamService;
-        }
+        private readonly StudentUserService _studentUserService = studentUserService;
+        private readonly ClassService _classService = classService;
+        private readonly TeamService _teamService = teamService;
+        private readonly ProjectService _projectService = projectService;
+        private readonly RequirementService _requirementService = requirementService;
 
         // Properties for user data and selections
         [BindProperty]
@@ -147,7 +142,39 @@ namespace CS_Project_Manager.Pages
                 await _teamService.RemoveStudentFromTeamAsync(teamId, StudentUser.Id);
             }
 
+            await RemoveUserFromAssignedRequirements(teamId);
+
             return RedirectToPage();
+        }
+
+        // Used to remove users from assigned requirements when they leave a team, or when leaving a class causes them to leave a team
+        private async Task RemoveUserFromAssignedRequirements(ObjectId teamId)
+        {
+            // Fetch all projects related to the team
+            var teamProjects = await _projectService.GetProjectsByTeamIdAsync(teamId);
+            var projectIds = teamProjects.Select(p => p.Id).ToList();
+
+            if (projectIds.Any())
+            {
+                // Fetch all related requirements in one query
+                var projectRequirements = await _requirementService.GetRequirementsByProjectIdsAsync(projectIds);
+
+                // Filter requirements where the student is assigned
+                var updatedRequirements = projectRequirements
+                    .Where(req => req.Assignees.Contains(StudentUser.Id))
+                    .Select(req =>
+                    {
+                        req.Assignees.Remove(StudentUser.Id);
+                        return req;
+                    })
+                    .ToList();
+
+                // Update all modified requirements in a batch operation
+                if (updatedRequirements.Any())
+                {
+                    await _requirementService.UpdateRequirementsAsync(updatedRequirements);
+                }
+            }
         }
 
         // Load user data and handle data conflicts
@@ -197,6 +224,7 @@ namespace CS_Project_Manager.Pages
                 foreach (var team in conflictingTeams)
                 {
                     await _teamService.RemoveStudentFromTeamAsync(team.Id, StudentUser.Id);
+                    await RemoveUserFromAssignedRequirements(team.Id);
                 }
                 Teams = Teams.Except(conflictingTeams).ToList();
             }
