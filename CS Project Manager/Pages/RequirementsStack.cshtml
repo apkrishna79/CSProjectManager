@@ -24,6 +24,18 @@
                 <td><input asp-for="NewRequirement.StoryPoints" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.Priority" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.SprintNo" class="form-control" /></td>
+
+                <td>
+                    <select asp-for="NewRequirement.Assignees" class="form-control assignedUsers" multiple="multiple">
+                        @foreach (var member in Model.TeamMembers)
+                        {
+                            <option value="@member.Id" selected="@Model.NewRequirement.Assignees.Contains(member.Id)">
+                                @member.FirstName @member.LastName
+                            </option>
+                        }
+                    </select>
+                </td>
+
                 <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add Requirement</button></td>
             </tr>
         </tbody>
@@ -35,6 +47,7 @@
     <input type="hidden" name="projectId" value="@Model.ProjectId" />
     <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
 </form>
+
 <h3>Added Requirements</h3>
 <form method="post">
     <table class="table">
