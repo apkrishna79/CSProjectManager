@@ -30,26 +30,26 @@ namespace CS_Project_Manager.Services
             _todo = mongoDBService.GetCollection<Todo>("Todo");
         }
 
-        // Adds a new requirement
+        // Adds a new task
         public async Task AddTodoAsync(Todo newTodo) =>
             await _todo.InsertOneAsync(newTodo);
 
-        // Gets a requirement by its ObjectId
+        // Gets a task by its ObjectId
         public async Task<Todo?> GetTodoByIdAsync(ObjectId id) =>
             await _todo.Find(r => r.Id == id).FirstOrDefaultAsync();
 
-        // Gets all requirements associated with a project by user ID
+        // Gets all tasks associated with a project by user ID
         public async Task<List<Todo>> GetTodoByUserIdAsync(ObjectId userId) =>
             await _todo.Find(r => r.AssocUserId == userId).ToListAsync();
 
-        // Updates an existing requirement
+        // Updates an existing task
         public async Task UpdateTodoAsync(Todo updatedTodo)
         {
             var filter = Builders<Todo>.Filter.Eq(r => r.Id, updatedTodo.Id);
             await _todo.ReplaceOneAsync(filter, updatedTodo);
         }
 
-        // Removes a requirement by its ObjectId
+        // Removes a task by its ObjectId
         public async Task RemoveTodoAsync(ObjectId id) =>
             await _todo.DeleteOneAsync(r => r.Id == id);
     }

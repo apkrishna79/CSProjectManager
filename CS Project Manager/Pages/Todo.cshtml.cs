@@ -2,9 +2,9 @@
  * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/13/25
-Last Revised By: Jackson Wunderlich
-Date Revised: 3/13/25
-Purpose: 
+Last Revised By: Dylan Sailors
+Date Revised: 3/15/25
+Purpose: Page displaying Team To-Do list and Personal To-Do list with the ability to add more tasks, mark task as complete, and remove a task
 Preconditions: 
 Postconditions: 
 Error and exceptions: ArgumentNullException (required field empty), FormatException (invalid data input)
@@ -13,101 +13,115 @@ Invariants: Todo list is always initialized; OnGet method always prepares an ini
 Other faults: N/A
 */
 
-using CS_Project_Manager.Models;
-using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CS_Project_Manager.Models;
+using CS_Project_Manager.Services;
 
 namespace CS_Project_Manager.Pages
 {
     public class TodoModel : PageModel
     {
-        private readonly RequirementService _requirementService;
         private readonly TodoService _todoService;
-        private readonly ProjectService _projectService;
+        private readonly StudentUserService _studentUserService;
+        private readonly TeamService _teamService;
 
-        [BindProperty]
-        public List<Todo> TodoItems { get; set; } = new List<Todo>();
-
-        [BindProperty]
-        public Todo NewTodo { get; set; } = new Todo
+        public TodoModel(TodoService todoService, StudentUserService studentUserService, TeamService teamService)
         {
-            item_name = string.Empty,
-            item_complete = false,
-            is_team_item = false
-        };
-
-        [BindProperty(SupportsGet = true)]
-        public ObjectId ProjectId { get; set; }
-
-        public TodoModel(RequirementService requirementService, ProjectService projectService, TodoService todoService)
-        {
-            _requirementService = requirementService;
-            _projectService = projectService;
             _todoService = todoService;
-        }
-        /*
-        public async Task OnGetAsync(string projectId)
-        {
-            if (!ObjectId.TryParse(projectId, out ObjectId parsedProjectId))
-            {
-                throw new ArgumentException("Invalid project ID format");
-            }
-            ProjectId = parsedProjectId;
-            TodoItems = await _todoService.GetTodoByUserIdAsync(parsedProjectId);
+            _studentUserService = studentUserService;
+            _teamService = teamService;
         }
 
-        // Add a new requirement
-        public async Task<IActionResult> OnPostAddAsync(ObjectId projectId)
+        [BindProperty]
+        public Todo NewTodo { get; set; } = new Todo { item_name = string.Empty };
+        public List<Todo> PersonalTodo { get; set; } = new();
+        public List<Todo> TeamTodo { get; set; } = new();
+        public ObjectId UserId { get; set; }
+
+        public async Task<IActionResult> OnGetAsync()
         {
-            if (!ModelState.IsValid)
+            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            if (user == null) return RedirectToPage("/Login");
+
+            UserId = user.Id;
+            var teamIds = (await _teamService.GetTeamsByStudentIdAsync(UserId)).ConvertAll(t => t.Id);
+
+            // Fetch personal and team tasks using the TodoService
+            PersonalTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
+                .Where(t => !t.is_team_item)
+                .OrderBy(t => t.item_complete)
+                .ToList();
+
+            TeamTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
+                .Where(t => t.is_team_item && teamIds.Contains(t.AssocTeamId))
+                .OrderBy(t => t.item_complete)
+                .ToList();
+
+            return Page();
+        }
+
+        // Add a new task
+        public async Task<IActionResult> OnPostAddAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewTodo.item_name))
             {
-                return Page();
+                ModelState.AddModelError("NewTodo.item_name", "The todo name cannot be empty.");
+                return RedirectToPage();
             }
-            ProjectId = projectId;
-            var project = await _projectService.GetProjectById(ProjectId);
-            if (project == null)
+
+            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            if (user == null) return RedirectToPage("/Login");
+
+            NewTodo.AssocUserId = user.Id;
+            if (NewTodo.is_team_item)
             {
-                return NotFound();
+                var team = (await _teamService.GetTeamsByStudentIdAsync(user.Id)).FirstOrDefault();
+                if (team != null)
+                {
+                    NewTodo.AssocTeamId = team.Id;
+                }
             }
-            NewTodo.AssocUserId = ProjectId;
+
             await _todoService.AddTodoAsync(NewTodo);
-            return RedirectToPage(new { projectId = ProjectId.ToString() });
+
+            return RedirectToPage();
         }
 
-        // Update an existing requirement
-        public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
+        // Toggle the completion status of a task
+        public async Task<IActionResult> OnPostToggleCompleteAsync(string id)
         {
-            var existingTodo = await _todoService.GetTodoByIdAsync(id);
-            if (existingTodo == null)
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                return NotFound();
+                return RedirectToPage();
             }
-            var updatedRequirement = TodoItems.FirstOrDefault(r => r.Id == id);
-            if (updatedRequirement != null)
+
+            var todo = await _todoService.GetTodoByIdAsync(objectId);
+            if (todo != null)
             {
-                existingTodo.is_team_item = updatedRequirement.is_team_item;
-                existingTodo.item_name = updatedRequirement.item_name;
-                existingTodo.item_complete = updatedRequirement.item_complete;
-                existingTodo.AssocTeamId = updatedRequirement.AssocTeamId;
-                existingTodo.AssocUserId = updatedRequirement.AssocUserId;
-                await _todoService.UpdateTodoAsync(existingTodo);
+                todo.item_complete = !todo.item_complete;
+                await _todoService.UpdateTodoAsync(todo);
             }
-            return RedirectToPage(new { projectId = projectId.ToString() });
+
+            return RedirectToPage();
         }
 
-        // Remove an existing requirement
-        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
+        // Remove a task
+        public async Task<IActionResult> OnPostRemoveAsync(string id)
         {
-            var requirement = await _requirementService.GetRequirementByIdAsync(id);
-            if (requirement == null)
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                return NotFound();
+                return RedirectToPage();
             }
-            await _requirementService.RemoveRequirementAsync(id);
-            return RedirectToPage(new { projectId = projectId.ToString() });
+
+            await _todoService.RemoveTodoAsync(objectId);
+
+            return RedirectToPage();
         }
-        */
+
     }
 }
