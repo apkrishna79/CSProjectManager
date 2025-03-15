@@ -2,9 +2,9 @@
  * Prologue
 Created By: Dylan Sailors
 Date Created: 3/1/25
-Last Revised By: Dylan Sailors
-Date Revised: 3/9/25 DS
-Purpose: Let users add/update/remove requirements to a blank requirements stack generated once a project is created
+Last Revised By: Ginny Ke
+Date Revised: 3/14/25 GK 
+Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
 Error and exceptions: ArgumentNullException (required field empty), FormatException (invalid data input)
@@ -18,17 +18,20 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using ClosedXML.Excel; //library that exports files as an excel file
+using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace CS_Project_Manager.Pages
 {
-    public class RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService) : PageModel
+    public class RequirementsStackModel : PageModel
     {
-        private readonly RequirementService _requirementService = requirementService;
-        private readonly ProjectService _projectService = projectService;
-        private readonly TeamService _teamService = teamService;
-        private readonly StudentUserService _studentUserService = studentUserService;
+        private readonly RequirementService _requirementService;
+        private readonly ProjectService _projectService;
+        private readonly TeamService _teamService;
+        private readonly StudentUserService _studentUserService;
 
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
@@ -41,7 +44,14 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
-        public List<StudentUser> TeamMembers = [];
+        public List<StudentUser> TeamMembers = new List<StudentUser>();      
+        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService)
+        {
+            _requirementService = requirementService;
+            _projectService = projectService;
+            _teamService = teamService;
+            _studentUserService = studentUserService;
+        }
 
         public async Task OnGetAsync(string projectId)
         {
@@ -63,7 +73,6 @@ namespace CS_Project_Manager.Pages
             // Fetch project requirements
             Requirements = await _requirementService.GetRequirementsByProjectIdAsync(ProjectId);
         }
-
         // Add a new requirement
         public async Task<IActionResult> OnPostAddAsync(ObjectId projectId)
         {
@@ -115,6 +124,54 @@ namespace CS_Project_Manager.Pages
             await _requirementService.RemoveRequirementAsync(id);
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
-
+        // Export requirements to Excel
+        public async Task<IActionResult> OnPostExportAsync(ObjectId projectId)
+        {
+            var requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+            if (requirements == null || !requirements.Any())
+            {
+                // if no requirements are found
+                Console.WriteLine("No requirements found for this project.");
+            }
+            using (var workbook = new XLWorkbook()){
+                var worksheet = workbook.Worksheets.Add("Requirements Stack");
+                worksheet.Cell(1, 1).Value = "Requirement ID";
+                worksheet.Cell(1, 2).Value = "Description";
+                worksheet.Cell(1, 3).Value = "Story Points";
+                worksheet.Cell(1, 4).Value = "Priority";
+                worksheet.Cell(1, 5).Value = "Sprint Number";
+                worksheet.Cell(1, 6).Value = "Assignees";
+                int row = 2;
+                foreach (var req in requirements){
+                    worksheet.Cell(row, 1).Value = req.RequirementID.ToString() ?? "N/A";
+                    worksheet.Cell(row, 2).Value = string.IsNullOrEmpty(req.Description) ? "No Description" : req.Description;
+                    worksheet.Cell(row, 3).Value = req.StoryPoints?.ToString() ?? "No Story Points";
+                    worksheet.Cell(row, 4).Value = req.Priority?.ToString() ?? "No Priority";
+                    worksheet.Cell(row, 5).Value = req.SprintNo?.ToString() ?? "No Sprint No";
+                    // Fetch names
+                    if (req.Assignees != null && req.Assignees.Any()){
+                        var assigneeNames = new List<string>();
+                        foreach (var assigneeId in req.Assignees)
+                        {
+                            var assignee = await _studentUserService.GetUserByIdAsync(assigneeId);
+                            if (assignee != null)
+                            {
+                                assigneeNames.Add($"{assignee.FirstName} {assignee.LastName}");
+                            }
+                        }
+                        worksheet.Cell(row, 6).Value = string.Join(", ", assigneeNames);
+                    }
+                    else{
+                        worksheet.Cell(row, 6).Value = "No Assignees";
+                    }
+                    row++;}
+                //uses closexml to create excel file
+                using (var stream = new MemoryStream()){
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "RequirementsStack.xlsx");
+                }
+            }
+        }
     }
 }
