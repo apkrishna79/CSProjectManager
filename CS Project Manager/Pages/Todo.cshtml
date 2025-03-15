@@ -1,0 +1,66 @@
+@page
+@model CS_Project_Manager.Pages.TodoModel
+
+<h2>Personal Todo List</h2>
+
+<form method="post">
+    <input type="hidden" name="ProjectId" value="@Model.ProjectId" />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Is Team Item</th>
+                <th>Is Complete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input asp-for="NewTodo.item_name" class="form-control" /></td>
+                <td><input type="checkbox" asp-for="NewTodo.is_team_item" class="form-control" /></td>
+                <td><input type="checkbox" asp-for="NewTodo.item_complete" class="form-control" /></td>
+                <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add Todo</button></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<hr>
+
+<h3>Added Todo Items</h3>
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Is Team Item</th>
+                <th>Is Complete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.TodoItems.Count; i++)
+            {
+                <tr>
+                    <input type="hidden" asp-for="TodoItems[i].Id" />
+                    <td><input asp-for="TodoItems[i].item_name" class="form-control" /></td>
+                    <td><input asp-for="TodoItems[i].is_team_item" class="form-control" /></td>
+                    <td><input asp-for="TodoItems[i].item_complete" class="form-control" /></td>
+
+                    <td>
+                        <button type="submit" asp-page-handler="Update"
+                                asp-route-id="@Model.TodoItems[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-warning">
+                            Update
+                        </button>
+                        <button type="submit" asp-page-handler="Remove"
+                                asp-route-id="@Model.TodoItems[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-danger">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
