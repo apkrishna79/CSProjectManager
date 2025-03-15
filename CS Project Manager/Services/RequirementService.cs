@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Prologue
 Created By: Dylan Sailors
 Date Created: 3/8/25

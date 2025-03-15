@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model CS_Project_Manager.Pages.RequirementsStackModel
 
 <h2>Requirements Stack</h2>
@@ -43,6 +43,10 @@
 </form>
 
 <hr>
+<form method="post">
+    <input type="hidden" name="projectId" value="@Model.ProjectId" />
+    <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
+</form>
 
 <h3>Added Requirements</h3>
 <form method="post">
