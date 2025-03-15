@@ -42,6 +42,10 @@ namespace CS_Project_Manager.Services
         public async Task<List<Todo>> GetTodoByUserIdAsync(ObjectId userId) =>
             await _todo.Find(r => r.AssocUserId == userId).ToListAsync();
 
+        // Gets all tasks associated with a project by team ID
+        public async Task<List<Todo>> GetTodoByTeamIdAsync(ObjectId userId) =>
+            await _todo.Find(r => r.AssocTeamId == userId).ToListAsync();
+
         // Updates an existing task
         public async Task UpdateTodoAsync(Todo updatedTodo)
         {

@@ -16,10 +16,10 @@
         <tbody>
             <tr>
                 <td>
-                    <input asp-for="NewTodo.item_name" class="form-control" />
-                    <span class="text-danger" asp-validation-for="NewTodo.item_name"></span>
+                    <input asp-for="NewTodo.ItemName" class="form-control" />
+                    <span class="text-danger" asp-validation-for="NewTodo.ItemName"></span>
                 </td>
-                <td><input type="checkbox" asp-for="NewTodo.is_team_item" /></td>
+                <td><input type="checkbox" asp-for="NewTodo.IsTeamItem" /></td>
                 <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add To-do</button></td>
             </tr>
         </tbody>
@@ -40,14 +40,14 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var todo in Model.PersonalTodo.OrderBy(t => t.item_complete))
+                @foreach (var todo in Model.PersonalTodo.OrderBy(t => t.ItemComplete))
                 {
                     <tr>
-                        <td>@todo.item_name</td>
+                        <td>@todo.ItemName</td>
                         <td>
                             <form method="post" asp-page-handler="ToggleComplete">
                                 <input type="hidden" name="id" value="@todo.Id" />
-                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.item_complete ? "checked" : "") />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
                             </form>
                         </td>
                         <td>
@@ -73,14 +73,14 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var todo in Model.TeamTodo.OrderBy(t => t.item_complete))
+                @foreach (var todo in Model.TeamTodo.OrderBy(t => t.ItemComplete))
                 {
                     <tr>
-                        <td>@todo.item_name</td>
+                        <td>@todo.ItemName</td>
                         <td>
                             <form method="post" asp-page-handler="ToggleComplete">
                                 <input type="hidden" name="id" value="@todo.Id" />
-                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.item_complete ? "checked" : "") />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
                             </form>
                         </td>
                         <td>

@@ -38,7 +38,7 @@ namespace CS_Project_Manager.Pages
         }
 
         [BindProperty]
-        public Todo NewTodo { get; set; } = new Todo { item_name = string.Empty };
+        public Todo NewTodo { get; set; } = new Todo { ItemName = string.Empty };
         public List<Todo> PersonalTodo { get; set; } = new();
         public List<Todo> TeamTodo { get; set; } = new();
         public ObjectId UserId { get; set; }
@@ -53,14 +53,19 @@ namespace CS_Project_Manager.Pages
 
             // Fetch personal and team tasks using the TodoService
             PersonalTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
-                .Where(t => !t.is_team_item)
-                .OrderBy(t => t.item_complete)
+                .Where(t => !t.IsTeamItem)
+                .OrderBy(t => t.ItemComplete)
                 .ToList();
 
-            TeamTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
-                .Where(t => t.is_team_item && teamIds.Contains(t.AssocTeamId))
-                .OrderBy(t => t.item_complete)
-                .ToList();
+            foreach (var team in teamIds)
+            {
+                var todoItems = await _todoService.GetTodoByTeamIdAsync(team);
+                foreach (var todoItem in todoItems)
+                {
+                    TeamTodo.Add(todoItem);
+                }
+            }
+            TeamTodo.OrderBy(t => t.ItemComplete);
 
             return Page();
         }
@@ -68,7 +73,7 @@ namespace CS_Project_Manager.Pages
         // Add a new task
         public async Task<IActionResult> OnPostAddAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewTodo.item_name))
+            if (string.IsNullOrWhiteSpace(NewTodo.ItemName))
             {
                 ModelState.AddModelError("NewTodo.item_name", "The todo name cannot be empty.");
                 return RedirectToPage();
@@ -78,7 +83,7 @@ namespace CS_Project_Manager.Pages
             if (user == null) return RedirectToPage("/Login");
 
             NewTodo.AssocUserId = user.Id;
-            if (NewTodo.is_team_item)
+            if (NewTodo.IsTeamItem)
             {
                 var team = (await _teamService.GetTeamsByStudentIdAsync(user.Id)).FirstOrDefault();
                 if (team != null)
@@ -103,7 +108,7 @@ namespace CS_Project_Manager.Pages
             var todo = await _todoService.GetTodoByIdAsync(objectId);
             if (todo != null)
             {
-                todo.item_complete = !todo.item_complete;
+                todo.ItemComplete = !todo.ItemComplete;
                 await _todoService.UpdateTodoAsync(todo);
             }
 

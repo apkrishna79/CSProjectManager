@@ -9,11 +9,10 @@ namespace CS_Project_Manager.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
-        [BsonElement("TodoID")]
-        public bool is_team_item { get; set; }
+        public bool IsTeamItem { get; set; }
         [Required]
-        public required string item_name { get; set; }
-        public bool item_complete { get; set; }
+        public required string ItemName { get; set; }
+        public bool ItemComplete { get; set; }
         [BsonElement("AssocUserId")]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId AssocUserId { get; set; }
