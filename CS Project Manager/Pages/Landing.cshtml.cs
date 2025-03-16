@@ -5,8 +5,13 @@ namespace CS_Project_Manager.Pages
 {
     public class LandingModel : PageModel
     {
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToPage("/Dashboard");
+            }
+            return Page();
         }
     }
 }
