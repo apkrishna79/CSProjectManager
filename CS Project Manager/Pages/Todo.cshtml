@@ -1,0 +1,97 @@
+@page
+@model CS_Project_Manager.Pages.TodoModel
+
+<h2>To-do List</h2>
+
+<form method="post">
+    <input type="hidden" name="ProjectId" value="@Model.UserId" />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Team Task?</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input asp-for="NewTodo.ItemName" class="form-control" />
+                    <span class="text-danger" asp-validation-for="NewTodo.ItemName"></span>
+                </td>
+                <td><input type="checkbox" asp-for="NewTodo.IsTeamItem" /></td>
+                <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add To-do</button></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Personal To-do List</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Completed</th>
+                    <th>Remove Task</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var todo in Model.PersonalTodo.OrderBy(t => t.ItemComplete))
+                {
+                    <tr>
+                        <td>@todo.ItemName</td>
+                        <td>
+                            <form method="post" asp-page-handler="ToggleComplete">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
+                            </form>
+                        </td>
+                        <td>
+                            <form method="post" asp-page-handler="Remove">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h3>Team To-do List</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Completed</th>
+                    <th>Remove Task</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var todo in Model.TeamTodo.OrderBy(t => t.ItemComplete))
+                {
+                    <tr>
+                        <td>@todo.ItemName</td>
+                        <td>
+                            <form method="post" asp-page-handler="ToggleComplete">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
+                            </form>
+                        </td>
+                        <td>
+                            <form method="post" asp-page-handler="Remove">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

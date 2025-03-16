@@ -30,3 +30,14 @@ Other faults: N/A
 .btn-lg {
     font-size: 1.2rem;
 }
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #007bff; /* For modern browsers */
+}
+
+    input[type="checkbox"]:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }

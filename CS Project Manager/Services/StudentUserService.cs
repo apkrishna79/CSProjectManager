@@ -3,7 +3,7 @@
 Created By: Isabel Loney
 Date Created: 2/25/25
 Last Revised By: Anakha Krishna
-Date Revised: 3/2/25
+Date Revised: 3/16/25 AK
 Purpose: Provides data access methods for user-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, StudentUsers table exists, StudentUser model defined
@@ -41,10 +41,17 @@ namespace CS_Project_Manager.Services
         public async Task CreateUserAsync(StudentUser user) =>
             await _studentUsers.InsertOneAsync(user);
 
+        // Updates user email
         public async Task UpdateUserEmailAsync(ObjectId studentId, string newEmail) =>
             await _studentUsers.UpdateOneAsync(
                 u => u.Id == studentId,
                 Builders<StudentUser>.Update.Set(u => u.Email, newEmail)
             );
+        
+        // Gets all users
+        public async Task<List<StudentUser>> GetAllUsersAsync()
+        {
+            return await _studentUsers.Find(u => true).ToListAsync();
+        }
     }
 }

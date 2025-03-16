@@ -19,8 +19,14 @@
         </thead>
         <tbody>
             <tr>
-                <td><input asp-for="NewRequirement.RequirementID" class="form-control" /></td>
-                <td><input asp-for="NewRequirement.Description" class="form-control" /></td>
+                <td>
+                    <input asp-for="NewRequirement.RequirementID" class="form-control" />
+                    <span asp-validation-for="NewRequirement.RequirementID" class="text-danger"></span>
+                </td>
+                <td>
+                    <input asp-for="NewRequirement.Description" class="form-control" />
+                    <span asp-validation-for="NewRequirement.Description" class="text-danger"></span>
+                </td>
                 <td><input asp-for="NewRequirement.StoryPoints" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.Priority" class="form-control" /></td>
                 <td><input asp-for="NewRequirement.SprintNo" class="form-control" /></td>
@@ -43,10 +49,17 @@
 </form>
 
 <hr>
+<div style="display: flex; gap: 10px;"
 <form method="post">
     <input type="hidden" name="projectId" value="@Model.ProjectId" />
     <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
 </form>
+
+<form method="get" asp-page="/Brainstorm">
+    <input type="hidden" name="projectId" value="@Model.ProjectId" />
+    <button type="submit" class="btn btn-primary">Brainstorming</button>
+</form>
+</div>
 
 <h3>Added Requirements</h3>
 <form method="post">
@@ -77,7 +90,7 @@
                         <select asp-for="Requirements[i].Assignees" class="form-control assignedUsers" multiple="multiple">
                             @foreach (var member in Model.TeamMembers)
                             {
-                                <option value="@member.Id" selected="@Model.Requirements[i].Assignees.Contains(member.Id)">
+                                <option value="@member.Id" selected="@(Model.Requirements[i].Assignees != null && Model.Requirements[i].Assignees.Contains(member.Id))">
                                     @member.FirstName @member.LastName
                                 </option>
                             }
@@ -88,12 +101,14 @@
                         <button type="submit" asp-page-handler="Update"
                                 asp-route-id="@Model.Requirements[i].Id"
                                 asp-route-projectId="@Model.ProjectId"
-                                class="btn btn-warning">Update
-                        </button>                        
+                                class="btn btn-warning">
+                            Update
+                        </button>
                         <button type="submit" asp-page-handler="Remove"
                                 asp-route-id="@Model.Requirements[i].Id"
                                 asp-route-projectId="@Model.ProjectId"
-                                class="btn btn-danger">Remove
+                                class="btn btn-danger">
+                            Remove
                         </button>
                     </td>
                 </tr>

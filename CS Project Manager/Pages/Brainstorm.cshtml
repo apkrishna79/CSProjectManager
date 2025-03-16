@@ -1,0 +1,63 @@
+﻿@page
+@model CS_Project_Manager.Pages.BrainstormModel
+
+<h2>Brainstorming Ideas</h2>
+
+<form method="post">
+    <input type="hidden" name="ProjectId" value="@Model.ProjectId" />
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input asp-for="NewBrainstormItem.Description" class="form-control" />
+                    <span asp-validation-for="NewBrainstormItem.Description" class="text-danger"></span>
+                </td>
+                <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add Idea</button></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<h3>Added Brainstorm Ideas</h3>
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Description</th>
+                <th style="width: 11%;">Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.BrainstormItems.Count; i++)
+            {
+                <tr>
+                    <input type="hidden" asp-for="BrainstormItems[i].Id" />
+                    <td>
+                        <input asp-for="BrainstormItems[i].Description" class="form-control" />
+                        <span asp-validation-for="BrainstormItems[i].Description" class="text-danger"></span>
+                    </td>
+                    <td>@Model.UserFullNames[Model.BrainstormItems[i].CreatedBy]</td>
+                    <td>
+                        <button type="submit" asp-page-handler="Update"
+                                asp-route-id="@Model.BrainstormItems[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-warning">
+                            Update
+                        </button>
+                        <button type="submit" asp-page-handler="Remove"
+                                asp-route-id="@Model.BrainstormItems[i].Id"
+                                asp-route-projectId="@Model.ProjectId"
+                                class="btn btn-danger">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>

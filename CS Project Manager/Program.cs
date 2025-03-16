@@ -2,7 +2,7 @@
  * Prologue: Program.cs
  * Programmers: Anakha Krishna, Ginny Ke, Jackson Wunderlich
  * Date Created: 2/13/25
- * Date Revised: 2/27/25 - JW
+ * Date Revised: 3/16/25 - AK
  * Purpose: Configures and starts the web application using ASP.NET Core with Razor Pages.
  *
  * Preconditions:
@@ -70,6 +70,8 @@ builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<RequirementService>();
+builder.Services.AddScoped<TodoService>();
+builder.Services.AddScoped<BrainstormService>();
 
 var app = builder.Build(); // Build app from configured builder
 

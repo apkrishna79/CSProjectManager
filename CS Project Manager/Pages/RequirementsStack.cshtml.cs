@@ -2,8 +2,8 @@
  * Prologue
 Created By: Dylan Sailors
 Date Created: 3/1/25
-Last Revised By: Ginny Ke
-Date Revised: 3/14/25 GK 
+Last Revised By: Dylan Sailors
+Date Revised: 3/15/25 DS 
 Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -62,22 +62,35 @@ namespace CS_Project_Manager.Pages
             ProjectId = parsedProjectId;
             Requirements = await _requirementService.GetRequirementsByProjectIdAsync(parsedProjectId);
 
-            // Fetch the project and team
+            Requirements = Requirements
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
+
             var currentProject = await _projectService.GetProjectById(ProjectId);
             var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
 
-            // Retrieve all team members
             TeamMembers = (await Task.WhenAll(curTeam.Members
-                .Select(member => _studentUserService.GetUserByIdAsync(member)))).ToList<StudentUser>();
-
-            // Fetch project requirements
-            Requirements = await _requirementService.GetRequirementsByProjectIdAsync(ProjectId);
+                .Select(member => _studentUserService.GetUserByIdAsync(member)))).ToList();
         }
+
         // Add a new requirement
         public async Task<IActionResult> OnPostAddAsync(ObjectId projectId)
         {
+            if (!NewRequirement.RequirementID.HasValue)
+            {
+                ModelState.AddModelError("NewRequirement.RequirementID", "Requirement ID cannot be empty.");
+            }
+            if (string.IsNullOrWhiteSpace(NewRequirement.Description))
+            {
+                ModelState.AddModelError("NewRequirement.Description", "Description cannot be empty.");
+            }
             if (!ModelState.IsValid)
             {
+                ProjectId = projectId;
+                Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+                Requirements = Requirements
+                    .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                    .ToList();
                 return Page();
             }
             ProjectId = projectId;
@@ -88,10 +101,14 @@ namespace CS_Project_Manager.Pages
             }
             NewRequirement.AssocProjectId = ProjectId;
             await _requirementService.AddRequirementAsync(NewRequirement);
+            Requirements = (await _requirementService.GetRequirementsByProjectIdAsync(projectId))
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
+
             return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
 
-        // Update an existing requirement
+        // Update a requirement
         public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
         {
             var existingRequirement = await _requirementService.GetRequirementByIdAsync(id);
@@ -107,13 +124,17 @@ namespace CS_Project_Manager.Pages
                 existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
-                existingRequirement.Assignees = updatedRequirement.Assignees;
+                existingRequirement.Assignees = updatedRequirement.Assignees?.ToList() ?? new List<ObjectId>();
+
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
+            Requirements = (await _requirementService.GetRequirementsByProjectIdAsync(projectId))
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
 
-        // Remove an existing requirement
+        // Remove a requirement
         public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
         {
             var requirement = await _requirementService.GetRequirementByIdAsync(id);
@@ -122,18 +143,26 @@ namespace CS_Project_Manager.Pages
                 return NotFound();
             }
             await _requirementService.RemoveRequirementAsync(id);
+            Requirements = (await _requirementService.GetRequirementsByProjectIdAsync(projectId))
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
+
         // Export requirements to Excel
         public async Task<IActionResult> OnPostExportAsync(ObjectId projectId)
         {
             var requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+
             if (requirements == null || !requirements.Any())
             {
-                // if no requirements are found
                 Console.WriteLine("No requirements found for this project.");
             }
-            using (var workbook = new XLWorkbook()){
+            requirements = requirements
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
+            using (var workbook = new XLWorkbook())
+            {
                 var worksheet = workbook.Worksheets.Add("Requirements Stack");
                 worksheet.Cell(1, 1).Value = "Requirement ID";
                 worksheet.Cell(1, 2).Value = "Description";
@@ -142,14 +171,16 @@ namespace CS_Project_Manager.Pages
                 worksheet.Cell(1, 5).Value = "Sprint Number";
                 worksheet.Cell(1, 6).Value = "Assignees";
                 int row = 2;
-                foreach (var req in requirements){
-                    worksheet.Cell(row, 1).Value = req.RequirementID.ToString() ?? "N/A";
+                foreach (var req in requirements)
+                {
+                    worksheet.Cell(row, 1).Value = req.RequirementID?.ToString() ?? "N/A";
                     worksheet.Cell(row, 2).Value = string.IsNullOrEmpty(req.Description) ? "No Description" : req.Description;
                     worksheet.Cell(row, 3).Value = req.StoryPoints?.ToString() ?? "No Story Points";
                     worksheet.Cell(row, 4).Value = req.Priority?.ToString() ?? "No Priority";
                     worksheet.Cell(row, 5).Value = req.SprintNo?.ToString() ?? "No Sprint No";
-                    // Fetch names
-                    if (req.Assignees != null && req.Assignees.Any()){
+                    // Fetch names for assignees
+                    if (req.Assignees != null && req.Assignees.Any())
+                    {
                         var assigneeNames = new List<string>();
                         foreach (var assigneeId in req.Assignees)
                         {
@@ -161,17 +192,24 @@ namespace CS_Project_Manager.Pages
                         }
                         worksheet.Cell(row, 6).Value = string.Join(", ", assigneeNames);
                     }
-                    else{
+                    else
+                    {
                         worksheet.Cell(row, 6).Value = "No Assignees";
                     }
-                    row++;}
-                //uses closexml to create excel file
-                using (var stream = new MemoryStream()){
+
+                    row++;
+                }
+                // Auto-fit columns for better formatting
+                worksheet.Columns().AdjustToContents();
+                // Use ClosedXML to create the Excel file
+                using (var stream = new MemoryStream())
+                {
                     workbook.SaveAs(stream);
                     stream.Position = 0;
                     return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "RequirementsStack.xlsx");
                 }
             }
         }
+
     }
 }
