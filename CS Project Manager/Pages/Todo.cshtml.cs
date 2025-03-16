@@ -2,11 +2,11 @@
  * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/13/25
-Last Revised By: Dylan Sailors
-Date Revised: 3/15/25
+Last Revised By: Jackson Wunderlich
+Date Revised: 3/16/25
 Purpose: Page displaying Team To-Do list and Personal To-Do list with the ability to add more tasks, mark task as complete, and remove a task
-Preconditions: 
-Postconditions: 
+Preconditions: MongoDBService, other service instances properly initialized and injected; Requirement/Todo must be correctly defined
+Postconditions: gets personal and team todo items and personal requirements from the database and shows them to the user
 Error and exceptions: ArgumentNullException (required field empty), FormatException (invalid data input)
 Side effects: N/A
 Invariants: Todo list is always initialized; OnGet method always prepares an initial list
@@ -29,18 +29,27 @@ namespace CS_Project_Manager.Pages
         private readonly TodoService _todoService;
         private readonly StudentUserService _studentUserService;
         private readonly TeamService _teamService;
+        private readonly RequirementService _requirementService;
+        private readonly ProjectService _projectService;
 
-        public TodoModel(TodoService todoService, StudentUserService studentUserService, TeamService teamService)
+        public TodoModel(TodoService todoService, StudentUserService studentUserService, TeamService teamService, RequirementService requirementService, ProjectService projectService)
         {
             _todoService = todoService;
             _studentUserService = studentUserService;
             _teamService = teamService;
+            _requirementService = requirementService;
+            _projectService = projectService;
         }
 
         [BindProperty]
         public Todo NewTodo { get; set; } = new Todo { ItemName = string.Empty };
         public List<Todo> PersonalTodo { get; set; } = new();
         public List<Todo> TeamTodo { get; set; } = new();
+
+        [BindProperty]
+        public List<Requirement> Requirements { get; set; } = new List<Requirement>();
+
+        public List<Project> Projects { get; set; } = new List<Project>();
         public ObjectId UserId { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
@@ -50,6 +59,22 @@ namespace CS_Project_Manager.Pages
 
             UserId = user.Id;
             var teamIds = (await _teamService.GetTeamsByStudentIdAsync(UserId)).ConvertAll(t => t.Id);
+            Requirements = await _requirementService.GetRequirementsByUserIdAsync(UserId);
+            var userTeams = await _teamService.GetTeamsByStudentIdAsync(UserId);
+
+            // get all projects a user is currently part of
+            foreach (var team in userTeams)
+            {
+                var projects = await _projectService.GetProjectsByTeamIdAsync(team.Id);
+                foreach (var project in projects)
+                {
+                    Projects.Add(project);
+                }
+            }
+
+            Requirements = Requirements
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
 
             // Fetch personal and team tasks using the TodoService
             PersonalTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
@@ -57,6 +82,7 @@ namespace CS_Project_Manager.Pages
                 .OrderBy(t => t.ItemComplete)
                 .ToList();
 
+            // get all todo items based on user's teams
             foreach (var team in teamIds)
             {
                 var todoItems = await _todoService.GetTodoByTeamIdAsync(team);
@@ -66,7 +92,7 @@ namespace CS_Project_Manager.Pages
                 }
             }
             TeamTodo.OrderBy(t => t.ItemComplete);
-
+            
             return Page();
         }
 
@@ -128,5 +154,47 @@ namespace CS_Project_Manager.Pages
             return RedirectToPage();
         }
 
+        // Update a requirement
+        public async Task<IActionResult> OnPostUpdateReqAsync(ObjectId id, ObjectId projectId)
+        {
+            var existingRequirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (existingRequirement == null)
+            {
+                return NotFound();
+            }
+            foreach (var req in Requirements)
+            {
+                Console.WriteLine(req.Id.ToString());
+            }
+            var updatedRequirement = Requirements.FirstOrDefault(r => r.Id == id);
+            if (updatedRequirement != null)
+            {
+                existingRequirement.RequirementID = updatedRequirement.RequirementID;
+                existingRequirement.Description = updatedRequirement.Description;
+                existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
+                existingRequirement.Priority = updatedRequirement.Priority;
+                existingRequirement.SprintNo = updatedRequirement.SprintNo;
+
+                await _requirementService.UpdateRequirementAsync(existingRequirement);
+            }
+            Requirements = (await _requirementService.GetRequirementsByUserIdAsync(UserId))
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostRemoveReqAsync(ObjectId id, ObjectId projectId)
+        {
+            var requirement = await _requirementService.GetRequirementByIdAsync(id);
+            if (requirement == null)
+            {
+                return NotFound();
+            }
+            await _requirementService.RemoveRequirementAsync(id);
+            Requirements = (await _requirementService.GetRequirementsByUserIdAsync(UserId))
+                .OrderBy(r => r.RequirementID ?? int.MaxValue)
+                .ToList();
+            return RedirectToPage();
+        }
     }
 }

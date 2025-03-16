@@ -2,8 +2,8 @@
 * Prologue
 Created By: Dylan Sailors
 Date Created: 3/8/25
-Last Revised By: Dylan Sailors
-Date Revised: 3/8/25
+Last Revised By: Jackson Wunderlich
+Date Revised: 3/16/25
 Purpose: Provides data access methods for requirements-related operations in the MongoDB database
 Preconditions: MongoDB setup, Requirements table exists, RequirementsStack model defined
 Postconditions: new Requirements can be added, Requirements can be updated and removed
@@ -18,6 +18,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace CS_Project_Manager.Services
 {
@@ -33,6 +34,14 @@ namespace CS_Project_Manager.Services
         public async Task<Requirement?> GetRequirementByIdAsync(ObjectId id) =>
             await _requirements.Find(r => r.Id == id).FirstOrDefaultAsync();
 
+        // gets requirements associated with a user by their ID
+        public async Task<List<Requirement>> GetRequirementsByUserIdAsync(ObjectId id)
+        {
+            return await _requirements
+                .Find(r => r.Assignees.Contains(id))
+                .ToListAsync();
+        }
+        
         // Gets all requirements associated with a project by project ID
         public async Task<List<Requirement>> GetRequirementsByProjectIdAsync(ObjectId projectId) =>
             await _requirements.Find(r => r.AssocProjectId == projectId).ToListAsync();
