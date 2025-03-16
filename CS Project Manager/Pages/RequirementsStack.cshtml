@@ -49,10 +49,17 @@
 </form>
 
 <hr>
+<div style="display: flex; gap: 10px;"
 <form method="post">
     <input type="hidden" name="projectId" value="@Model.ProjectId" />
     <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
 </form>
+
+<form method="get" asp-page="/Brainstorm">
+    <input type="hidden" name="projectId" value="@Model.ProjectId" />
+    <button type="submit" class="btn btn-primary">Brainstorming</button>
+</form>
+</div>
 
 <h3>Added Requirements</h3>
 <form method="post">
