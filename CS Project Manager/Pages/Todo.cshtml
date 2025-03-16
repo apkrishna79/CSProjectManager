@@ -95,3 +95,50 @@
         </table>
     </div>
 </div>
+
+<h2>Personal Requirements</h2>
+
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">Associated Project</th>
+                <th style="width: 12%;">Requirement ID</th>
+                <th style="width: 30%;">Description</th>
+                <th style="width: 11%;">Story Points</th>
+                <th style="width: 8%;">Priority</th>
+                <th style="width: 8%;">Sprint No</th>
+                <th style="width: 11%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Requirements.Count; i++)
+            {
+                <tr>
+                    <input type="hidden" asp-for="Requirements[i].Id" />
+                    <td>@Model.Projects.FirstOrDefault(p => p.Id == Model.Requirements[i].AssocProjectId).ProjectName</td>
+                    <td><input asp-for="Requirements[i].RequirementID" class="form-control" /></td>
+                    <td><input asp-for="Requirements[i].Description" class="form-control" /></td>
+                    <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
+                    <td><input asp-for="Requirements[i].Priority" class="form-control" /></td>
+                    <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
+
+                    <td>
+                        <button type="submit" asp-page-handler="UpdateReq"
+                                asp-route-id="@Model.Requirements[i].Id"
+                                asp-route-projectId="@Model.Requirements[i].AssocProjectId"
+                                class="btn btn-warning">
+                            Update
+                        </button>
+                        <button type="submit" asp-page-handler="RemoveReq"
+                                asp-route-id="@Model.Requirements[i].Id"
+                                asp-route-projectId="@Model.Requirements[i].AssocProjectId"
+                                class="btn btn-danger">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
