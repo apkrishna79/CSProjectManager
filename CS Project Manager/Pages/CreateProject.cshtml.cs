@@ -81,8 +81,8 @@ namespace CS_Project_Manager.Pages
         {
             var newProject = new Project
             {
-                project_name = ProjectName,
-                description = Description,
+                ProjectName = ProjectName,
+                Description = Description,
                 AssociatedTeam = SelectedTeamId
             };
             await _projectService.CreateProjectAsync(newProject);

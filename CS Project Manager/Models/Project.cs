@@ -13,10 +13,10 @@ namespace CS_Project_Manager.Models
 
         [Required]
         [MaxLength(100, ErrorMessage = "Project name cannot exceed 100 characters")]
-        public required string project_name { get; set; }
+        public required string ProjectName { get; set; }
 
         [Required]
-        public required string description { get; set; }
+        public required string Description { get; set; }
 
         [Required]
         [BsonRepresentation(BsonType.ObjectId)]
