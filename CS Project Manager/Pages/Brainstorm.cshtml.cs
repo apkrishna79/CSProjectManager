@@ -4,7 +4,7 @@ Created By: Anakha Krishna
 Date Created: 3/15/25
 Last Revised By: Anakha Krishna
 Date Revised: 3/16/25 - AK
-Purpose: 
+Purpose: Create, update, remove brainstorm ideas for an associated project
 Preconditions: MongoDBService, ProjectService, BrainstormService, StudentUserService instances properly initialized and injected; Project, StudentUser, BrainstormItem models must be correctly defined
 Postconditions: Can add, remove, and update brainstorm ideas associated with project
 Error and exceptions: ArgumentNullException (required field empty)
