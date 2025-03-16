@@ -32,7 +32,7 @@ namespace CS_Project_Manager.Services
 
         // gets a project by the provided name, returns null if no project exists
         public async Task<Project?> GetProjectByNameAsync(string name) =>
-            await _projects.Find(p => p.project_name == name).FirstOrDefaultAsync();
+            await _projects.Find(p => p.ProjectName == name).FirstOrDefaultAsync();
 
         // gets a project by the provided project ID, returns null if no project exists
         public async Task<Project?> GetProjectById(ObjectId projectId) =>
