@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model CS_Project_Manager.Pages.BrainstormModel
 
 <h2>Brainstorming Ideas</h2>
@@ -24,40 +24,50 @@
 </form>
 
 <h3>Added Brainstorm Ideas</h3>
-<form method="post">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th style="width: 30%;">Description</th>
+            <th style="width: 11%;">Created By</th>
+            <th>Votes</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.BrainstormItems.Count; i++)
+        {
+            var item = Model.BrainstormItems[i];
             <tr>
-                <th style="width: 30%;">Description</th>
-                <th style="width: 11%;">Created By</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.BrainstormItems.Count; i++)
-            {
-                <tr>
+                <form method="post">
                     <input type="hidden" asp-for="BrainstormItems[i].Id" />
                     <td>
                         <input asp-for="BrainstormItems[i].Description" class="form-control" />
                         <span asp-validation-for="BrainstormItems[i].Description" class="text-danger"></span>
                     </td>
-                    <td>@Model.UserFullNames[Model.BrainstormItems[i].CreatedBy]</td>
+                    <td>@Model.UserFullNames[item.CreatedBy]</td>
                     <td>
-                        <button type="submit" asp-page-handler="Update"
-                                asp-route-id="@Model.BrainstormItems[i].Id"
-                                asp-route-projectId="@Model.ProjectId"
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <input type="hidden" name="projectId" value="@Model.ProjectId" />
+                        <button type="submit" formaction="?handler=Upvote" class="btn btn-success">👍 @item.Upvotes.Count</button>
+                        <button type="submit" formaction="?handler=Downvote" class="btn btn-danger">👎 @item.Downvotes.Count</button>
+                    </td>
+                    <td>
+                        <button type="submit" formaction="?handler=Update"
+                                formmethod="post"
+                                formaction="?handler=Update"
+                                name="id" value="@item.Id"
                                 class="btn btn-warning">
                             Update
                         </button>
-                        <button type="submit" asp-page-handler="Remove"
-                                asp-route-id="@Model.BrainstormItems[i].Id"
-                                asp-route-projectId="@Model.ProjectId"
+                        <button type="submit" formaction="?handler=Remove"
+                                formmethod="post"
+                                name="id" value="@item.Id"
                                 class="btn btn-danger">
                             Remove
                         </button>
                     </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</form>
+                </form>
+            </tr>
+        }
+    </tbody>
+</table>
