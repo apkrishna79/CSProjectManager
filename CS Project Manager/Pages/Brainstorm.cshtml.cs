@@ -72,7 +72,6 @@ namespace CS_Project_Manager.Pages
             {
                 ModelState.AddModelError("NewBrainstormItem.Description", "Description cannot be empty.");
             }
-            // Reload brainstorm list after ModelError
             if (!ModelState.IsValid)
             {
                 ProjectId = projectId;
@@ -85,9 +84,12 @@ namespace CS_Project_Manager.Pages
             ProjectId = projectId;
             NewBrainstormItem.AssocProjectId = ProjectId;
             await _brainstormService.AddBrainstormItemAsync(NewBrainstormItem);
+            ModelState.Clear();
+            NewBrainstormItem = new BrainstormItem { Description = string.Empty };
             await LoadAndSortBrainstormItemsAsync(ProjectId);
             return Page();
         }
+
 
         // Handle updating an existing brainstorm idea
         public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
