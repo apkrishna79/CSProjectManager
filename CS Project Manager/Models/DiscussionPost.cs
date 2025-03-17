@@ -23,9 +23,13 @@ namespace CS_Project_Manager.Models
 
         public DateTime Timestamp;
 
+        [BsonElement("HeadPostId")]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId HeadPostId { get; set; }
+
         [BsonElement("ParentPostId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId ParentPostId { get; set; }
+        public ObjectId ImmediateParentPostId { get; set; }
 
         public bool IsReply { get; set; }
     }
