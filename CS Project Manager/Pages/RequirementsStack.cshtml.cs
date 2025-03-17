@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/15/25 DS 
+Date Revised: 3/16/25 DS 
 Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -84,29 +84,42 @@ namespace CS_Project_Manager.Pages
             {
                 ModelState.AddModelError("NewRequirement.Description", "Description cannot be empty.");
             }
+
+            // Fetch existing requirements for the project
+            var existingRequirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+
+            // Check for duplicate RequirementID
+            if (existingRequirements.Any(r => r.RequirementID == NewRequirement.RequirementID))
+            {
+                ModelState.AddModelError("NewRequirement.RequirementID", "A requirement with this Requirement ID already exists.");
+            }
+
             if (!ModelState.IsValid)
             {
                 ProjectId = projectId;
-                Requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
-                Requirements = Requirements
+                Requirements = existingRequirements
                     .OrderBy(r => r.RequirementID ?? int.MaxValue)
                     .ToList();
                 return Page();
             }
+
             ProjectId = projectId;
             var project = await _projectService.GetProjectById(ProjectId);
             if (project == null)
             {
                 return NotFound();
             }
+
             NewRequirement.AssocProjectId = ProjectId;
             await _requirementService.AddRequirementAsync(NewRequirement);
+
             Requirements = (await _requirementService.GetRequirementsByProjectIdAsync(projectId))
                 .OrderBy(r => r.RequirementID ?? int.MaxValue)
                 .ToList();
 
             return RedirectToPage(new { projectId = ProjectId.ToString() });
         }
+
 
         // Update a requirement
         public async Task<IActionResult> OnPostUpdateAsync(ObjectId id, ObjectId projectId)
