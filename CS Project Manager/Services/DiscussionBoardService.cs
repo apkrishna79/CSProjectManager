@@ -22,5 +22,11 @@ namespace CS_Project_Manager.Services
             var filter = Builders<DiscussionBoard>.Filter.In(d => d.ClassId, classIds);
             return await _discussionBoards.Find(filter).ToListAsync();
         }
+
+        public async Task<List<DiscussionBoard>> GetDiscussionBoardsByTeamIdsAsync(List<ObjectId> teams)
+        {
+            var filter = Builders<DiscussionBoard>.Filter.In(d => d.TeamId, teams);
+            return await _discussionBoards.Find(filter).ToListAsync();
+        }
     }
 }

@@ -72,6 +72,8 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<RequirementService>();
 builder.Services.AddScoped<TodoService>();
 builder.Services.AddScoped<BrainstormService>();
+builder.Services.AddScoped<DiscussionBoardService>();
+builder.Services.AddScoped<DiscussionPostService>();
 
 var app = builder.Build(); // Build app from configured builder
 
