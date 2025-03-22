@@ -1,14 +1,12 @@
-using CS_Project_Manager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 
 namespace CS_Project_Manager.Pages
 {
-    public class DiscussionBoardModel : PageModel
+    public class NewPostModel : PageModel
     {
         public ObjectId BoardId { get; set; }
-
         public void OnGet(string boardId)
         {
             if (!ObjectId.TryParse(boardId, out ObjectId parsedBoardId))
