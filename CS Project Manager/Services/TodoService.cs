@@ -23,33 +23,33 @@ namespace CS_Project_Manager.Services
 {
     public class TodoService
     {
-        private readonly IMongoCollection<Todo> _todo;
+        private readonly IMongoCollection<TodoItem> _todo;
 
         public TodoService(MongoDBService mongoDBService)
         {
-            _todo = mongoDBService.GetCollection<Todo>("Todo");
+            _todo = mongoDBService.GetCollection<TodoItem>("TodoItems");
         }
 
         // Adds a new task
-        public async Task AddTodoAsync(Todo newTodo) =>
+        public async Task AddTodoAsync(TodoItem newTodo) =>
             await _todo.InsertOneAsync(newTodo);
 
         // Gets a task by its ObjectId
-        public async Task<Todo?> GetTodoByIdAsync(ObjectId id) =>
+        public async Task<TodoItem?> GetTodoByIdAsync(ObjectId id) =>
             await _todo.Find(r => r.Id == id).FirstOrDefaultAsync();
 
         // Gets all tasks associated with a project by user ID
-        public async Task<List<Todo>> GetTodoByUserIdAsync(ObjectId userId) =>
+        public async Task<List<TodoItem>> GetTodoByUserIdAsync(ObjectId userId) =>
             await _todo.Find(r => r.AssocUserId == userId).ToListAsync();
 
         // Gets all tasks associated with a project by team ID
-        public async Task<List<Todo>> GetTodoByTeamIdAsync(ObjectId userId) =>
+        public async Task<List<TodoItem>> GetTodoByTeamIdAsync(ObjectId userId) =>
             await _todo.Find(r => r.AssocTeamId == userId).ToListAsync();
 
         // Updates an existing task
-        public async Task UpdateTodoAsync(Todo updatedTodo)
+        public async Task UpdateTodoAsync(TodoItem updatedTodo)
         {
-            var filter = Builders<Todo>.Filter.Eq(r => r.Id, updatedTodo.Id);
+            var filter = Builders<TodoItem>.Filter.Eq(r => r.Id, updatedTodo.Id);
             await _todo.ReplaceOneAsync(filter, updatedTodo);
         }
 

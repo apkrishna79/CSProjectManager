@@ -42,9 +42,9 @@ namespace CS_Project_Manager.Pages
         }
 
         [BindProperty]
-        public Todo NewTodo { get; set; } = new Todo { ItemName = string.Empty };
-        public List<Todo> PersonalTodo { get; set; } = new();
-        public List<Todo> TeamTodo { get; set; } = new();
+        public TodoItem NewTodo { get; set; } = new TodoItem { ItemName = string.Empty };
+        public List<TodoItem> PersonalTodo { get; set; } = new();
+        public List<TodoItem> TeamTodo { get; set; } = new();
 
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
