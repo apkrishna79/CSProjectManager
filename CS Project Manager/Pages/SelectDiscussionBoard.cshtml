@@ -8,15 +8,15 @@
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
-        @if (Model.Classes.Count > 0 || Model.Teams.Count > 0)
+        @if (Model.ClassDisplayData.Count > 0 || Model.TeamDisplayData.Count > 0)
         {
             <table>
                 <tbody>
-                    @foreach (var course in Model.Classes)
+                    @foreach (var course in Model.ClassDisplayData)
                     {
                         <tr>
                             <td>
-                                <a asp-page="/DiscussionBoard" asp-route-classId="@course.Id.ToString()">@course.Name</a>
+                                <a asp-page="/DiscussionBoard" asp-route-boardId="@course.assocBoardId.ToString()">@course.label</a>
                             </td>
                         </tr>
                     }
@@ -24,7 +24,7 @@
                     {
                         <tr>
                             <td>
-                                <a asp-page="/DiscussionBoard" asp-route-teamId="@team.Id.ToString()">@team.label</a>
+                                <a asp-page="/DiscussionBoard" asp-route-boardId="@team.assocBoardId.ToString()">@team.label</a>
                             </td>
                         </tr>
                     }

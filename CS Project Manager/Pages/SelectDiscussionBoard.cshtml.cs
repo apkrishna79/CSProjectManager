@@ -15,31 +15,33 @@ namespace CS_Project_Manager.Pages
         private readonly StudentUserService _studentUserService = studentUserService;
         private readonly TeamService _teamService = teamService;
 
-        List<DiscussionBoard> AvailableClassBoards = [];
-        List<DiscussionBoard> AvailableTeamBoards = [];
-        public List<Class> Classes = [];
-        public List<Team> Teams = [];
-        public List<(ObjectId Id, string label)> TeamDisplayData { get; set; } = new();
+        public List<(string label, ObjectId assocBoardId)> TeamDisplayData { get; set; } = new();
+        public List<(string label, ObjectId assocBoardId)> ClassDisplayData { get; set; } = new();
 
         public async Task OnGet()
         {
             var name = User.Identity.Name;
             var userObj = await _studentUserService.GetUserByUsernameAsync(name);
 
-            Classes = await _classService.GetClassesForStudentAsync(userObj.Id);
-            var classIdToNameMap = Classes.ToDictionary(c => c.Id, c => c.Name);
+            var classes = await _classService.GetClassesForStudentAsync(userObj.Id);
+            var classIdToNameMap = classes.ToDictionary(c => c.Id, c => c.Name);
 
             // Class Discussion Boards
-            var classIds = Classes.Select(c => c.Id).ToList();
-            AvailableClassBoards = await _boardService.GetDiscussionBoardsByClassIdsAsync(classIds);
+            var classIds = classes.Select(c => c.Id).ToList();
+            var availableClassBoards = await _boardService.GetDiscussionBoardsByClassIdsAsync(classIds);
+            ClassDisplayData = [.. classes.Select(course =>(
+                course.Name,
+                availableClassBoards.FirstOrDefault(b => b.ClassId == course.Id).Id
+            ))];
 
-            Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
-            var teamIds = Teams.Select(team => team.Id).ToList();
-            AvailableTeamBoards = await _boardService.GetDiscussionBoardsByTeamIdsAsync(teamIds);
+            // Team discussion boards
+            var teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
+            var teamIds = teams.Select(team => team.Id).ToList();
+            var availableTeamBoards = await _boardService.GetDiscussionBoardsByTeamIdsAsync(teamIds);
 
-            TeamDisplayData = [.. Teams.Select(team => (
-                team.Id,
-                $"{team.Name} ({classIdToNameMap.GetValueOrDefault(team.AssociatedClass, "Unknown Class")})"
+            TeamDisplayData = [.. teams.Select(team => (
+                $"{team.Name} ({classIdToNameMap.GetValueOrDefault(team.AssociatedClass)})",
+                availableTeamBoards.FirstOrDefault(b => b.TeamId == team.Id).Id
             ))];
         }
     }
