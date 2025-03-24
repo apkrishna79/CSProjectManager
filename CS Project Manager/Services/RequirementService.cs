@@ -16,9 +16,6 @@ Other faults: N/A
 using CS_Project_Manager.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace CS_Project_Manager.Services
 {
