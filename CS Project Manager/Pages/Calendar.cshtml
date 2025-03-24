@@ -1,0 +1,19 @@
+@page
+@model CalendarModel
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<h2>Calendar</h2>
+
+<!-- Displaying user login status -->
+<div class="navbar-text">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <span>Hello, @User.Identity.Name!</span>
+    }
+    else
+    {
+        <span>Not logged in</span>
+    }
+</div>
