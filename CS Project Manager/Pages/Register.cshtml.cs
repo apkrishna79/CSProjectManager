@@ -28,12 +28,13 @@ using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
-    public class RegisterModel(StudentUserService studentUserService, ClassService classService, TeamService teamService) : PageModel
+    public class RegisterModel(StudentUserService studentUserService, ClassService classService, TeamService teamService, DiscussionBoardService discussionBoardService) : PageModel
     {
         // Injected services for database operations and user-specific operations
         private readonly StudentUserService _studentUserService = studentUserService;
         private readonly ClassService _classService = classService;
         private readonly TeamService _teamService = teamService;
+        private readonly DiscussionBoardService _discussionBoardService = discussionBoardService;
 
         // Bound properties to hold input values from the registration form
         [BindProperty]
@@ -112,6 +113,14 @@ namespace CS_Project_Manager.Pages
                     };
                     await _classService.CreateClassAsync(newClass);
                     classId = newClass.Id;
+
+                    // create discussion board for new class
+                    await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
+                    {
+                        IsClassBoard = true,
+                        ClassId = classId,
+                        TeamId = ObjectId.Empty
+                    });
                 }
                 else
                 {
@@ -158,6 +167,14 @@ namespace CS_Project_Manager.Pages
                         Members = [studentUserId]
                     };
                     await _teamService.CreateTeamAsync(newTeam);
+
+                    // create discussion board for new class
+                    await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
+                    {
+                        IsClassBoard = false,
+                        ClassId = ObjectId.Empty,
+                        TeamId = newTeam.Id
+                    });
                 }
                 else
                 {
