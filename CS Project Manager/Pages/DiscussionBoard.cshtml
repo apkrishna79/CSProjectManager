@@ -3,4 +3,32 @@
 @{
     <a asp-page="/NewPost" asp-route-boardId="@Model.BoardId" class="btn btn-primary">New Post</a>
 
+    <div class="navbar-text">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            @if (Model.LinkedPosts.Count > 0)
+            {
+                <table>
+                    <tbody>
+                        @foreach (var post in Model.LinkedPosts)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-page="/DiscussionPost" asp-route-postId="@post.Id.ToString()">@post.Title</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <span>No classes or teams to display discussion boards for</span>
+            }
+        }
+        else
+        {
+            <span>Not logged in</span>
+        }
+    </div>
 }
