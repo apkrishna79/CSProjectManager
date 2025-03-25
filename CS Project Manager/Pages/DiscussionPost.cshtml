@@ -1,4 +1,6 @@
 ﻿@page
+@using CS_Project_Manager.Models
+@using MongoDB.Bson
 @model CS_Project_Manager.Pages.DiscussionPostModel
 @{
     <div class="container">
@@ -28,9 +30,15 @@
             <div class="replies">
                 @foreach (var reply in Model.Replies)
                 {
-                    @await Html.PartialAsync("Discussion/_ReplyPartial", new { Reply = reply, Model })
+                    @await Html.PartialAsync("Discussion/_ReplyPartial", new
+                        {
+                            Reply = reply,
+                            FetchPostById = new Func<ObjectId, Task<DiscussionPost>>(Model.GetDiscussionPostByIdAsync),
+                            GetAuthorNameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorNameAsync)
+                        })
                 }
             </div>
+
         </div>
 
         <hr />

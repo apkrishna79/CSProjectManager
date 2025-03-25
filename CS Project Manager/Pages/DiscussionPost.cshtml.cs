@@ -52,6 +52,7 @@ namespace CS_Project_Manager.Pages
                 Timestamp = DateTime.UtcNow,
                 IsReply = true,
                 ReplyIds = new List<ObjectId>(),  // New reply has no replies initially
+                BoardId = (await _discussionPostService.GetDiscussionPostByIdAsync(headPostId)).BoardId
             };
 
             // Save the new reply to get its ID
@@ -67,6 +68,12 @@ namespace CS_Project_Manager.Pages
 
             return new JsonResult(new { success = true });
         }
+
+        public async Task<DiscussionPost> GetDiscussionPostByIdAsync(ObjectId postId)
+        {
+            return await _discussionPostService.GetDiscussionPostByIdAsync(postId);
+        }
+
     }
- 
+
 }

@@ -1,7 +1,7 @@
 ﻿@model dynamic
 
 <div class="reply" style="margin-left: 40px; border-left: 2px solid #ccc; padding-left: 10px;">
-    <small>By: @await Model.Model.GetAuthorNameAsync(Model.Reply.PosterId)</small>
+    <small>By: @await Model.GetAuthorNameAsync.Invoke(Model.Reply.PosterId)</small>
     <p>@Model.Reply.Content</p>
 
     <!-- Reply Button -->
@@ -10,10 +10,8 @@
     <!-- Hidden Reply Form -->
     <form method="post" class="reply-form" id="reply-form-@Model.Reply.Id" style="display: none;">
         @Html.AntiForgeryToken()  <!-- CSRF Protection -->
-        <!-- Immediate Parent Post ID -->
-        <input type="hidden" name="immediateParentPostId" value="@Model.Reply.Id" />
 
-        <!-- Head Post ID (Main Post) -->
+        <input type="hidden" name="immediateParentPostId" value="@Model.Reply.Id" />
         <input type="hidden" name="headPostId" value="@Model.Reply.HeadPostId" />
 
         <textarea class="form-control reply-text" name="content" rows="3"></textarea>
@@ -26,16 +24,21 @@
         <div class="nested-replies">
             @foreach (var subReplyId in Model.Reply.ReplyIds)
             {
-                var subReply = await Model.Model._discussionPostService.GetDiscussionPostByIdAsync(subReplyId);
-
+                var subReply = await Model.FetchPostById.Invoke(subReplyId);
                 if (subReply != null)
                 {
-                    @await Html.PartialAsync("Discussion/_ReplyPartial", new { Reply = subReply, Model = Model.Model })
+                    @await Html.PartialAsync("Discussion/_ReplyPartial", new
+                        {
+                            Reply = subReply,
+                            FetchPostById = Model.FetchPostById,
+                            GetAuthorNameAsync = Model.GetAuthorNameAsync
+                        })
                 }
             }
         </div>
     }
 </div>
+
 
 <script>
         $(document).ready(function () {
