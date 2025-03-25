@@ -38,5 +38,26 @@ namespace CS_Project_Manager.Services
 
             await _discussionPosts.DeleteManyAsync(filter);
         }
+
+        public async Task<List<DiscussionPost>> GetRepliesRecursivelyAsync(List<ObjectId> replyIds)
+        {
+            if (replyIds == null || !replyIds.Any()) return [];
+
+            // Fetch all replies at once instead of making multiple calls
+            var replies = await _discussionPosts
+                .Find(post => replyIds.Contains(post.Id))
+                .SortBy(post => post.Timestamp) // Sort by post time
+                .ToListAsync();
+
+            // Recursively fetch replies for each reply's ReplyIds
+            foreach (var reply in replies)
+            {
+                var nestedReplies = await GetRepliesRecursivelyAsync(reply.ReplyIds);
+                reply.ReplyIds = nestedReplies.Select(r => r.Id).ToList(); // Ensure only Ids are stored
+            }
+
+            return replies;
+        }
+
     }
 }

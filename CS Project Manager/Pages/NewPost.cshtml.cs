@@ -40,8 +40,8 @@ namespace CS_Project_Manager.Pages
                 Content = Body,
                 Timestamp = DateTime.UtcNow,
                 HeadPostId = ObjectId.Empty,
-                ImmediateParentPostId = ObjectId.Empty,
-                IsReply = false
+                IsReply = false,
+                ReplyIds = []
             };
 
             await _discussionPostService.CreateDiscussionPostAsync(newPost);

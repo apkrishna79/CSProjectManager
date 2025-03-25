@@ -27,10 +27,8 @@ namespace CS_Project_Manager.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId HeadPostId { get; set; }
 
-        [BsonElement("ParentPostId")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId ImmediateParentPostId { get; set; }
-
         public bool IsReply { get; set; }
+
+        public List<ObjectId> ReplyIds { get; set; } = [];
     }
 }
