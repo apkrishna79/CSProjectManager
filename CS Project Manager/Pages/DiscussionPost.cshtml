@@ -8,7 +8,7 @@
         <div class="post">
             <h2>@Model.Post.Title</h2>
             <small>By: @await Model.GetAuthorNameAsync(Model.Post.PosterId)</small>
-            <p>@Model.Post.Content</p>
+            <p style="white-space: pre-wrap;">@Model.Post.Content</p>
 
             <!-- Reply Button -->
             <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
