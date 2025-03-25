@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using System.ComponentModel.DataAnnotations;
 
 namespace CS_Project_Manager.Models
 {
@@ -17,6 +18,7 @@ namespace CS_Project_Manager.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId PosterId { get; set; }
 
+        [MaxLength(100, ErrorMessage = "Title may not exceed 100 characters")]
         public string? Title { get; set; }
 
         public required string Content;
