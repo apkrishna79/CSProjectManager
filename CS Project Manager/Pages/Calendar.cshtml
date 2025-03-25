@@ -10,7 +10,27 @@
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <span>Hello, @User.Identity.Name!</span>
+        <br>
+        <div id="Calendar" style="left:0%;display:inline-block;white-space:nowrap;">
+            <div style ="font-size:0px;vertical-align:top;">
+                <div style="vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:0px;background: #ffffff;"></div>
+                @foreach (var day in Model.Days)
+                {
+                    <div style="text-align:center;line-height:30px;vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:16px;background: #ffffff;">@day</div>
+                }
+            </div>
+            @foreach (var time in Model.Times)
+            {
+                
+                <div style="font-size:0px;vertical-align:top;">
+                    <div style="text-align:center;vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:14px;background: #ffffff;">@time</div>
+                    @foreach (var day in Model.Days)
+                    {
+                        <div style="vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:0px;border: 1px black solid;background: #ffffff;"></div>
+                    }
+                </div>
+            }
+        </div>
     }
     else
     {
