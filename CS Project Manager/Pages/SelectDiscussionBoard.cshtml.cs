@@ -1,3 +1,18 @@
+/*
+ * Prologue
+ * Created By: Isabel Loney
+ * Date Created: 3/18/25
+ * Last Revised By: Isabel Loney
+ * Date Revised: 3/26/25
+ * Purpose: Provides a selection interface for students to choose a discussion board based on their enrolled classes and associated teams.
+ * Preconditions: Instances of DiscussionBoardService, ClassService, StudentUserService, and TeamService must be properly initialized and injected.
+ * Postconditions: Populates lists of available discussion boards associated with a student's enrolled classes and teams.
+ * Error and exceptions: Handles cases where no discussion boards are found for a given class or team.
+ * Side effects: N/A
+ * Invariants: _boardService, _classService, _studentUserService, and _teamService are always initialized with valid instances.
+ * Other faults: N/A
+ */
+
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;

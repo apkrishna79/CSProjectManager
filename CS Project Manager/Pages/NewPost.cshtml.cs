@@ -1,3 +1,19 @@
+/*
+ * Prologue
+ * Created By: Isabel Loney 
+ * Date Created: 3/22/25
+ * Last Revised By: Isabel Loney 
+ * Date Revised: 3/26/25 
+ * Purpose: Handle the creation of new discussion posts associated with a board.
+ * Preconditions: StudentUserService and DiscussionPostService instances properly initialized and injected; 
+ *               User must be authenticated; BoardId must be a valid ObjectId.
+ * Postconditions: A new discussion post is created and stored in the database, then redirects to the post's page.
+ * Error and exceptions: ArgumentException (invalid board ID format); ValidationException (missing or invalid input data).
+ * Side effects: A new discussion post is added to the database.
+ * Invariants: _studentUserService and _discussionPostService are always initialized with valid instances.
+ * Other faults: N/A
+ */
+
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;

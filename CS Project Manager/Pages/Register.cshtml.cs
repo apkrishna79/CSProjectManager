@@ -3,7 +3,7 @@
 Created By: Isabel Loney
 Date Created: 2/25/25
 Last Revised By: Isabel Loney
-Date Revised: 2/26/25
+Date Revised: 3/26/25
 Purpose: Handles user registration by creating new accounts, validating inputs, checking for existing accounts
 
 Preconditions: MongoDBService, StudentUserService, TeamService, ClassService instances properly initialized and injected; StudentUser, Team, and Class model must be correctly defined

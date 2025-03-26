@@ -1,6 +1,8 @@
 ﻿@page
 @model CS_Project_Manager.Pages.DiscussionBoardModel
 @{
+    <h2>@Model.BoardName Discussion Board</h2>
+
     <a asp-page="/NewPost" asp-route-boardId="@Model.BoardId" class="btn btn-primary">New Post</a>
 
     <div class="navbar-text">
@@ -23,7 +25,7 @@
             }
             else
             {
-                <span>No classes or teams to display discussion boards for</span>
+                <span>No posts yet</span>
             }
         }
         else

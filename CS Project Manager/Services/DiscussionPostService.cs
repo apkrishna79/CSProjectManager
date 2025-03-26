@@ -1,4 +1,20 @@
-﻿using CS_Project_Manager.Models;
+﻿/*
+* Prologue
+Created By: Isabel Loney
+Date Created: 3/17/25
+Last Revised By: Isabel Loney
+Date Revised: 3/26/25
+Purpose: Provides data access methods for discussion post related operations in the MongoDB database
+
+Preconditions: MongoDB setup, DiscussionPost table exists, DiscussionPost model defined
+Postconditions: DiscussionPost retrieved by id, boardId, new items can be inserted or deleted, replies can be retrieved
+Error and exceptions: MongoDB.Driver.MongoException (thrown if there is an issue with the MongoDB connection or operations)
+Side effects: N/A
+Invariants: _discussionPosts collection is always initialized with the "DiscussionPosts" collection from the MongoDB database
+Other faults: N/A
+*/
+
+using CS_Project_Manager.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

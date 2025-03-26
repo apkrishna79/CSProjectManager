@@ -1,3 +1,18 @@
+/*
+ * Prologue
+ * Created By: Isabel Loney
+ * Date Created: 3/22/25
+ * Last Revised By: Isabel Loney
+ * Date Revised: 3/26/25
+ * Purpose: Handle discussion post interactions, including retrieving posts, fetching replies, and submitting new replies.
+ * Preconditions: DiscussionPostService and StudentUserService instances must be properly initialized and injected; DiscussionPost model must be correctly defined.
+ * Postconditions: Can retrieve discussion posts, fetch replies recursively, and allow users to submit new replies.
+ * Error and exceptions: ArgumentException (invalid post ID format), BadRequest (empty reply content), potential database retrieval failures.
+ * Side effects: Updates parent discussion post's ReplyIds list when a new reply is posted.
+ * Invariants: _discussionPostService and _studentUserService are always initialized with valid instances.
+ * Other faults: N/A
+ */
+
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
