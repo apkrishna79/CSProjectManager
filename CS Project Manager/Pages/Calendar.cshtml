@@ -18,16 +18,15 @@
     }
 </style>
 
-<h2>Calendar and Events</h2>
+<h2>Team Calendar and Events</h2>
 
-<!-- Displaying user login status -->
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
         <br>
         <div class="row">
             <div class="col-md-6">
-                <h2>Calendar</h2>
+                <h2>Availability Calendar</h2>
                 <div style="display:inline-block;white-space:nowrap;">
                     <div style ="font-size:0px;vertical-align:top;">
                         <div class="calendar-box"></div>
