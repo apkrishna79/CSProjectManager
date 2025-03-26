@@ -37,8 +37,8 @@ namespace CS_Project_Manager.Services
             await _calendarItems.Find(c => c.Id == id).FirstOrDefaultAsync();
 
         // Gets all calendar items associated with a project by team ID
-        public async Task<List<CalendarItem>> GetTodoByTeamIdAsync(ObjectId userId) =>
-            await _calendarItems.Find(c => c.AssocTeamId == userId).ToListAsync();
+        public async Task<List<CalendarItem>> GetCalendarItemsByTeamIdAsync(ObjectId teamId) =>
+            await _calendarItems.Find(c => c.AssocTeamId == teamId).ToListAsync();
 
         // Removes a calendar item by its ObjectId
         public async Task RemoveCalendarItemAsync(ObjectId id) =>

@@ -4,32 +4,63 @@
     ViewData["Title"] = "Calendar";
 }
 
-<h2>Calendar</h2>
+<style>
+    .calendar-box {
+        vertical-align: top;
+        font-size: 0px;
+        display: inline-block;
+        *display: inline;
+        zoom: 1;
+        width: 60px;
+        height: 30px;
+        background: #ffffff;
+        text-align:center;
+    }
+</style>
+
+<h2>Calendar and Events</h2>
 
 <!-- Displaying user login status -->
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
         <br>
-        <div id="Calendar" style="left:0%;display:inline-block;white-space:nowrap;">
-            <div style ="font-size:0px;vertical-align:top;">
-                <div style="vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:0px;background: #ffffff;"></div>
-                @foreach (var day in Model.Days)
-                {
-                    <div style="text-align:center;line-height:30px;vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:16px;background: #ffffff;">@day</div>
-                }
-            </div>
-            @foreach (var time in Model.Times)
-            {
-                
-                <div style="font-size:0px;vertical-align:top;">
-                    <div style="text-align:center;vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:14px;background: #ffffff;">@time</div>
-                    @foreach (var day in Model.Days)
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Calendar</h2>
+                <div style="display:inline-block;white-space:nowrap;">
+                    <div style ="font-size:0px;vertical-align:top;">
+                        <div class="calendar-box"></div>
+                        @foreach (var day in Model.Days)
+                        {
+                            <div class="calendar-box" style="font-size:16px;">@day</div>
+                        }
+                    </div>
+                    @foreach (var time in Model.Times)
                     {
-                        <div style="vertical-align:top;display:inline-block;*display:inline;zoom:1;width:60px;height:30px;font-size:0px;border: 1px black solid;background: #ffffff;"></div>
+                
+                        <div style="font-size:0px;vertical-align:top;">
+                            <div class="calendar-box" style="font-size:12px;">@time</div>
+                            @foreach (var day in Model.Days)
+                            {
+                                <div class="calendar-box" style="border: 1px black solid;"></div>
+                            }
+                        </div>
                     }
                 </div>
-            }
+            </div>
+
+            <div class="col-md-6">
+                <h2>Event List</h2>
+                <div id="EventList">
+                    <ul>
+                        @foreach (var item in Model.TeamCalendarItems)
+                        {
+                            <li>@item.EventName: @item.StartDateTime.ToString()</li>
+                        }
+                    </ul>
+                </div>
+            </div>
         </div>
     }
     else

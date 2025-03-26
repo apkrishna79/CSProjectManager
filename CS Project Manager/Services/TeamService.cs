@@ -75,11 +75,5 @@ namespace CS_Project_Manager.Services
         {
             return await _teams.Find(t => t.Id == teamId).FirstOrDefaultAsync();
         }
-
-        public async Task<Team> GetTeamByProjectIdAsync(ObjectId projectId)
-        {
-            var filter = Builders<Team>.Filter.Eq(t => t.Id, projectId);
-            return await _teams.Find(filter).FirstOrDefaultAsync();
-        }
     }
 }

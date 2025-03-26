@@ -16,7 +16,6 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
-using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -29,6 +28,8 @@ namespace CS_Project_Manager.Pages
         // bound property for list of teams
         [BindProperty]
         public Team ProjectTeam { get; set; }
+        [BindProperty]
+        public List<CalendarItem> TeamCalendarItems { get; set; }
 
         public List<String> Days { get; set; }
         public List<String> Times { get; set; }
@@ -42,13 +43,14 @@ namespace CS_Project_Manager.Pages
             _userService = userService;
             _calendarService = calendarService;
             Days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            Times = ["9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "1:00", "1:30", "2:00", "2:30", "3:00", "3:30", "4:00", "4:30", "5:00", "5:30", "6:00"];
+            Times = ["9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "1:00", "1:30", "2:00", "2:30", "3:00", "3:30", "4:00", "4:30", "5:00", "5:30"];
         }
 
-        public async Task OnGetAsync(ObjectId projectId)
+        public async Task OnGetAsync(ObjectId teamId)
         {
             // gets the team related to the current project
-            ProjectTeam = await _teamService.GetTeamByProjectIdAsync(projectId);
+            ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
+            TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(ProjectTeam.Id);
         }
     }
 }
