@@ -109,11 +109,23 @@ namespace CS_Project_Manager.Pages
                 return Forbid(); // User is not allowed to delete this post
             }
 
-            var boardId = post.BoardId; // Get the discussion board ID before deleting
+            string redirectUrl;
+
+            if (post.IsReply)
+            {
+                // If it's a reply, redirect to the main discussion post
+                redirectUrl = Url.Page("/DiscussionPost", new { postId = post.HeadPostId.ToString() });
+            }
+            else
+            {
+                // If it's a main post, redirect to the discussion board
+                redirectUrl = Url.Page("/DiscussionBoard", new { boardId = post.BoardId.ToString() });
+            }
+
             await _discussionPostService.DeleteDiscussionPostAsync(postId);
 
             // Return JSON containing redirect URL
-            return new JsonResult(new { redirectUrl = Url.Page("/DiscussionBoard", new { boardId = boardId.ToString() }) });
+            return new JsonResult(new { redirectUrl });
         }
 
 
