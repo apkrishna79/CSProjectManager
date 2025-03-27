@@ -10,18 +10,22 @@
             <small>By: @await Model.GetAuthorNameAsync(Model.Post.PosterId)</small>
             <p style="white-space: pre-wrap;">@Model.Post.Content</p>
 
-            <!-- Reply Button -->
-            <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
+            <!-- Reply and Delete Buttons in the same row -->
+            <div class="d-flex gap-2">
+                <!-- Reply Button -->
+                <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
 
-            <!--Delete button only visible if authored by the logged in user-->
-            @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.PosterId)))
-            {
-                <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
-                    @Html.AntiForgeryToken()  <!-- CSRF Protection -->
-                    <input type="hidden" name="postId" value="@Model.Post.Id" /> <!-- Pass postId -->
-                    <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
-                </form>
-            }
+                <!-- Delete button (only visible if authored by the logged-in user) -->
+                @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.PosterId)))
+                {
+                    <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
+                        @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+                        <input type="hidden" name="postId" value="@Model.Post.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                    </form>
+                }
+            </div>
+
 
 
             <!-- Hidden Reply Form -->
