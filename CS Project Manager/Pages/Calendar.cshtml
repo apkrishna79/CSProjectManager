@@ -45,7 +45,8 @@
                                 @if (Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time))
                                 {
                                     <div class="calendar-box" style="border: 1px black solid;background: #000000"></div>
-                                } else
+                                }
+                                else
                                 {
                                     <div class="calendar-box" style="border: 1px black solid;"></div>
                                 }
@@ -59,12 +60,20 @@
             <div class="col-md-6">
                 <h2>Event List</h2>
                 <div id="EventList">
-                    <ul>
-                        @foreach (var item in Model.TeamCalendarItems)
-                        {
-                            <li>@item.EventName: @item.StartDateTime.ToString()</li>
-                        }
-                    </ul>
+                    @if (Model.TeamCalendarItems.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var item in Model.TeamCalendarItems)
+                            {
+                                <li>@item.EventName: @item.StartDateTime.ToString()</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No scheduled events!</p>
+                    }
+
                 </div>
             </div>
         </div>
