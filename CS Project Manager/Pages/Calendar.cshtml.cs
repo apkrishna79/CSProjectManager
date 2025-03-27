@@ -3,7 +3,7 @@
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 3/26/25
+Date Revised: 3/27/25
 Purpose: page displaying a calendar that allows users to set and view availability and create meetings
 Preconditions: MongoDBService, other service instances properly initialized and injected; CalendarItem must be correctly defined
 Error and exceptions: ArgumentNullException: username is null or empty; MongoException: issue with the MongoDB connection or operation; InvalidOperationException: data cannot be retrieved
@@ -16,6 +16,7 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Linq;
 
 namespace CS_Project_Manager.Pages
 {
@@ -28,9 +29,14 @@ namespace CS_Project_Manager.Pages
         // bound property for the team related to the project
         [BindProperty]
         public Team ProjectTeam { get; set; }
+
         // bound property for the list of calendar events related to the team
         [BindProperty]
         public List<CalendarItem> TeamCalendarItems { get; set; }
+
+        // bound property for the list of user availability items related to the team
+        [BindProperty]
+        public List<UserAvailability> UserAvailabilityItems { get; set; }
 
         public List<String> Days { get; set; }
         public List<String> Times { get; set; }
@@ -50,9 +56,12 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGetAsync(ObjectId teamId)
         {
-            // gets the team related to the current project and a list of all calendar items for that team
+            // gets the team related to the current project
             ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
+            // gets a list of all calendar items for the team
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(ProjectTeam.Id);
+            // gets a list of all user availability items for the team
+            UserAvailabilityItems = await _calendarService.GetUserAvailabilityByTeamIdAsync(ProjectTeam.Id);
         }
     }
 }

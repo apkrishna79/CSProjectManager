@@ -42,8 +42,15 @@
                             <div class="calendar-box" style="font-size:12px;">@time</div>
                             @foreach (var day in Model.Days)
                             {
-                                <div class="calendar-box" style="border: 1px black solid;"></div>
-                            }
+                                @if (Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time))
+                                {
+                                    <div class="calendar-box" style="border: 1px black solid;background: #000000"></div>
+                                } else
+                                {
+                                    <div class="calendar-box" style="border: 1px black solid;"></div>
+                                }
+
+                    }
                         </div>
                     }
                 </div>
