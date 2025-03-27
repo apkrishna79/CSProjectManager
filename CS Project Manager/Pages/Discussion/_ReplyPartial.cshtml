@@ -7,6 +7,16 @@
     <!-- Reply Button -->
     <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Reply.Id">Reply</button>
 
+    <!--Delete button only visible if authored by the logged in user-->
+    @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync.Invoke(Model.Reply.PosterId)))
+    {
+        <form method="post" class="delete-form" id="delete-form-@Model.Reply.Id">
+            @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+            <input type="hidden" name="postId" value="@Model.Reply.Id" /> <!-- Pass postId -->
+            <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+        </form>
+    }
+
     <!-- Hidden Reply Form -->
     <form method="post" class="reply-form" id="reply-form-@Model.Reply.Id" style="display: none;">
         @Html.AntiForgeryToken()  <!-- CSRF Protection -->
@@ -31,7 +41,8 @@
                         {
                             Reply = subReply,
                             FetchPostById = Model.FetchPostById,
-                            GetAuthorNameAsync = Model.GetAuthorNameAsync
+                            GetAuthorNameAsync = Model.GetAuthorNameAsync,
+                            GetAuthorUsernameAsync = Model.GetAuthorUsernameAsync
                         })
                 }
             }
