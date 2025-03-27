@@ -13,6 +13,17 @@
             <!-- Reply Button -->
             <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
 
+            <!--Delete button only visible if authored by the logged in user-->
+            @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.PosterId)))
+            {
+                <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
+                    @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+                    <input type="hidden" name="postId" value="@Model.Post.Id" /> <!-- Pass postId -->
+                    <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                </form>
+            }
+
+
             <!-- Hidden Reply Form -->
             <form method="post" class="reply-form" id="reply-form-@Model.Post.Id" style="display: none;">
                 @Html.AntiForgeryToken()  <!-- CSRF Protection -->
@@ -34,7 +45,8 @@
                         {
                             Reply = reply,
                             FetchPostById = new Func<ObjectId, Task<DiscussionPost>>(Model.GetDiscussionPostByIdAsync),
-                            GetAuthorNameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorNameAsync)
+                            GetAuthorNameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorNameAsync),
+                            GetAuthorUsernameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorUsernameAsync),
                         })
                 }
             </div>
@@ -67,9 +79,25 @@
                         alert("Failed to post reply: " + xhr.responseText);
                     });
             });
-        });
 
+            $(".delete-form").submit(function (event) {
+                event.preventDefault(); // Prevent full-page refresh
+
+                var form = $(this);
+                var formData = form.serialize(); // Serialize form data (includes CSRF token)
+
+                $.post("/DiscussionPost?handler=DeletePost", formData)
+                    .done(function (response) {
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl; // Redirect to discussion board
+                        } else {
+                            location.reload(); // Fallback: Refresh the page if no redirect URL is provided
+                        }
+                    })
+                    .fail(function (xhr) {
+                        alert("Failed to delete post: " + xhr.responseText);
+                    });
+            });
+        });
     </script>
 }
-
-

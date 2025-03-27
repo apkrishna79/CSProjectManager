@@ -49,6 +49,12 @@ namespace CS_Project_Manager.Pages
             return user != null ? $"{user.FirstName} {user.LastName}" : "Unknown";
         }
 
+        public async Task<string> GetAuthorUsernameAsync(ObjectId posterId)
+        {
+            var user = await _studentUserService.GetUserByIdAsync(posterId);
+            return user != null ? user.Username : "";
+        }
+
         public async Task<IActionResult> OnPostPostReplyAsync(ObjectId immediateParentPostId, ObjectId headPostId, string content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -88,6 +94,28 @@ namespace CS_Project_Manager.Pages
         {
             return await _discussionPostService.GetDiscussionPostByIdAsync(postId);
         }
+        public async Task<IActionResult> OnPostDeletePostAsync(ObjectId postId)
+        {
+            var post = await _discussionPostService.GetDiscussionPostByIdAsync(postId);
+            if (post == null)
+            {
+                return NotFound("Post not found.");
+            }
+
+            // Ensure the current user is the author
+            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            if (post.PosterId != user.Id)
+            {
+                return Forbid(); // User is not allowed to delete this post
+            }
+
+            var boardId = post.BoardId; // Get the discussion board ID before deleting
+            await _discussionPostService.DeleteDiscussionPostAsync(postId);
+
+            // Return JSON containing redirect URL
+            return new JsonResult(new { redirectUrl = Url.Page("/DiscussionBoard", new { boardId = boardId.ToString() }) });
+        }
+
 
     }
 

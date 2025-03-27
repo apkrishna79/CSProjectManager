@@ -44,15 +44,52 @@ namespace CS_Project_Manager.Services
             await _discussionPosts.ReplaceOneAsync(filter, updatedPost);
         }
 
-        // delete specified post AND all replies
-        public async Task DeleteDiscussionPost(ObjectId postId)
-        {
-            var filter = Builders<DiscussionPost>.Filter.Or(
-                Builders<DiscussionPost>.Filter.Eq(p => p.Id, postId),
-                Builders<DiscussionPost>.Filter.Eq(p => p.HeadPostId, postId)
-            );
 
-            await _discussionPosts.DeleteManyAsync(filter);
+        public async Task DeleteDiscussionPostAsync(ObjectId postId)
+        {
+            DiscussionPost post = await GetDiscussionPostByIdAsync(postId);
+
+            // If a head-post is being deleted, we can avoid recursion using the HeadPostId field
+            if (!post.IsReply)
+            {
+                var filter = Builders<DiscussionPost>.Filter.Or(
+                    Builders<DiscussionPost>.Filter.Eq(p => p.Id, postId),
+                    Builders<DiscussionPost>.Filter.Eq(p => p.HeadPostId, postId)
+                );
+
+                await _discussionPosts.DeleteManyAsync(filter);
+            }
+
+            // Otherwise, use the list of ReplyIds to remove the reply and its nested replies
+            else
+            {
+                // Recursively delete all direct replies first
+                foreach (var replyId in post.ReplyIds)
+                {
+                    await DeleteDiscussionPostAsync(replyId);
+                }
+
+                // Delete the reply itself
+                await _discussionPosts.DeleteOneAsync(p => p.Id == postId);
+
+                // Remove reference from parent post
+                if (post.HeadPostId != ObjectId.Empty)
+                {
+                    var parentPost = await GetDiscussionPostByIdAsync(post.HeadPostId);
+                    if (parentPost != null)
+                    {
+                        parentPost.ReplyIds.Remove(postId);
+                        await UpdateDiscussionPostAsync(parentPost);
+                    }
+                }
+
+                var immediateParentPost = await _discussionPosts.Find(p => p.ReplyIds.Contains(postId)).FirstOrDefaultAsync();
+                if (immediateParentPost != null)
+                {
+                    immediateParentPost.ReplyIds.Remove(postId);
+                    await UpdateDiscussionPostAsync(immediateParentPost);
+                }
+            }
         }
 
         public async Task<List<DiscussionPost>> GetRepliesRecursivelyAsync(List<ObjectId> replyIds)
