@@ -69,6 +69,10 @@
                 var replyForm = $("#reply-form-" + postId);
                 var button = $(this);
 
+                // Hide all other reply forms and reset their buttons to prevent crowding
+                $(".reply-form").not(replyForm).hide();
+                $(".reply-btn").not(button).text("Reply");
+
                 replyForm.toggle(); // Show or hide the reply form
 
                 // Change button text based on visibility
