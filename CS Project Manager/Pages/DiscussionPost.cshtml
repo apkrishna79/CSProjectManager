@@ -66,7 +66,17 @@
         $(document).ready(function () {
             $(".reply-btn").click(function () {
                 var postId = $(this).data("post-id");
-                $("#reply-form-" + postId).toggle();
+                var replyForm = $("#reply-form-" + postId);
+                var button = $(this);
+
+                replyForm.toggle(); // Show or hide the reply form
+
+                // Change button text based on visibility
+                if (replyForm.is(":visible")) {
+                    button.text("Cancel Reply");
+                } else {
+                    button.text("Reply");
+                }
             });
 
             $(".reply-form").submit(function (event) {
