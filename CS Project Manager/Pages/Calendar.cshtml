@@ -12,9 +12,16 @@
         *display: inline;
         zoom: 1;
         width: 60px;
-        height: 30px;
+        height: 20px;
         background: #ffffff;
         text-align:center;
+    }
+
+    .legend {
+        width: 20px;
+        height: 20px;
+        border: 1px black solid;
+        display: inline-block;
     }
 </style>
 
@@ -32,7 +39,7 @@
                         <div class="calendar-box"></div>
                         @foreach (var day in Model.Days)
                         {
-                            <div class="calendar-box" style="font-size:16px;">@day</div>
+                            <div class="calendar-box" style="font-size:16px;height: 30px">@day</div>
                         }
                     </div>
                     @foreach (var time in Model.Times)
@@ -55,6 +62,13 @@
                         </div>
                     }
                 </div>
+                <br>
+                <br>
+                <div class="calendar-box"></div>
+                <div class="legend" style="background: #000000;"></div>
+                <div style="display:inline-block;font-size:16px;">Unavailable</div>
+                <div class="legend" style="background: #ffffff;"></div>
+                <div style="display:inline-block;font-size:16px;">Available</div>
             </div>
 
             <div class="col-md-6">

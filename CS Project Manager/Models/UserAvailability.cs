@@ -12,8 +12,8 @@ namespace CS_Project_Manager.Models
         public required string Day { get; set; }
         public required string Time { get; set; }
 
-        [BsonElement("AssocTeamId")]
+        [BsonElement("AssocUserId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId AssocTeamId { get; set; }
+        public ObjectId AssocUserId { get; set; }
     }
 }
