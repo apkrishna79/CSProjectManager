@@ -14,9 +14,9 @@ namespace CS_Project_Manager.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId BoardId { get; set; }
 
-        [BsonElement("PosterId")]
+        [BsonElement("CreatedBy")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId PosterId { get; set; }
+        public ObjectId CreatedBy { get; set; }
 
         [MaxLength(100, ErrorMessage = "Title may not exceed 100 characters")]
         public string? Title { get; set; }

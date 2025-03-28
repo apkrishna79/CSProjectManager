@@ -44,6 +44,7 @@ namespace CS_Project_Manager.Pages
             BoardId = parsedBoardId;
             LinkedPosts = (await _discussionPostService.GetDiscussionPostsByBoardId(BoardId))
                 .Where(post => !post.IsReply)
+                .OrderByDescending(post => post.Timestamp)
                 .ToList();
 
             var board = await _discussionBoardService.GetDiscussionBoardById(BoardId);

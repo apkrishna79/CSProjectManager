@@ -68,7 +68,7 @@ namespace CS_Project_Manager.Pages
             var newReply = new DiscussionPost
             {
                 HeadPostId = headPostId,
-                PosterId = userObj.Id,
+                CreatedBy = userObj.Id,
                 Content = content,
                 Timestamp = DateTime.UtcNow,
                 IsReply = true,
@@ -104,7 +104,7 @@ namespace CS_Project_Manager.Pages
 
             // Ensure the current user is the author
             var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
-            if (post.PosterId != user.Id)
+            if (post.CreatedBy != user.Id)
             {
                 return Forbid(); // User is not allowed to delete this post
             }

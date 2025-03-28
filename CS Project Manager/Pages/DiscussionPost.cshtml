@@ -7,7 +7,7 @@
         <!-- Main Post -->
         <div class="post">
             <h2>@Model.Post.Title</h2>
-            <small>By: @await Model.GetAuthorNameAsync(Model.Post.PosterId)</small>
+            <small>By: @await Model.GetAuthorNameAsync(Model.Post.CreatedBy)</small>
             <p style="white-space: pre-wrap;">@Model.Post.Content</p>
 
             <!-- Reply and Delete Buttons in the same row -->
@@ -16,7 +16,7 @@
                 <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
 
                 <!-- Delete button (only visible if authored by the logged-in user) -->
-                @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.PosterId)))
+                @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.CreatedBy)))
                 {
                     <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
                         @Html.AntiForgeryToken()  <!-- CSRF Protection -->

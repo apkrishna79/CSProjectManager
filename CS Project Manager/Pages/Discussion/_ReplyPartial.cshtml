@@ -1,7 +1,7 @@
 ﻿@model dynamic
 
 <div class="reply" style="margin-left: 40px; border-left: 2px solid #ccc; padding-left: 10px;">
-    <small>@await Model.GetAuthorNameAsync.Invoke(Model.Reply.PosterId) replied: </small>
+    <small>@await Model.GetAuthorNameAsync.Invoke(Model.Reply.CreatedBy) replied: </small>
     <p style="white-space: pre-wrap;">@Model.Reply.Content</p>
 
     <!-- Reply and Delete Buttons in the same row -->
@@ -10,7 +10,7 @@
         <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Reply.Id">Reply</button>
 
         <!-- Delete button (only visible if authored by the logged-in user) -->
-        @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync.Invoke(Model.Reply.PosterId)))
+        @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync.Invoke(Model.Reply.CreatedBy)))
         {
             <form method="post" class="delete-form" id="delete-form-@Model.Reply.Id">
                 @Html.AntiForgeryToken()  <!-- CSRF Protection -->

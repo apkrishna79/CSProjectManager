@@ -53,7 +53,7 @@ namespace CS_Project_Manager.Pages
             var newPost = new DiscussionPost
             {
                 BoardId = this.BoardId,
-                PosterId = (await _studentUserService.GetUserByUsernameAsync(User.Identity.Name)).Id,
+                CreatedBy = (await _studentUserService.GetUserByUsernameAsync(User.Identity.Name)).Id,
                 Title = this.Title,
                 Content = Body,
                 Timestamp = DateTime.UtcNow,
