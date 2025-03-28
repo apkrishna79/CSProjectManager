@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CS_Project_Manager.Models
 {
-    public class Todo
+    public class TodoItem
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
