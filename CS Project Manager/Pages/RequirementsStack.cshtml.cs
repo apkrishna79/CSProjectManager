@@ -44,6 +44,8 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public ObjectId AssocTeamId { get; set; }
         public List<StudentUser> TeamMembers = new List<StudentUser>();      
         public RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService)
         {
@@ -68,6 +70,7 @@ namespace CS_Project_Manager.Pages
 
             var currentProject = await _projectService.GetProjectById(ProjectId);
             var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
+            AssocTeamId = currentProject.AssociatedTeam;
 
             TeamMembers = (await Task.WhenAll(curTeam.Members
                 .Select(member => _studentUserService.GetUserByIdAsync(member)))).ToList();

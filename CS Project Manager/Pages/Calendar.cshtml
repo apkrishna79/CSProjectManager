@@ -1,0 +1,99 @@
+@page
+@model CalendarModel
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<style>
+    .calendar-box {
+        vertical-align: top;
+        font-size: 0px;
+        display: inline-block;
+        *display: inline;
+        zoom: 1;
+        width: 60px;
+        height: 20px;
+        background: #ffffff;
+        text-align:center;
+    }
+
+    .legend {
+        width: 20px;
+        height: 20px;
+        border: 1px black solid;
+        display: inline-block;
+    }
+</style>
+
+<h2>Team Calendar and Events</h2>
+
+<div class="navbar-text">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <br>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Availability Calendar</h2>
+                <div style="display:inline-block;white-space:nowrap;">
+                    <div style ="font-size:0px;vertical-align:top;">
+                        <div class="calendar-box"></div>
+                        @foreach (var day in Model.Days)
+                        {
+                            <div class="calendar-box" style="font-size:16px;height: 30px">@day</div>
+                        }
+                    </div>
+                    @foreach (var time in Model.Times)
+                    {
+                
+                        <div style="font-size:0px;vertical-align:top;">
+                            <div class="calendar-box" style="font-size:12px;">@time</div>
+                            @foreach (var day in Model.Days)
+                            {
+                                @if (Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time))
+                                {
+                                    <div class="calendar-box" style="border: 1px black solid;background: #000000"></div>
+                                }
+                                else
+                                {
+                                    <div class="calendar-box" style="border: 1px black solid;"></div>
+                                }
+
+                    }
+                        </div>
+                    }
+                </div>
+                <br>
+                <br>
+                <div class="calendar-box"></div>
+                <div class="legend" style="background: #000000;"></div>
+                <div style="display:inline-block;font-size:16px;">Unavailable</div>
+                <div class="legend" style="background: #ffffff;"></div>
+                <div style="display:inline-block;font-size:16px;">Available</div>
+            </div>
+
+            <div class="col-md-6">
+                <h2>Event List</h2>
+                <div id="EventList">
+                    @if (Model.TeamCalendarItems.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var item in Model.TeamCalendarItems)
+                            {
+                                <li>@item.EventName: @item.StartDateTime.ToString()</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No scheduled events!</p>
+                    }
+
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <span>Not logged in</span>
+    }
+</div>

@@ -14,7 +14,6 @@ Invariants: _studentUsers collection is always initialized with the "StudentUser
 Other faults: N/A
 */
 
-
 using MongoDB.Driver;  
 using CS_Project_Manager.Models;
 using MongoDB.Bson;

@@ -49,16 +49,20 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGetAsync()
         {
-            // gets a list of all projects related to the user
-            var username = User.FindFirstValue(ClaimTypes.Name);
-            var userObj = await _userService.GetUserByUsernameAsync(username);
-            Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
-            foreach (var team in Teams)
+            // check for user login
+            if (User.Identity?.IsAuthenticated == true)
             {
-                var projects = await _projectService.GetProjectsByTeamIdAsync(team.Id);
-                foreach (var project in projects)
+                // gets a list of all projects related to the user
+                var username = User.FindFirstValue(ClaimTypes.Name);
+                var userObj = await _userService.GetUserByUsernameAsync(username);
+                Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
+                foreach (var team in Teams)
                 {
-                    Projects.Add(project);
+                    var projects = await _projectService.GetProjectsByTeamIdAsync(team.Id);
+                    foreach (var project in projects)
+                    {
+                        Projects.Add(project);
+                    }
                 }
             }
         }

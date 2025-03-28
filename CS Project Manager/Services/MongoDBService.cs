@@ -11,7 +11,8 @@ Error and exceptions: MongoDB.Driver.MongoConfigurationException (thrown if the 
 Side effects: N/A
 Invariants: client field is always initialized with a valid MongoClient instance, _database field is always initialized with a reference to the "EatMyFeats" database
 Other faults: N/A
- */
+*/
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 

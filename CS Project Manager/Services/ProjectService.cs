@@ -16,8 +16,6 @@ Other faults: N/A
 using MongoDB.Driver;
 using CS_Project_Manager.Models;
 using MongoDB.Bson;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace CS_Project_Manager.Services
 {
