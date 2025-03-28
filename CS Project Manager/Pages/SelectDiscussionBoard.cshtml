@@ -1,0 +1,43 @@
+﻿@page
+@model CS_Project_Manager.Pages.SelectDiscussionBoardModel
+@{
+}
+
+<h2>My Discussion Boards</h2>
+
+<div class="navbar-text">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        @if (Model.ClassDisplayData.Count > 0 || Model.TeamDisplayData.Count > 0)
+        {
+            <table>
+                <tbody>
+                    @foreach (var course in Model.ClassDisplayData)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-page="/DiscussionBoard" asp-route-boardId="@course.assocBoardId.ToString()">@course.label</a>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var team in Model.TeamDisplayData)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-page="/DiscussionBoard" asp-route-boardId="@team.assocBoardId.ToString()">@team.label</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <span>No classes or teams to display discussion boards for</span>
+        }
+    }
+    else
+    {
+        <span>Not logged in</span>
+    }
+</div>
