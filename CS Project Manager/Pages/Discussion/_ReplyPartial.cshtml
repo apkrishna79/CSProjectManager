@@ -1,0 +1,56 @@
+﻿@model dynamic
+
+<div class="reply" style="margin-left: 40px; border-left: 2px solid #ccc; padding-left: 10px;">
+    <small>@await Model.GetAuthorNameAsync.Invoke(Model.Reply.CreatedBy) replied: </small>
+    <p style="white-space: pre-wrap;">@Model.Reply.Content</p>
+
+    <!-- Reply and Delete Buttons in the same row -->
+    <div class="d-flex gap-2">
+        <!-- Reply Button -->
+        <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Reply.Id">Reply</button>
+
+        <!-- Delete button (only visible if authored by the logged-in user) -->
+        @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync.Invoke(Model.Reply.CreatedBy)))
+        {
+            <form method="post" class="delete-form" id="delete-form-@Model.Reply.Id">
+                @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+                <input type="hidden" name="postId" value="@Model.Reply.Id" />
+                <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+            </form>
+        }
+    </div>
+
+
+    <!-- Hidden Reply Form -->
+    <form method="post" class="reply-form" id="reply-form-@Model.Reply.Id" style="display: none;">
+        @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+
+        <input type="hidden" name="immediateParentPostId" value="@Model.Reply.Id" />
+        <input type="hidden" name="headPostId" value="@Model.Reply.HeadPostId" />
+
+        <textarea class="form-control reply-text" name="content" rows="3"></textarea>
+        <button type="submit" class="btn btn-success submit-reply">Submit Reply</button>
+    </form>
+
+    <!-- Recursively render child replies -->
+    @if (Model.Reply.ReplyIds != null && Model.Reply.ReplyIds.Count > 0)
+    {
+        <div class="nested-replies">
+            @foreach (var subReplyId in Model.Reply.ReplyIds)
+            {
+                var subReply = await Model.FetchPostById.Invoke(subReplyId);
+                if (subReply != null)
+                {
+                    @await Html.PartialAsync("Discussion/_ReplyPartial", new
+                        {
+                            Reply = subReply,
+                            FetchPostById = Model.FetchPostById,
+                            GetAuthorNameAsync = Model.GetAuthorNameAsync,
+                            GetAuthorUsernameAsync = Model.GetAuthorUsernameAsync
+                        })
+                }
+            }
+        </div>
+    }
+</div>
+

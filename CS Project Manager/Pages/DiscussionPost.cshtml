@@ -1,0 +1,121 @@
+﻿@page
+@using CS_Project_Manager.Models
+@using MongoDB.Bson
+@model CS_Project_Manager.Pages.DiscussionPostModel
+@{
+    <div class="container">
+        <!-- Main Post -->
+        <div class="post">
+            <h2>@Model.Post.Title</h2>
+            <small>By: @await Model.GetAuthorNameAsync(Model.Post.CreatedBy)</small>
+            <p style="white-space: pre-wrap;">@Model.Post.Content</p>
+
+            <!-- Reply and Delete Buttons in the same row -->
+            <div class="d-flex gap-2">
+                <!-- Reply Button -->
+                <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
+
+                <!-- Delete button (only visible if authored by the logged-in user) -->
+                @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.CreatedBy)))
+                {
+                    <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
+                        @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+                        <input type="hidden" name="postId" value="@Model.Post.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                    </form>
+                }
+            </div>
+
+
+
+            <!-- Hidden Reply Form -->
+            <form method="post" class="reply-form" id="reply-form-@Model.Post.Id" style="display: none;">
+                @Html.AntiForgeryToken()  <!-- CSRF Protection -->
+                <!-- Immediate Parent Post ID -->
+                <input type="hidden" name="immediateParentPostId" value="@Model.Post.Id" />
+
+                <!-- Head Post ID (Main Post) -->
+                <input type="hidden" name="headPostId" value="@Model.Post.Id" />
+
+                <textarea class="form-control reply-text" name="content" rows="3"></textarea>
+                <button type="submit" class="btn btn-success submit-reply">Submit Reply</button>
+            </form>
+
+            <!-- Render Replies -->
+            <div class="replies">
+                @foreach (var reply in Model.Replies)
+                {
+                    @await Html.PartialAsync("Discussion/_ReplyPartial", new
+                        {
+                            Reply = reply,
+                            FetchPostById = new Func<ObjectId, Task<DiscussionPost>>(Model.GetDiscussionPostByIdAsync),
+                            GetAuthorNameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorNameAsync),
+                            GetAuthorUsernameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorUsernameAsync),
+                        })
+                }
+            </div>
+
+        </div>
+
+        <hr />
+    </div>
+
+    <!-- jQuery for Reply Button and AJAX Submission -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".reply-btn").click(function () {
+                var postId = $(this).data("post-id");
+                var replyForm = $("#reply-form-" + postId);
+                var button = $(this);
+
+                // Hide all other reply forms and reset their buttons to prevent crowding
+                $(".reply-form").not(replyForm).hide();
+                $(".reply-btn").not(button).text("Reply");
+
+                replyForm.toggle(); // Show or hide the reply form
+
+                // Change button text based on visibility
+                if (replyForm.is(":visible")) {
+                    button.text("Cancel Reply");
+                } else {
+                    button.text("Reply");
+                }
+            });
+
+            $(".reply-form").submit(function (event) {
+                event.preventDefault(); // Prevent full-page refresh
+
+                var form = $(this);
+                var formData = form.serialize(); // Serialize form data (includes CSRF token)
+
+                $.post("/DiscussionPost?handler=PostReply", formData)
+                    .done(function () {
+                        location.reload(); // Reload to reflect the new reply
+                    })
+                    .fail(function (xhr) {
+                        alert("Failed to post reply: " + xhr.responseText);
+                    });
+            });
+
+            $(".delete-form").submit(function (event) {
+                event.preventDefault(); // Prevent full-page refresh
+
+                var form = $(this);
+                var formData = form.serialize(); // Serialize form data (includes CSRF token)
+
+                $.post("/DiscussionPost?handler=DeletePost", formData)
+                    .done(function (response) {
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl; // Redirect to discussion board
+                        } else {
+                            location.reload(); // Fallback: Refresh the page if no redirect URL is provided
+                        }
+                    })
+                    .fail(function (xhr) {
+                        alert("Failed to delete post: " + xhr.responseText);
+                    });
+            });
+        });
+    </script>
+}
