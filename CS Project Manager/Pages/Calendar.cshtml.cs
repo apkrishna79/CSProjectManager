@@ -2,7 +2,7 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
-Last Revised By: Jackson Wunderlich
+Last Revised By: Anakha Krishna
 Date Revised: 3/28/25
 Purpose: page displaying a calendar that allows users to set and view availability and create meetings
 Preconditions: MongoDBService, other service instances properly initialized and injected; CalendarItem must be correctly defined
@@ -16,7 +16,6 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
-using System.Linq;
 
 namespace CS_Project_Manager.Pages
 {
