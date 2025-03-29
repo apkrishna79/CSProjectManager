@@ -9,12 +9,10 @@
         vertical-align: top;
         font-size: 0px;
         display: inline-block;
-        *display: inline;
-        zoom: 1;
         width: 60px;
         height: 20px;
         background: #ffffff;
-        text-align:center;
+        text-align: center;
     }
 
     .legend {
@@ -23,77 +21,158 @@
         border: 1px black solid;
         display: inline-block;
     }
+
+    .dialog {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid #ccc;
+        padding: 20px;
+        background: #fff;
+        z-index: 1000;
+    }
+
+    .dialog-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
 </style>
 
 <h2>Team Calendar and Events</h2>
 
+@if (!ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <br>
-        <div class="row">
-            <div class="col-md-6">
-                <h2>Availability Calendar</h2>
-                <div style="display:inline-block;white-space:nowrap;">
-                    <div style ="font-size:0px;vertical-align:top;">
-                        <div class="calendar-box"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Availability Calendar</h2>
+                    <div style="display:inline-block;white-space:nowrap;">
+                        <div style="font-size:0px;vertical-align:top;">
+                            <div class="calendar-box"></div>
                         @foreach (var day in Model.Days)
                         {
-                            <div class="calendar-box" style="font-size:16px;height: 30px">@day</div>
+                                    <div class="calendar-box" style="font-size:16px;height:30px">@day</div>
                         }
-                    </div>
+                        </div>
                     @foreach (var time in Model.Times)
                     {
-                
-                        <div style="font-size:0px;vertical-align:top;">
-                            <div class="calendar-box" style="font-size:12px;">@time</div>
+                                <div style="font-size:0px;vertical-align:top;">
+                                    <div class="calendar-box" style="font-size:12px;">@time</div>
                             @foreach (var day in Model.Days)
                             {
-                                @if (Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time))
-                                {
-                                    <div class="calendar-box" style="border: 1px black solid;background: #000000"></div>
-                                }
-                                else
-                                {
-                                    <div class="calendar-box" style="border: 1px black solid;"></div>
-                                }
-
+                                            <div class="calendar-box" style="border: 1px black solid; background: @(Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time) ? "#000000" : "#ffffff")"></div>
+                            }
+                                </div>
                     }
-                        </div>
-                    }
+                    </div>
+                    <br>
+                    <div class="calendar-box"></div>
+                    <div class="legend" style="background: #000000;"></div>
+                    <div style="display:inline-block;font-size:16px;">Unavailable</div>
+                    <div class="legend" style="background: #ffffff;"></div>
+                    <div style="display:inline-block;font-size:16px;">Available</div>
                 </div>
-                <br>
-                <br>
-                <div class="calendar-box"></div>
-                <div class="legend" style="background: #000000;"></div>
-                <div style="display:inline-block;font-size:16px;">Unavailable</div>
-                <div class="legend" style="background: #ffffff;"></div>
-                <div style="display:inline-block;font-size:16px;">Available</div>
-            </div>
-
-            <div class="col-md-6">
-                <h2>Event List</h2>
-                <div id="EventList">
+                <div class="col-md-6">
+                    <h2>Event List</h2>
+                    <div id="EventList">
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
-                        <ul>
+                                <ul>
                             @foreach (var item in Model.TeamCalendarItems)
                             {
-                                <li>@item.EventName: @item.StartDateTime.ToString()</li>
+                                            <li>
+                                                <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
+                                        @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
+                                                </a>
+                                            </li>
                             }
-                        </ul>
+                                </ul>
                     }
                     else
                     {
-                        <p>No scheduled events!</p>
+                                <p>No scheduled events!</p>
                     }
-
+                    </div>
+                    <button onclick="openDialog()">Add Meeting</button>
                 </div>
             </div>
-        </div>
+
+            <div class="dialog-overlay" id="dialogOverlay"></div>
+            <div class="dialog" id="addMeetingDialog">
+                <form method="post" asp-page-handler="AddOrUpdateCalendarItem" onsubmit="return validateForm()">
+                    <input type="hidden" name="teamId" value="@Model.TeamId" />
+                    <input type="hidden" id="calendarItemId" name="NewCalendarItem.Id" />
+                    <div>
+                        <label for="meetingName">Meeting Name:</label>
+                        <input type="text" id="meetingName" name="NewCalendarItem.EventName" required />
+                    </div>
+                    <div>
+                        <label for="startTime">Start Time:</label>
+                        <input type="datetime-local" id="startTime" name="NewCalendarItem.StartDateTime" required />
+                    </div>
+                    <div>
+                        <label for="endTime">End Time:</label>
+                        <input type="datetime-local" id="endTime" name="NewCalendarItem.EndDateTime" required />
+                    </div>
+                    <div>
+                        <label for="notes">Notes:</label>
+                        <textarea id="notes" name="NewCalendarItem.Notes"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit">Confirm</button>
+                        <button type="button" onclick="closeDialog()">Cancel</button>
+                    </div>
+                </form>
+            </div>
     }
     else
     {
-        <span>Not logged in</span>
+            <span>Not logged in</span>
     }
 </div>
+
+<script>
+    function openDialog(eventName = '', startTime = '', endTime = '', notes = '', id = '') {
+        document.getElementById('meetingName').value = eventName;
+        document.getElementById('startTime').value = startTime;
+        document.getElementById('endTime').value = endTime;
+        document.getElementById('notes').value = notes;
+        document.getElementById('calendarItemId').value = id;
+        document.getElementById('addMeetingDialog').style.display = 'block';
+        document.getElementById('dialogOverlay').style.display = 'block';
+    }
+
+    function closeDialog() {
+        document.getElementById('addMeetingDialog').style.display = 'none';
+        document.getElementById('dialogOverlay').style.display = 'none';
+    }
+
+    function validateForm() {
+        var startTime = document.getElementById('startTime').value;
+        var endTime = document.getElementById('endTime').value;
+
+        if (new Date(startTime) >= new Date(endTime)) {
+            alert('End Time must be later than Start Time.');
+            return false;
+        }
+        return true;
+    }
+</script>

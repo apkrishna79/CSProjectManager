@@ -2,7 +2,7 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
-Last Revised By: Jackson Wunderlich
+Last Revised By: Anakha Krishna
 Date Revised: 3/28/25
 Purpose: Provides data access methods for calendar operations in the database
 Preconditions: MongoDB setup, CalendarItems table exists, CalendarItem model defined
@@ -45,6 +45,12 @@ namespace CS_Project_Manager.Services
         // Removes a calendar item by its ObjectId
         public async Task RemoveCalendarItemAsync(ObjectId id) =>
             await _calendarItems.DeleteOneAsync(c => c.Id == id);
+
+        public async Task UpdateCalendarItemAsync(CalendarItem updatedCalendarItem)
+        {
+            var filter = Builders<CalendarItem>.Filter.Eq(c => c.Id, updatedCalendarItem.Id);
+            await _calendarItems.ReplaceOneAsync(filter, updatedCalendarItem);
+        }
 
         // gets a user availability item by its ID
         public async Task GetUserAvailabilityByIdAsync(ObjectId id) =>
