@@ -97,7 +97,7 @@ namespace CS_Project_Manager.Pages
 
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
             await LoadUserAvailabilityAsync(teamId);
-            return Page();
+            return RedirectToPage("/Calendar", new { teamId = TeamId });
         }
 
         public DateTime ConvertToCentralTime(DateTime utcDateTime)
