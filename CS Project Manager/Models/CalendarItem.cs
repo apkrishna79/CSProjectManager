@@ -19,8 +19,6 @@ namespace CS_Project_Manager.Models
         [BsonElement("AssocTeamId")]
         [BsonRepresentation(BsonType.ObjectId)] 
         public ObjectId AssocTeamId { get; set; }
-        [Required]
-        public required Dictionary<ObjectId, string> Attendees { get; set; } // Yes No Maybe
         public string? Notes { get; set; }
     }
 }

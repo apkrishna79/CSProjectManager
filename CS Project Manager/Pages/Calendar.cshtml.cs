@@ -37,8 +37,16 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public List<UserAvailability> UserAvailabilityItems { get; set; }
 
+        [BindProperty]
+        public CalendarItem NewCalendarItem { get; set; } = new CalendarItem
+        {
+            EventName = string.Empty
+        };
+
         public List<String> Days { get; set; }
         public List<String> Times { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public ObjectId TeamId { get; set; }
 
         private readonly ILogger<DashboardModel> _logger;
 
@@ -61,6 +69,47 @@ namespace CS_Project_Manager.Pages
             ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
             // gets a list of all calendar items for the team
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(ProjectTeam.Id);
+            // load all team user availabilities
+            await LoadUserAvailabilityAsync(teamId);
+        }
+
+        // add or update calendar item
+        public async Task<IActionResult> OnPostAddOrUpdateCalendarItemAsync(ObjectId teamId)
+        {
+            TeamId = teamId;
+            var existingCalendarItem = await _calendarService.GetCalendarItemByIdAsync(NewCalendarItem.Id);
+
+            if (existingCalendarItem != null)
+            {
+                // Update existing item
+                existingCalendarItem.EventName = NewCalendarItem.EventName;
+                existingCalendarItem.StartDateTime = NewCalendarItem.StartDateTime;
+                existingCalendarItem.EndDateTime = NewCalendarItem.EndDateTime;
+                existingCalendarItem.Notes = NewCalendarItem.Notes;
+                await _calendarService.UpdateCalendarItemAsync(existingCalendarItem);
+            }
+            else
+            {
+                // Add new item
+                NewCalendarItem.AssocTeamId = TeamId;
+                await _calendarService.AddCalendarItemAsync(NewCalendarItem);
+            }
+
+            TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
+            await LoadUserAvailabilityAsync(teamId);
+            return Page();
+        }
+
+        public DateTime ConvertToCentralTime(DateTime utcDateTime)
+        {
+            TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, centralZone);
+        }
+
+        private async Task LoadUserAvailabilityAsync(ObjectId teamId)
+        {
+            // gets the team related to the current project
+            ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
             // gets a list of all user availability items for the team
             foreach (var user in ProjectTeam.Members)
             {
@@ -70,7 +119,6 @@ namespace CS_Project_Manager.Pages
                     UserAvailabilityItems.Add(item);
                 }
             }
-            
         }
     }
 }
