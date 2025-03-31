@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/16/25 DS 
+Date Revised: 3/30/25 GK - mark requirements as complete
 Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -149,6 +149,8 @@ namespace CS_Project_Manager.Pages
                 .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
+        //toggle requirements as complete
+
 
         // Remove a requirement
         public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
@@ -164,7 +166,6 @@ namespace CS_Project_Manager.Pages
                 .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
-
         // Export requirements to Excel
         public async Task<IActionResult> OnPostExportAsync(ObjectId projectId)
         {
@@ -226,6 +227,26 @@ namespace CS_Project_Manager.Pages
                 }
             }
         }
+        public async Task<IActionResult> OnPostToggleCompleteAsync(string id, string projectId)
+        {
+            if (!ObjectId.TryParse(id, out ObjectId requirementId))
+            {
+                return BadRequest("Invalid requirement ID");
+            }
 
+            if (!ObjectId.TryParse(projectId, out ObjectId projectObjectId))
+            {
+                return BadRequest("Invalid project ID");
+            }
+
+            var requirement = await _requirementService.GetRequirementByIdAsync(requirementId);
+            if (requirement != null)
+            {
+                requirement.IsComplete = !requirement.IsComplete;
+                await _requirementService.UpdateRequirementAsync(requirement);
+            }
+
+            return RedirectToPage(new { projectId = projectId });
+        }
     }
 }
