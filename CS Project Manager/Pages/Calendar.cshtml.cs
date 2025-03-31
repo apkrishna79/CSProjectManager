@@ -24,6 +24,7 @@ namespace CS_Project_Manager.Pages
         private readonly TeamService _teamService;
         private readonly StudentUserService _userService;
         private readonly CalendarService _calendarService;
+        private readonly UserAvailabilityService _userAvailabilityService;
 
         // bound property for the team related to the project
         [BindProperty]
@@ -42,7 +43,10 @@ namespace CS_Project_Manager.Pages
         {
             EventName = string.Empty
         };
-
+        [BindProperty]
+        public string SelectedDay { get; set; }
+        [BindProperty]
+        public string SelectedTime { get; set; }
         public List<String> Days { get; set; }
         public List<String> Times { get; set; }
         [BindProperty(SupportsGet = true)]
@@ -50,17 +54,18 @@ namespace CS_Project_Manager.Pages
 
         private readonly ILogger<DashboardModel> _logger;
 
-        public CalendarModel(ILogger<DashboardModel> logger, TeamService teamService, StudentUserService userService, CalendarService calendarService)
+        public CalendarModel(ILogger<DashboardModel> logger, TeamService teamService, StudentUserService userService, CalendarService calendarService, UserAvailabilityService userAvailabilityService)
         {
             _logger = logger;
             _teamService = teamService;
             _userService = userService;
             _calendarService = calendarService;
+            _userAvailabilityService = userAvailabilityService;
             UserAvailabilityItems = new List<UserAvailability>();
             // creates lists of days and times for the calendar
             Days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            Times = ["8:00", "8:30", "9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "1:00", "1:30", "2:00",
-                     "2:30", "3:00", "3:30", "4:00", "4:30", "5:00", "5:30", "6:00", "6:30", "7:00", "7:30", "8:00", "8:30"];
+            Times = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM",
+                     "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM"];
         }
 
         public async Task OnGetAsync(ObjectId teamId)
@@ -100,6 +105,37 @@ namespace CS_Project_Manager.Pages
             return RedirectToPage("/Calendar", new { teamId = TeamId });
         }
 
+        public async Task<IActionResult> OnPostAddUnavailableTimeAsync(ObjectId teamId)
+        {
+            TeamId = teamId;
+            ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
+            if (ProjectTeam == null)
+            {
+                ModelState.AddModelError(string.Empty, "Team not found.");
+                return Page();
+            }
+            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
+            if (currentUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "User not found.");
+                return Page();
+            }
+            var newAvailability = new UserAvailability
+            {
+                Id = ObjectId.GenerateNewId(),
+                Day = SelectedDay,
+                Time = SelectedTime,
+                AssocUserId = currentUser.Id,
+                AssocTeamId = teamId
+            };
+            await _userAvailabilityService.AddUserAvailabilityAsync(newAvailability);
+            // Reload availability after adding new entry
+            UserAvailabilityItems = new List<UserAvailability>();
+            await LoadUserAvailabilityAsync(teamId);
+            return RedirectToPage("/Calendar", new { teamId });
+        }
+
+
         public DateTime ConvertToCentralTime(DateTime utcDateTime)
         {
             TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
@@ -108,15 +144,25 @@ namespace CS_Project_Manager.Pages
 
         private async Task LoadUserAvailabilityAsync(ObjectId teamId)
         {
-            // gets the team related to the current project
-            ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
-            // gets a list of all user availability items for the team
-            foreach (var user in ProjectTeam.Members)
+            // Make sure ProjectTeam is loaded
+            if (ProjectTeam == null)
             {
-                var newItems = await _calendarService.GetUserAvailabilityByUserIdAsync(user);
-                foreach (var item in newItems)
+                ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
+            }
+
+            // Clear existing items
+            UserAvailabilityItems = await _userAvailabilityService.GetUserAvailabilityByTeamIdAsync(teamId);
+
+            // Make sure ProjectTeam and Members are not null before iterating
+            if (ProjectTeam?.Members != null)
+            {
+                foreach (var user in ProjectTeam.Members)
                 {
-                    UserAvailabilityItems.Add(item);
+                    var newItems = await _userAvailabilityService.GetUserAvailabilityByUserIdAsync(user);
+                    foreach (var item in newItems)
+                    {
+                        UserAvailabilityItems.Add(item);
+                    }
                 }
             }
         }

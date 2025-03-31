@@ -51,13 +51,5 @@ namespace CS_Project_Manager.Services
             var filter = Builders<CalendarItem>.Filter.Eq(c => c.Id, updatedCalendarItem.Id);
             await _calendarItems.ReplaceOneAsync(filter, updatedCalendarItem);
         }
-
-        // gets a user availability item by its ID
-        public async Task GetUserAvailabilityByIdAsync(ObjectId id) =>
-            await _userAvailability.Find(u => u.Id == id).FirstOrDefaultAsync();
-
-        // gets user availability items by their team ID
-        public async Task<List<UserAvailability>> GetUserAvailabilityByUserIdAsync(ObjectId userId) =>
-            await _userAvailability.Find(u => u.AssocUserId == userId).ToListAsync();
     }
 }

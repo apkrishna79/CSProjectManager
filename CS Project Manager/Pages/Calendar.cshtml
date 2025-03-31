@@ -74,16 +74,40 @@
                         </div>
                     @foreach (var time in Model.Times)
                     {
-                                <div style="font-size:0px;vertical-align:top;">
-                                    <div class="calendar-box" style="font-size:12px;">@time</div>
+                        <div style="font-size:0px;vertical-align:top;">
+                            <div class="calendar-box" style="font-size:12px;">@time</div>
                             @foreach (var day in Model.Days)
                             {
-                                            <div class="calendar-box" style="border: 1px black solid; background: @(Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time) ? "#000000" : "#ffffff")"></div>
+                                <div class="calendar-box" style="border: 1px black solid; background: @(Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time) ? "#000000" : "#ffffff")"></div>
                             }
-                                </div>
+                        </div>
                     }
                     </div>
                     <br>
+                    <button onclick="openAvailabilityDialog()">Add Unavailable Times</button>
+                    <div class="dialog-overlay" id="availabilityDialogOverlay"></div>
+                    <div class="dialog" id="addAvailabilityDialog">
+                        <form method="post" asp-page-handler="AddUnavailableTime">
+                            <label for="daySelect">Day:</label>
+                            <select id="daySelect" name="SelectedDay">
+                                @foreach (var day in Model.Days)
+                                {
+                                    <option value="@day">@day</option>
+                                }
+                            </select>
+
+                            <label for="timeSelect">Time:</label>
+                            <select id="timeSelect" name="SelectedTime">
+                                @foreach (var time in Model.Times)
+                                {
+                                    <option value="@time">@time</option>
+                                }
+                            </select>
+
+                            <button type="submit">Save</button>
+                            <button type="button" onclick="closeAvailabilityDialog()">Cancel</button>
+                        </form>
+                    </div>
                     <div class="calendar-box"></div>
                     <div class="legend" style="background: #000000;"></div>
                     <div style="display:inline-block;font-size:16px;">Unavailable</div>
@@ -174,5 +198,15 @@
             return false;
         }
         return true;
+    }
+
+    function openAvailabilityDialog() {
+        document.getElementById('addAvailabilityDialog').style.display = 'block';
+        document.getElementById('availabilityDialogOverlay').style.display = 'block';
+    }
+
+    function closeAvailabilityDialog() {
+        document.getElementById('addAvailabilityDialog').style.display = 'none';
+        document.getElementById('availabilityDialogOverlay').style.display = 'none';
     }
 </script>
