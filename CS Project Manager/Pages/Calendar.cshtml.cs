@@ -2,8 +2,8 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
-Last Revised By: Anakha Krishna
-Date Revised: 3/28/25
+Last Revised By: Dylan Sailors
+Date Revised: 3/30/25
 Purpose: page displaying a calendar that allows users to set and view availability and create meetings
 Preconditions: MongoDBService, other service instances properly initialized and injected; CalendarItem must be correctly defined
 Error and exceptions: ArgumentNullException: username is null or empty; MongoException: issue with the MongoDB connection or operation; InvalidOperationException: data cannot be retrieved
@@ -43,14 +43,27 @@ namespace CS_Project_Manager.Pages
         {
             EventName = string.Empty
         };
+        
         [BindProperty]
-        public string SelectedDay { get; set; }
+        public List<string> SelectedDays { get; set; } = new List<string>();
+
         [BindProperty]
-        public string SelectedTime { get; set; }
+        public List<string> SelectedTimes { get; set; } = new List<string>();
+        
+        [BindProperty]
+        public List<string> RemoveIds { get; set; } = new List<string>();
+        
         public List<String> Days { get; set; }
         public List<String> Times { get; set; }
+        
         [BindProperty(SupportsGet = true)]
         public ObjectId TeamId { get; set; }
+
+        [BindProperty]
+        public ObjectId CurrentUserId { get; set; }
+        
+        [BindProperty]
+        public List<DisplayUserViewModel> TeamMemberDisplayOptions { get; set; } = new List<DisplayUserViewModel>();
 
         private readonly ILogger<DashboardModel> _logger;
 
@@ -70,11 +83,13 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGetAsync(ObjectId teamId)
         {
-            // gets the team related to the current project
             ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
-            // gets a list of all calendar items for the team
+            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
+            if (currentUser != null)
+            {
+                CurrentUserId = currentUser.Id;
+            }
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(ProjectTeam.Id);
-            // load all team user availabilities
             await LoadUserAvailabilityAsync(teamId);
         }
 
@@ -99,13 +114,13 @@ namespace CS_Project_Manager.Pages
                 NewCalendarItem.AssocTeamId = TeamId;
                 await _calendarService.AddCalendarItemAsync(NewCalendarItem);
             }
-
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
             await LoadUserAvailabilityAsync(teamId);
             return RedirectToPage("/Calendar", new { teamId = TeamId });
         }
 
-        public async Task<IActionResult> OnPostAddUnavailableTimeAsync(ObjectId teamId)
+        // handles adding and updating availabilities for the user
+        public async Task<IActionResult> OnPostUpdateAvailabilityAsync(ObjectId teamId)
         {
             TeamId = teamId;
             ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
@@ -120,45 +135,93 @@ namespace CS_Project_Manager.Pages
                 ModelState.AddModelError(string.Empty, "User not found.");
                 return Page();
             }
-            var newAvailability = new UserAvailability
+            for (int i = 0; i < SelectedDays.Count; i++)
             {
-                Id = ObjectId.GenerateNewId(),
-                Day = SelectedDay,
-                Time = SelectedTime,
-                AssocUserId = currentUser.Id,
-                AssocTeamId = teamId
-            };
-            await _userAvailabilityService.AddUserAvailabilityAsync(newAvailability);
-            UserAvailabilityItems = new List<UserAvailability>();
+                if (i < SelectedTimes.Count)
+                {
+                    var newAvailability = new UserAvailability
+                    {
+                        Id = ObjectId.GenerateNewId(),
+                        Day = SelectedDays[i],
+                        Time = SelectedTimes[i],
+                        AssocUserId = currentUser.Id,
+                        AssocTeamId = teamId
+                    };
+                    await _userAvailabilityService.AddUserAvailabilityAsync(newAvailability);
+                }
+            }
+            foreach (var idString in RemoveIds)
+            {
+                if (ObjectId.TryParse(idString, out ObjectId id))
+                {
+                    var availability = await _userAvailabilityService.GetUserAvailabilityByIdAsync(id);
+                    if (availability != null && availability.AssocUserId == currentUser.Id)
+                    {
+                        await _userAvailabilityService.DeleteUserAvailabilityAsync(id);
+                    }
+                }
+            }
             await LoadUserAvailabilityAsync(teamId);
             return RedirectToPage("/Calendar", new { teamId });
         }
 
-
+        // converts UTC time to Central Standard Time
         public DateTime ConvertToCentralTime(DateTime utcDateTime)
         {
             TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
             return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, centralZone);
         }
 
+        // loads the user's availabilities
         private async Task LoadUserAvailabilityAsync(ObjectId teamId)
         {
             if (ProjectTeam == null)
             {
                 ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
             }
-            UserAvailabilityItems = await _userAvailabilityService.GetUserAvailabilityByTeamIdAsync(teamId);
+            UserAvailabilityItems = new List<UserAvailability>();
+            TeamMemberDisplayOptions = new List<DisplayUserViewModel>();
+            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
             if (ProjectTeam?.Members != null)
             {
-                foreach (var user in ProjectTeam.Members)
+                foreach (var userId in ProjectTeam.Members)
                 {
-                    var newItems = await _userAvailabilityService.GetUserAvailabilityByUserIdAsync(user);
-                    foreach (var item in newItems)
+                    var teamMember = await _userService.GetUserByIdAsync(userId);
+                    if (teamMember != null && teamMember.Id != currentUser?.Id)
                     {
+                        TeamMemberDisplayOptions.Add(new DisplayUserViewModel 
+                        { 
+                            UserId = teamMember.Id,
+                            Username = teamMember.Username,
+                            IsDisplayed = true
+                        });
+                    }
+                    var userAvailabilities = await _userAvailabilityService.GetUserAvailabilityByUserIdAsync(userId);
+                    foreach (var item in userAvailabilities)
+                    {
+                        if (item.AssocTeamId != teamId)
+                        {
+                            item.AssocTeamId = teamId;
+                            await _userAvailabilityService.UpdateUserAvailabilityTeamIdAsync(userId, teamId);
+                        }
                         UserAvailabilityItems.Add(item);
                     }
                 }
             }
         }
+        
+        // update availability when the user changes teams
+        public async Task UpdateUserAvailabilityOnTeamChangeAsync(ObjectId userId, ObjectId newTeamId)
+        {
+            await _userAvailabilityService.UpdateUserAvailabilityTeamIdAsync(userId, newTeamId);
+        }
+    }
+    
+    // aids in displaying the view model and team members' availabilities
+    public class DisplayUserViewModel
+    {
+        public ObjectId UserId { get; set; }
+        public string Username { get; set; }
+        public bool IsDisplayed { get; set; } = true;
     }
 }
