@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
@@ -20,6 +20,6 @@ namespace CS_Project_Manager.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId AssocProjectId { get; set; }
         public List<ObjectId> Assignees { get; set; } = [];
+        public bool IsComplete { get; set; } 
     }
-
 }
