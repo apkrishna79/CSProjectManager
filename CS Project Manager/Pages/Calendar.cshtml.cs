@@ -129,7 +129,6 @@ namespace CS_Project_Manager.Pages
                 AssocTeamId = teamId
             };
             await _userAvailabilityService.AddUserAvailabilityAsync(newAvailability);
-            // Reload availability after adding new entry
             UserAvailabilityItems = new List<UserAvailability>();
             await LoadUserAvailabilityAsync(teamId);
             return RedirectToPage("/Calendar", new { teamId });
@@ -144,16 +143,11 @@ namespace CS_Project_Manager.Pages
 
         private async Task LoadUserAvailabilityAsync(ObjectId teamId)
         {
-            // Make sure ProjectTeam is loaded
             if (ProjectTeam == null)
             {
                 ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
             }
-
-            // Clear existing items
             UserAvailabilityItems = await _userAvailabilityService.GetUserAvailabilityByTeamIdAsync(teamId);
-
-            // Make sure ProjectTeam and Members are not null before iterating
             if (ProjectTeam?.Members != null)
             {
                 foreach (var user in ProjectTeam.Members)
