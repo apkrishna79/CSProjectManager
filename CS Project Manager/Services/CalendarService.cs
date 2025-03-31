@@ -2,8 +2,8 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
-Last Revised By: Anakha Krishna
-Date Revised: 3/28/25
+Last Revised By: Dylan Sailors
+Date Revised: 3/30/25
 Purpose: Provides data access methods for calendar operations in the database
 Preconditions: MongoDB setup, CalendarItems table exists, CalendarItem model defined
 Postconditions: new CalendarItem items can be added, items can be updated and removed
