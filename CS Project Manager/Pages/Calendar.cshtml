@@ -54,7 +54,7 @@
         }
 
     .time-slot-selected {
-        background: #87CEEB !important;
+        background: #80EF80 !important;
     }
 
     .time-slot-to-remove {
@@ -146,7 +146,7 @@
                 <br><br>
                 <div class="legend" style="background: #000000;"></div>
                 <div style="display:inline-block;font-size:16px;">Unavailable</div>
-                <div class="legend" style="background: #87CEEB;"></div>
+                <div class="legend" style="background: #80EF80;"></div>
                 <div style="display:inline-block;font-size:16px;">Selected</div>
                 <div class="legend" style="background: #FF6347;"></div>
                 <div style="display:inline-block;font-size:16px;">To Be Removed</div>
@@ -264,7 +264,7 @@
             var day = slot.getAttribute('data-day');
             var time = slot.getAttribute('data-time');
             if (selectedTimeSlots.some(s => s.day === day && s.time === time)) {
-                slot.style.background = "#87CEEB";
+                slot.style.background = "#80EF80";
             }
         });
     }
@@ -281,7 +281,7 @@
                 var index = selectedTimeSlots.findIndex(slot => slot.day === day && slot.time === time);
                 if (index === -1) {
                     selectedTimeSlots.push({ day: day, time: time });
-                    element.style.background = "#87CEEB";
+                    element.style.background = "#80EF80";
                 } else {
                     selectedTimeSlots.splice(index, 1);
                     element.style.background = "#ffffff";
