@@ -44,23 +44,23 @@
         background: rgba(0, 0, 0, 0.5);
         z-index: 999;
     }
-    
+
     .time-slot {
         transition: background-color 0.2s;
     }
 
-    .time-slot:hover {
-        opacity: 0.8;
-    }
-    
+        .time-slot:hover {
+            opacity: 0.8;
+        }
+
     .time-slot-selected {
         background: #87CEEB !important;
     }
-    
+
     .time-slot-to-remove {
-        background: #FF6347 !important; /* Tomato red for slots to be removed */
+        background: #FF6347 !important;
     }
-    
+
     .member-toggle-container {
         margin-bottom: 15px;
         padding: 10px;
@@ -68,7 +68,7 @@
         border-radius: 5px;
         background-color: #f8f9fa;
     }
-    
+
     .member-toggle {
         margin-right: 5px;
     }
@@ -92,19 +92,16 @@
         <div class="row">
             <div class="col-md-6">
                 <h2>Availability Calendar</h2>
-                
-                <!-- Team Member Display Options -->
                 <div class="member-toggle-container mb-3">
                     <h5>Show Team Member Availabilities:</h5>
                     <div class="d-flex flex-wrap" id="memberToggles">
                         @foreach (var member in Model.TeamMemberDisplayOptions)
                         {
                             <div class="form-check me-3 mb-2">
-                                <input class="form-check-input member-toggle" 
-                                       type="checkbox" 
-                                       value="@member.UserId" 
-                                       id="member-@member.UserId" 
-                                       checked="@member.IsDisplayed"
+                                <input class="form-check-input member-toggle"
+                                       type="checkbox"
+                                       value="@member.UserId"
+                                       id="member-@member.UserId"
                                        data-username="@member.Username">
                                 <label class="form-check-label" for="member-@member.UserId">
                                     @member.Username
@@ -113,7 +110,7 @@
                         }
                     </div>
                 </div>
-                
+
                 <div style="display:inline-block;white-space:nowrap;">
                     <div style="font-size:0px;vertical-align:top;">
                         <div class="calendar-box"></div>
@@ -132,13 +129,13 @@
                                 var isUnavailable = matchingSlots.Any();
                                 var availabilityId = isUnavailable ? matchingSlots.First().Id.ToString() : "";
                                 var userId = isUnavailable ? matchingSlots.First().AssocUserId.ToString() : "";
-                                
-                                <div class="calendar-box time-slot" 
-                                     data-day="@day" 
+
+                                <div class="calendar-box time-slot"
+                                     data-day="@day"
                                      data-time="@time"
                                      data-id="@availabilityId"
                                      data-user-id="@userId"
-                                     style="border: 1px black solid; 
+                                     style="border: 1px black solid;
                                             background: @(isUnavailable ? "#000000" : "#ffffff");
                                             cursor: pointer;"
                                      onclick="toggleTimeSlot(this)"></div>
@@ -155,14 +152,12 @@
                 <div style="display:inline-block;font-size:16px;">To Be Removed</div>
                 <div class="legend" style="background: #ffffff;"></div>
                 <div style="display:inline-block;font-size:16px;">Available</div>
-                
+
                 <form id="availabilityForm" method="post" asp-page-handler="UpdateAvailability">
                     <input type="hidden" name="teamId" value="@Model.TeamId" />
                     <div id="selectedTimesContainer">
-                        <!-- Selected times will be added here dynamically -->
                     </div>
                     <div id="removeTimesContainer">
-                        <!-- Times to remove will be added here dynamically -->
                     </div>
                     <button type="button" onclick="submitChanges()" class="btn btn-primary mt-3">Save Changes</button>
                 </form>
@@ -229,19 +224,20 @@
 <script>
     var selectedTimeSlots = [];
     var timeSlotsToRemove = [];
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var memberToggles = document.querySelectorAll('.member-toggle');
-        memberToggles.forEach(function(toggle) {
-            toggle.addEventListener('change', function() {
+        memberToggles.forEach(function (toggle) {
+            toggle.addEventListener('change', function () {
                 updateCalendarDisplay();
             });
+            toggle.checked = false;
         });
         updateCalendarDisplay();
     });
-    
+
     function updateCalendarDisplay() {
         var selectedUserIds = [];
-        document.querySelectorAll('.member-toggle:checked').forEach(function(checkbox) {
+        document.querySelectorAll('.member-toggle:checked').forEach(function (checkbox) {
             selectedUserIds.push(checkbox.value);
         });
         var currentUserId = '@Model.CurrentUserId.ToString()';
@@ -249,7 +245,7 @@
             selectedUserIds.push(currentUserId);
         }
         var timeSlots = document.querySelectorAll('.time-slot');
-        timeSlots.forEach(function(slot) {
+        timeSlots.forEach(function (slot) {
             var userId = slot.getAttribute('data-user-id');
             var availabilityId = slot.getAttribute('data-id');
             if (!availabilityId) {
