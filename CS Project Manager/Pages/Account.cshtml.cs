@@ -42,11 +42,11 @@ namespace CS_Project_Manager.Pages
         // Handle GET request and fetch the account details
         public async Task OnGetAsync()
         {
-            // Get username of logged in user
-            string username = User.FindFirstValue(ClaimTypes.Name);
-            if (!string.IsNullOrEmpty(username))
+            // Get email of logged in user
+            string email = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(email))
             {
-                StudentUser = await _studentUserService.GetUserByUsernameAsync(username);
+                StudentUser = await _studentUserService.GetUserByEmailAsync(email);
 
                 if (StudentUser != null)
                 {

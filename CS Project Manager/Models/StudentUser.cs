@@ -12,10 +12,6 @@ namespace CS_Project_Manager.Models
         public ObjectId Id { get; set; }
 
         [Required]
-        [MaxLength(100, ErrorMessage = "Username may not exceed 100 characters")]
-        public required string Username { get; set; }
-
-        [Required]
         public required string PasswordHash { get; set; }
 
         [MaxLength(100, ErrorMessage = "First name may not exceed 100 characters")]

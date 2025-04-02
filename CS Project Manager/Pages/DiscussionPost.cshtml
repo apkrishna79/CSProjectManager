@@ -1,6 +1,7 @@
 ﻿@page
 @using CS_Project_Manager.Models
 @using MongoDB.Bson
+@using System.Security.Claims
 @model CS_Project_Manager.Pages.DiscussionPostModel
 @{
     <div class="container">
@@ -16,7 +17,7 @@
                 <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Post.Id">Reply</button>
 
                 <!-- Delete button (only visible if authored by the logged-in user) -->
-                @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync(Model.Post.CreatedBy)))
+                @if (User.Identity != null && User.Identity.IsAuthenticated && User.FindFirstValue(ClaimTypes.Email) == (await Model.GetAuthorEmailAsync(Model.Post.CreatedBy)))
                 {
                     <form method="post" class="delete-form" id="delete-form-@Model.Post.Id">
                         @Html.AntiForgeryToken()  <!-- CSRF Protection -->
@@ -50,7 +51,7 @@
                             Reply = reply,
                             FetchPostById = new Func<ObjectId, Task<DiscussionPost>>(Model.GetDiscussionPostByIdAsync),
                             GetAuthorNameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorNameAsync),
-                            GetAuthorUsernameAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorUsernameAsync),
+                            GetAuthorEmailAsync = new Func<ObjectId, Task<string>>(Model.GetAuthorEmailAsync),
                         })
                 }
             </div>

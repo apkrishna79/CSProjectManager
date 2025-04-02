@@ -39,11 +39,6 @@ namespace CS_Project_Manager.Pages
         // Bound properties to hold input values from the registration form
         [BindProperty]
         [Required]
-        [MaxLength(100)]
-        public required string Username { get; set; }
-
-        [BindProperty]
-        [Required]
         public required string Password { get; set; }
 
         [BindProperty]
@@ -59,7 +54,7 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         [EmailAddress]
         [MaxLength(255)]
-        public string? ContactEmail { get; set; }
+        public string? Email { get; set; }
 
         [BindProperty]
         public List<string> EnrolledClasses { get; set; } = [];
@@ -75,20 +70,19 @@ namespace CS_Project_Manager.Pages
             }
 
             // Check if an account already exists with the given username
-            var existingUser = await _studentUserService.GetUserByUsernameAsync(Username);
+            var existingUser = await _studentUserService.GetUserByEmailAsync(Email);
             if (existingUser != null)
             {
-                ModelState.AddModelError(string.Empty, "Username is already in use.");
+                ModelState.AddModelError(string.Empty, "Email is already in use.");
                 return Page(); // Display error if username is already in use
             }
 
             var newUser = new StudentUser
             {
-                Username = Username,
+                Email = Email,
                 PasswordHash = PasswordHelper.HashPassword(Password),
                 FirstName = FirstName,
                 LastName = LastName,
-                Email = ContactEmail,
             };
 
             await _studentUserService.CreateUserAsync(newUser);
@@ -187,10 +181,7 @@ namespace CS_Project_Manager.Pages
             }
 
             // Generate claims for the new user to support authentication
-            var claims = new List<Claim>
-                {
-                    new(ClaimTypes.Name, Username), // Claim for the user's name
-                };
+            var claims = ClaimsHelper.GenerateClaims(newUser.FirstName, newUser.Email);
 
             // Create an identity and sign in the user automatically after registration
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

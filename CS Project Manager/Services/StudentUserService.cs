@@ -30,10 +30,10 @@ namespace CS_Project_Manager.Services
             return await _studentUsers.Find(user => user.Id == id).FirstOrDefaultAsync();
         }
 
-        // Retrieves a User document based on the provided username; returns null if not found
-        public async Task<StudentUser> GetUserByUsernameAsync(string username)
+        // Retrieves a User document based on the provided email; returns null if not found
+        public async Task<StudentUser> GetUserByEmailAsync(string email)
         {
-            return await _studentUsers.Find(user => user.Username == username).FirstOrDefaultAsync();
+            return await _studentUsers.Find(user => user.Email == email).FirstOrDefaultAsync();
         }
 
         // Inserts a new User document into the collection asynchronously

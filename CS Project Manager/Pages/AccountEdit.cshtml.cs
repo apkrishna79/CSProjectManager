@@ -62,10 +62,10 @@ namespace CS_Project_Manager.Pages
         // Handle email change
         public async Task<IActionResult> OnPostEmailChangedAsync()
         {
-            string username = User.FindFirstValue(ClaimTypes.Name);
-            if (!string.IsNullOrEmpty(username))
+            string email = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(email))
             {
-                StudentUser = await _studentUserService.GetUserByUsernameAsync(username);
+                StudentUser = await _studentUserService.GetUserByEmailAsync(email);
 
                 if (StudentUser != null)
                 {
@@ -180,10 +180,10 @@ namespace CS_Project_Manager.Pages
         // Load user data and handle data conflicts
         private async Task LoadUserDataAsync()
         {
-            string username = User.FindFirstValue(ClaimTypes.Name);
-            if (!string.IsNullOrEmpty(username))
+            string email = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(email))
             {
-                StudentUser = await _studentUserService.GetUserByUsernameAsync(username);
+                StudentUser = await _studentUserService.GetUserByEmailAsync(email);
 
                 if (StudentUser != null)
                 {

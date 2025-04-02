@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -53,7 +54,7 @@ namespace CS_Project_Manager.Pages
             var newPost = new DiscussionPost
             {
                 BoardId = this.BoardId,
-                CreatedBy = (await _studentUserService.GetUserByUsernameAsync(User.Identity.Name)).Id,
+                CreatedBy = (await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email))).Id,
                 Title = this.Title,
                 Content = Body,
                 Timestamp = DateTime.UtcNow,

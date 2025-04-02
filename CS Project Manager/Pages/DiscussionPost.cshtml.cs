@@ -18,6 +18,7 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -49,10 +50,10 @@ namespace CS_Project_Manager.Pages
             return user != null ? $"{user.FirstName} {user.LastName}" : "Unknown";
         }
 
-        public async Task<string> GetAuthorUsernameAsync(ObjectId posterId)
+        public async Task<string> GetAuthorEmailAsync(ObjectId posterId)
         {
             var user = await _studentUserService.GetUserByIdAsync(posterId);
-            return user != null ? user.Username : "";
+            return user != null ? user.Email : "";
         }
 
         public async Task<IActionResult> OnPostPostReplyAsync(ObjectId immediateParentPostId, ObjectId headPostId, string content)
@@ -62,8 +63,7 @@ namespace CS_Project_Manager.Pages
                 return BadRequest("Reply content cannot be empty.");
             }
 
-            var name = User.Identity.Name;
-            var userObj = await _studentUserService.GetUserByUsernameAsync(name);
+            var userObj = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
             var newReply = new DiscussionPost
             {
@@ -103,7 +103,7 @@ namespace CS_Project_Manager.Pages
             }
 
             // Ensure the current user is the author
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (post.CreatedBy != user.Id)
             {
                 return Forbid(); // User is not allowed to delete this post

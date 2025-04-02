@@ -32,7 +32,7 @@ namespace CS_Project_Manager.Pages
 
         // Bound properties to hold email and password input from the login form
         [BindProperty]
-        public string Username { get; set; }    // User-provided email address for login
+        public string Email { get; set; }    // User-provided email address for login
         [BindProperty]
         public string Password { get; set; } // User-provided password for login
 
@@ -40,14 +40,14 @@ namespace CS_Project_Manager.Pages
         public async Task<IActionResult> OnPostAsync()
         {
             // Check if Email or Password fields are empty and return error if so
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
             {
                 ModelState.AddModelError(string.Empty, "Email and password cannot be empty.");
                 return Page(); // Return the same page with error messages
             }
 
             // Attempt to retrieve the user by email from the database
-            var user = await _studentUserService.GetUserByUsernameAsync(Username);
+            var user = await _studentUserService.GetUserByEmailAsync(Email);
             if (user == null) // If no user is found, display an error message
             {
                 ModelState.AddModelError(string.Empty, "No account associated with this username.");
@@ -62,10 +62,7 @@ namespace CS_Project_Manager.Pages
             }
 
             // If credentials are valid, create a list of claims for the authenticated user
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.Name, user.Username), // User's username
-            };
+            var claims = ClaimsHelper.GenerateClaims(user.FirstName, user.Email);
 
             // Create a ClaimsIdentity using the claims and cookie authentication scheme
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
