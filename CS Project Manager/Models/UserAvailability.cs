@@ -15,5 +15,9 @@ namespace CS_Project_Manager.Models
         [BsonElement("AssocUserId")]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId AssocUserId { get; set; }
+
+        [BsonElement("AssocTeamId")]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId AssocTeamId { get; set; }
     }
 }

@@ -44,6 +44,34 @@
         background: rgba(0, 0, 0, 0.5);
         z-index: 999;
     }
+
+    .time-slot {
+        transition: background-color 0.2s;
+    }
+
+        .time-slot:hover {
+            opacity: 0.8;
+        }
+
+    .time-slot-selected {
+        background: #80EF80 !important;
+    }
+
+    .time-slot-to-remove {
+        background: #FF6347 !important;
+    }
+
+    .member-toggle-container {
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+
+    .member-toggle {
+        margin-right: 5px;
+    }
 </style>
 
 <h2>Team Calendar and Events</h2>
@@ -61,95 +89,249 @@
 <div class="navbar-text">
     @if (User.Identity?.IsAuthenticated == true)
     {
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Availability Calendar</h2>
-                    <div style="display:inline-block;white-space:nowrap;">
-                        <div style="font-size:0px;vertical-align:top;">
-                            <div class="calendar-box"></div>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Availability Calendar</h2>
+                <div class="member-toggle-container mb-3">
+                    <h5>Show Team Member Availabilities:</h5>
+                    <div class="d-flex flex-wrap" id="memberToggles">
+                        @foreach (var member in Model.TeamMemberDisplayOptions)
+                        {
+                            <div class="form-check me-3 mb-2">
+                                <input class="form-check-input member-toggle"
+                                       type="checkbox"
+                                       value="@member.UserId"
+                                       id="member-@member.UserId"
+                                       data-username="@member.Username">
+                                <label class="form-check-label" for="member-@member.UserId">
+                                    @member.Username
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div style="display:inline-block;white-space:nowrap;">
+                    <div style="font-size:0px;vertical-align:top;">
+                        <div class="calendar-box"></div>
                         @foreach (var day in Model.Days)
                         {
-                                    <div class="calendar-box" style="font-size:16px;height:30px">@day</div>
+                            <div class="calendar-box" style="font-size:16px;height:30px">@day</div>
                         }
-                        </div>
+                    </div>
                     @foreach (var time in Model.Times)
                     {
-                                <div style="font-size:0px;vertical-align:top;">
-                                    <div class="calendar-box" style="font-size:12px;">@time</div>
+                        <div style="font-size:0px;vertical-align:top;">
+                            <div class="calendar-box" style="font-size:12px;">@time</div>
                             @foreach (var day in Model.Days)
                             {
-                                            <div class="calendar-box" style="border: 1px black solid; background: @(Model.UserAvailabilityItems.Any(u => u.Day == day && u.Time == time) ? "#000000" : "#ffffff")"></div>
+                                var matchingSlots = Model.UserAvailabilityItems.Where(u => u.Day == day && u.Time == time).ToList();
+                                var isUnavailable = matchingSlots.Any();
+                                var availabilityId = isUnavailable ? matchingSlots.First().Id.ToString() : "";
+                                var userId = isUnavailable ? matchingSlots.First().AssocUserId.ToString() : "";
+
+                                <div class="calendar-box time-slot"
+                                     data-day="@day"
+                                     data-time="@time"
+                                     data-id="@availabilityId"
+                                     data-user-id="@userId"
+                                     style="border: 1px black solid;
+                                            background: @(isUnavailable ? "#000000" : "#ffffff");
+                                            cursor: pointer;"
+                                     onclick="toggleTimeSlot(this)"></div>
                             }
-                                </div>
+                        </div>
                     }
-                    </div>
-                    <br>
-                    <div class="calendar-box"></div>
-                    <div class="legend" style="background: #000000;"></div>
-                    <div style="display:inline-block;font-size:16px;">Unavailable</div>
-                    <div class="legend" style="background: #ffffff;"></div>
-                    <div style="display:inline-block;font-size:16px;">Available</div>
                 </div>
-                <div class="col-md-6">
-                    <h2>Event List</h2>
-                    <div id="EventList">
+                <br><br>
+                <div class="legend" style="background: #000000;"></div>
+                <div style="display:inline-block;font-size:16px;">Unavailable</div>
+                <div class="legend" style="background: #80EF80;"></div>
+                <div style="display:inline-block;font-size:16px;">Selected</div>
+                <div class="legend" style="background: #FF6347;"></div>
+                <div style="display:inline-block;font-size:16px;">To Be Removed</div>
+                <div class="legend" style="background: #ffffff;"></div>
+                <div style="display:inline-block;font-size:16px;">Available</div>
+
+                <form id="availabilityForm" method="post" asp-page-handler="UpdateAvailability">
+                    <input type="hidden" name="teamId" value="@Model.TeamId" />
+                    <div id="selectedTimesContainer">
+                    </div>
+                    <div id="removeTimesContainer">
+                    </div>
+                    <button type="button" onclick="submitChanges()" class="btn btn-primary mt-3">Save Changes</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>Event List</h2>
+                <div id="EventList">
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
-                                <ul>
+                        <ul>
                             @foreach (var item in Model.TeamCalendarItems)
                             {
-                                            <li>
-                                                <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
+                                <li>
+                                    <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
                                         @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
-                                                </a>
-                                            </li>
+                                    </a>
+                                </li>
                             }
-                                </ul>
+                        </ul>
                     }
                     else
                     {
-                                <p>No scheduled events!</p>
+                        <p>No scheduled events!</p>
                     }
-                    </div>
-                    <button onclick="openDialog()">Add Meeting</button>
                 </div>
+                <button onclick="openDialog()">Add Meeting</button>
             </div>
+        </div>
 
-            <div class="dialog-overlay" id="dialogOverlay"></div>
-            <div class="dialog" id="addMeetingDialog">
-                <form method="post" asp-page-handler="AddOrUpdateCalendarItem" onsubmit="return validateForm()">
-                    <input type="hidden" name="teamId" value="@Model.TeamId" />
-                    <input type="hidden" id="calendarItemId" name="NewCalendarItem.Id" />
-                    <div>
-                        <label for="meetingName">Meeting Name:</label>
-                        <input type="text" id="meetingName" name="NewCalendarItem.EventName" required />
-                    </div>
-                    <div>
-                        <label for="startTime">Start Time:</label>
-                        <input type="datetime-local" id="startTime" name="NewCalendarItem.StartDateTime" required />
-                    </div>
-                    <div>
-                        <label for="endTime">End Time:</label>
-                        <input type="datetime-local" id="endTime" name="NewCalendarItem.EndDateTime" required />
-                    </div>
-                    <div>
-                        <label for="notes">Notes:</label>
-                        <textarea id="notes" name="NewCalendarItem.Notes"></textarea>
-                    </div>
-                    <div>
-                        <button type="submit">Confirm</button>
-                        <button type="button" onclick="closeDialog()">Cancel</button>
-                    </div>
-                </form>
-            </div>
+        <div class="dialog-overlay" id="dialogOverlay"></div>
+        <div class="dialog" id="addMeetingDialog">
+            <form method="post" asp-page-handler="AddOrUpdateCalendarItem" onsubmit="return validateForm()">
+                <input type="hidden" name="teamId" value="@Model.TeamId" />
+                <input type="hidden" id="calendarItemId" name="NewCalendarItem.Id" />
+                <div>
+                    <label for="meetingName">Meeting Name:</label>
+                    <input type="text" id="meetingName" name="NewCalendarItem.EventName" required />
+                </div>
+                <div>
+                    <label for="startTime">Start Time:</label>
+                    <input type="datetime-local" id="startTime" name="NewCalendarItem.StartDateTime" required />
+                </div>
+                <div>
+                    <label for="endTime">End Time:</label>
+                    <input type="datetime-local" id="endTime" name="NewCalendarItem.EndDateTime" required />
+                </div>
+                <div>
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes" name="NewCalendarItem.Notes"></textarea>
+                </div>
+                <div>
+                    <button type="submit">Confirm</button>
+                    <button type="button" onclick="closeDialog()">Cancel</button>
+                </div>
+            </form>
+        </div>
     }
     else
     {
-            <span>Not logged in</span>
+        <span>Not logged in</span>
     }
 </div>
 
 <script>
+    var selectedTimeSlots = [];
+    var timeSlotsToRemove = [];
+    document.addEventListener('DOMContentLoaded', function () {
+        var memberToggles = document.querySelectorAll('.member-toggle');
+        memberToggles.forEach(function (toggle) {
+            toggle.addEventListener('change', function () {
+                updateCalendarDisplay();
+            });
+            toggle.checked = false;
+        });
+        updateCalendarDisplay();
+    });
+
+    function updateCalendarDisplay() {
+        var selectedUserIds = [];
+        document.querySelectorAll('.member-toggle:checked').forEach(function (checkbox) {
+            selectedUserIds.push(checkbox.value);
+        });
+        var currentUserId = '@Model.CurrentUserId.ToString()';
+        if (currentUserId && !selectedUserIds.includes(currentUserId)) {
+            selectedUserIds.push(currentUserId);
+        }
+        var timeSlots = document.querySelectorAll('.time-slot');
+        timeSlots.forEach(function (slot) {
+            var userId = slot.getAttribute('data-user-id');
+            var availabilityId = slot.getAttribute('data-id');
+            if (!availabilityId) {
+                return;
+            }
+            if (selectedUserIds.includes(userId)) {
+                slot.style.background = "#000000";
+                slot.classList.add('visible-availability');
+            } else {
+                slot.style.background = "#ffffff";
+                slot.classList.remove('visible-availability');
+            }
+            if (timeSlotsToRemove.includes(availabilityId)) {
+                slot.style.background = "#FF6347";
+            }
+            var day = slot.getAttribute('data-day');
+            var time = slot.getAttribute('data-time');
+            if (selectedTimeSlots.some(s => s.day === day && s.time === time)) {
+                slot.style.background = "#80EF80";
+            }
+        });
+    }
+
+    function toggleTimeSlot(element) {
+        var day = element.getAttribute('data-day');
+        var time = element.getAttribute('data-time');
+        var id = element.getAttribute('data-id');
+        var userId = element.getAttribute('data-user-id');
+        var isUnavailable = id !== "";
+        var isCurrentUser = userId === '@Model.CurrentUserId.ToString()';
+        if (!isUnavailable || isCurrentUser) {
+            if (!isUnavailable) {
+                var index = selectedTimeSlots.findIndex(slot => slot.day === day && slot.time === time);
+                if (index === -1) {
+                    selectedTimeSlots.push({ day: day, time: time });
+                    element.style.background = "#80EF80";
+                } else {
+                    selectedTimeSlots.splice(index, 1);
+                    element.style.background = "#ffffff";
+                }
+            } else if (isCurrentUser) {
+                var index = timeSlotsToRemove.findIndex(slotId => slotId === id);
+                if (index === -1) {
+                    timeSlotsToRemove.push(id);
+                    element.style.background = "#FF6347";
+                } else {
+                    timeSlotsToRemove.splice(index, 1);
+                    element.style.background = "#000000";
+                }
+            }
+            updateCalendarDisplay();
+        }
+    }
+
+    function submitChanges() {
+        var hasChanges = selectedTimeSlots.length > 0 || timeSlotsToRemove.length > 0;
+        if (!hasChanges) {
+            alert("No changes to save. Please select or deselect time slots first.");
+            return;
+        }
+        var addContainer = document.getElementById('selectedTimesContainer');
+        var removeContainer = document.getElementById('removeTimesContainer');
+        addContainer.innerHTML = '';
+        removeContainer.innerHTML = '';
+        selectedTimeSlots.forEach((slot, index) => {
+            var dayInput = document.createElement('input');
+            dayInput.type = 'hidden';
+            dayInput.name = `SelectedDays[${index}]`;
+            dayInput.value = slot.day;
+            var timeInput = document.createElement('input');
+            timeInput.type = 'hidden';
+            timeInput.name = `SelectedTimes[${index}]`;
+            timeInput.value = slot.time;
+            addContainer.appendChild(dayInput);
+            addContainer.appendChild(timeInput);
+        });
+        timeSlotsToRemove.forEach((id, index) => {
+            var idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = `RemoveIds[${index}]`;
+            idInput.value = id;
+            removeContainer.appendChild(idInput);
+        });
+        document.getElementById('availabilityForm').submit();
+    }
+
     function openDialog(eventName = '', startTime = '', endTime = '', notes = '', id = '') {
         document.getElementById('meetingName').value = eventName;
         document.getElementById('startTime').value = startTime;
@@ -168,7 +350,6 @@
     function validateForm() {
         var startTime = document.getElementById('startTime').value;
         var endTime = document.getElementById('endTime').value;
-
         if (new Date(startTime) >= new Date(endTime)) {
             alert('End Time must be later than Start Time.');
             return false;

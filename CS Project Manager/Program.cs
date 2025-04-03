@@ -76,6 +76,7 @@ builder.Services.AddScoped<BrainstormService>();
 builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<DiscussionBoardService>();
 builder.Services.AddScoped<DiscussionPostService>();
+builder.Services.AddScoped<UserAvailabilityService>();
 
 var app = builder.Build(); // Build app from configured builder
 
