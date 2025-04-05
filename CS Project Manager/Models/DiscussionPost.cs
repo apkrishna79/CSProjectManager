@@ -1,10 +1,19 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 3/1/25
+Last Revised By: Ginny Ke - added comments
+Date Revised: 4/4/25
+Purpose: model to handle discussion posts in database
+*/
+
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using System.ComponentModel.DataAnnotations;
 
-namespace CS_Project_Manager.Models
+namespace CS_Project_Manager.Models 
 {
-    public class DiscussionPost
+    public class DiscussionPost // creates class that passes in object id, boardid, created by, title, timestamp, content, headpostid, is reply, and replyIds. 
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
