@@ -1,10 +1,18 @@
-﻿using MongoDB.Bson;
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 3/1/25
+Last Revised By: Ginny Ke - added comments
+Date Revised: 4/4/25
+Purpose: model to handle teams in database
+*/
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
 namespace CS_Project_Manager.Models
 {
-    public class Team
+    public class Team // create team class that passes in objectId, associated class, and members
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
