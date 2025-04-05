@@ -39,6 +39,12 @@ namespace CS_Project_Manager.Pages
         // Bound properties to hold input values from the registration form
         [BindProperty]
         [Required]
+        [EmailAddress]
+        [MaxLength(255)]
+        public string Email { get; set; }
+
+        [BindProperty]
+        [Required]
         public required string Password { get; set; }
 
         [BindProperty]
@@ -50,11 +56,6 @@ namespace CS_Project_Manager.Pages
         [Required]
         [MaxLength(100)]
         public required string LastName { get; set; }
-
-        [BindProperty]
-        [EmailAddress]
-        [MaxLength(255)]
-        public string? Email { get; set; }
 
         [BindProperty]
         public List<string> EnrolledClasses { get; set; } = [];
