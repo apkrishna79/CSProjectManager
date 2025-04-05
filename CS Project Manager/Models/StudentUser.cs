@@ -1,11 +1,20 @@
-﻿using MongoDB.Bson;
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 3/1/25
+Last Revised By: Ginny Ke - added comments
+Date Revised: 4/4/25
+Purpose: model to handle student users in database
+*/
+
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
 
 namespace CS_Project_Manager.Models
 {
-    public class StudentUser
+    public class StudentUser // Student User class that passes in objectid, username, password, first/last name, and email.
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
