@@ -1,10 +1,18 @@
-﻿using MongoDB.Bson;
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 3/1/25
+Last Revised By: Ginny Ke - added comments
+Date Revised: 4/4/25
+Purpose: model to handle brainstorm item in the database
+*/
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
 namespace CS_Project_Manager.Models
 {
-    public class BrainstormItem
+    public class BrainstormItem // creates brainstorm item class that passes in object id, description, createdby, upvotes, downvotes, and assoc project id. 
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
