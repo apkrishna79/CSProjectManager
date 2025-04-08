@@ -1,11 +1,19 @@
-﻿using MongoDB.Bson;
+/*
+* Prologue
+Created By: Anakha Krishna
+Date Created: 3/1/25
+Last Revised By: Ginny Ke - added comments
+Date Revised: 4/4/25
+Purpose: model to handle projects
+*/
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 namespace CS_Project_Manager.Models
 {
-    public class Project
+    public class Project // creates project class that passes in project name, objectid, description, associated team, and requirements. 
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

@@ -2,10 +2,9 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 2/16/25
-Last Revised By: Jackson Wunderlich
-Date Revised: 3/2/25
-Purpose: 
-
+Last Revised By: Anakha Krishna
+Date Revised: 3/28/25
+Purpose: The main dashboard page for the website
 Preconditions: MongoDBService, ProjectService, TeamService instances properly initialized and injected; Project and Team models must be correctly defined
 Postconditions: shows a user a list of their projects and allows them to create a new one
 Error and exceptions: ArgumentNullException: username is null or empty; MongoException: issue with the MongoDB connection or operation; InvalidOperationException: data cannot be retrieved
@@ -15,6 +14,8 @@ Other faults: N/A
 
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
@@ -64,6 +65,13 @@ namespace CS_Project_Manager.Pages
                     }
                 }
             }
+        }
+
+        // Handle logging out a user
+        public async Task<IActionResult> OnPostLogoutAsync()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToPage("/Landing");
         }
     }
 }
