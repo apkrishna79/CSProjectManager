@@ -40,6 +40,7 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         [Required]
         [EmailAddress]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@ku\.edu$", ErrorMessage = "Email must be a valid KU address.")]
         [MaxLength(255)]
         public string Email { get; set; }
 

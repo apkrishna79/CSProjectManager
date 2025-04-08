@@ -14,11 +14,15 @@ Other faults: N/A
 
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using CS_Project_Manager.Utilities;
 
 namespace CS_Project_Manager.Pages
 {
@@ -32,6 +36,10 @@ namespace CS_Project_Manager.Pages
 
         // Properties for user data and selections
         [BindProperty]
+        [Required]
+        [EmailAddress]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@ku\.edu$", ErrorMessage = "Email must be a valid KU address.")]
+        [MaxLength(255)]
         public string Email { get; set; }
 
         [BindProperty]
@@ -62,21 +70,38 @@ namespace CS_Project_Manager.Pages
         // Handle email change
         public async Task<IActionResult> OnPostEmailChangedAsync()
         {
-            string email = User.FindFirstValue(ClaimTypes.Email);
-            if (!string.IsNullOrEmpty(email))
+            if (!ModelState.IsValid)
             {
-                StudentUser = await _studentUserService.GetUserByEmailAsync(email);
+                await LoadUserDataAsync(); // Optional: to reload existing state
+                return Page();
+            }
+
+            string currentEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(currentEmail))
+            {
+                StudentUser = await _studentUserService.GetUserByEmailAsync(currentEmail);
 
                 if (StudentUser != null)
                 {
-                    // Update the user's email if it changed
+                    // Step 1: Update the email in DB
                     StudentUser.Email = Email;
                     await _studentUserService.UpdateUserEmailAsync(StudentUser.Id, Email);
+
+                    // Step 2: Rebuild the claims
+                    var claims = ClaimsHelper.GenerateClaims(StudentUser.FirstName, Email);
+
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    // Step 3: Refresh the auth cookie with the new claims
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
                 }
             }
 
             return RedirectToPage();
         }
+
 
         // Adding a class
         public async Task<IActionResult> OnPostAddClassAsync()
