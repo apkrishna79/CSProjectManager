@@ -51,15 +51,6 @@ namespace CS_Project_Manager.Services
             return await _classes.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Dictionary<ObjectId, string>> GetClassIdToName(string[] cs)
-        {
-            var classMapping = await _classes
-                .Find(c => cs.Contains(c.Name))
-                .Project(c => new { c.Id, c.Name })
-                .ToListAsync();
-            return classMapping.ToDictionary(c => c.Id, c => c.Name);
-        }
-
         public async Task<Dictionary<ObjectId, string>> GetClassIdToNameById(ObjectId[] classIds)
         {
             var classMapping = await _classes

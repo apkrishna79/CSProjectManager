@@ -61,9 +61,6 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public List<string> EnrolledClasses { get; set; } = [];
 
-        [BindProperty]
-        public List<string> Teams { get; set; } = [];
-
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -89,9 +86,6 @@ namespace CS_Project_Manager.Pages
 
             await _studentUserService.CreateUserAsync(newUser);
             var studentUserId = newUser.Id;
-
-            // Dictionary to map class names to their corresponding ObjectIdss
-            var classIdMap = new Dictionary<string, ObjectId>();
 
             // Process each selected class
             foreach (var className in EnrolledClasses)
@@ -128,58 +122,6 @@ namespace CS_Project_Manager.Pages
                         await _classService.AddStudentToClassAsync(classId, studentUserId);
                     }
                 }
-
-                // Store the class ID in the mapping dictionary for later use
-                classIdMap[className] = classId;
-            }
-
-            // Process each selected team
-            foreach (var teamSelection in Teams)
-            {
-                // Ensure the team selection is in the expected "Team Name (Class Name)" format
-                if (!teamSelection.Contains("(") || !teamSelection.Contains(")"))
-                    continue; // Skip invalid formats
-
-                // Extract the team name and associated class name
-                var teamName = teamSelection.Split(" (")[0];
-                var className = teamSelection.Split(" (")[1].TrimEnd(')');
-
-                // Check if the class exists in the previously mapped class IDs
-                if (!classIdMap.TryGetValue(className, out ObjectId classId))
-                {
-                    continue; // Skip if the class isn't valid
-                }
-
-                // Check if the team already exists for the given class
-                var existingTeam = await _teamService.GetTeamByNameAndClassId(teamName, classId);
-
-                if (existingTeam == null)
-                {
-                    // If the team does not exist, create a new one and add the student
-                    var newTeam = new Team
-                    {
-                        Name = teamName,
-                        AssociatedClass = classId,
-                        Members = [studentUserId]
-                    };
-                    await _teamService.CreateTeamAsync(newTeam);
-
-                    // create discussion board for new class
-                    await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
-                    {
-                        IsClassBoard = false,
-                        ClassId = ObjectId.Empty,
-                        TeamId = newTeam.Id
-                    });
-                }
-                else
-                {
-                    // If the student is not already a member of the team, add them
-                    if (!existingTeam.Members.Contains(studentUserId))
-                    {
-                        await _teamService.AddStudentToTeamAsync(existingTeam.Id, studentUserId);
-                    }
-                }
             }
 
             // Generate claims for the new user to support authentication
@@ -201,18 +143,11 @@ namespace CS_Project_Manager.Pages
         }
 
         // Get teams for team search/dropdown based on selected classes
-        public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string[] cs)
+        public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string className)
         {
-            var classIdToName = await _classService.GetClassIdToName(cs);
-
-            var teamsForSelectedClasses = await _teamService.GetTeamsByClassNames(classIdToName);
-
-            var teamList = teamsForSelectedClasses.Select(t => new
-            {
-                name = $"{t.Name} ({classIdToName[t.AssociatedClass]})"
-            }).ToList();
-
-            return new JsonResult(teamList);
+            var classId = await _classService.GetClassByNameAsync(className);
+            var teams = await _teamService.GetTeamsByClassId(classId.Id);
+            return new JsonResult(teams);
         }
 
     }

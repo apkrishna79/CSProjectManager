@@ -28,22 +28,15 @@ namespace CS_Project_Manager.Services
         public async Task CreateTeamAsync(Team team) =>
             await _teams.InsertOneAsync(team);
 
-        public async Task<List<Team>> GetAllTeamsAsync()
-        {
-            var filter = Builders<Team>.Filter.Empty;
-            var team_list = await _teams.Find(filter).ToListAsync();
-            return team_list;
-        }
-
         public async Task<Team> GetTeamByNameAndClassId(string teamName, ObjectId classId)
         {
             return await _teams.Find(t => t.Name == teamName && t.AssociatedClass == classId).FirstOrDefaultAsync();
         }
 
-        public async Task<List<Team>> GetTeamsByClassNames(Dictionary<ObjectId, string> classIdToName)
+        public async Task<List<Team>> GetTeamsByClassId(ObjectId classId)
         {
             return await _teams
-                .Find(t => classIdToName.Keys.Contains(t.AssociatedClass))
+                .Find(t => t.AssociatedClass == classId)
                 .ToListAsync();
         }
 
