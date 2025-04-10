@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -65,8 +66,7 @@ namespace CS_Project_Manager.Pages
         
         public async Task OnGetAsync()
         {
-            var username = User.Identity.Name;
-            var userObj = await _userService.GetUserByUsernameAsync(username);
+            var userObj = await _userService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
             // create a dictionary with key: Team object and value: corresponding class name
             foreach (var team in Teams)

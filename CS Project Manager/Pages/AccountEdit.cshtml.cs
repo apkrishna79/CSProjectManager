@@ -14,11 +14,15 @@ Other faults: N/A
 
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using CS_Project_Manager.Utilities;
 
 namespace CS_Project_Manager.Pages
 {
@@ -32,6 +36,10 @@ namespace CS_Project_Manager.Pages
 
         // Properties for user data and selections
         [BindProperty]
+        [Required]
+        [EmailAddress]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@ku\.edu$", ErrorMessage = "Email must be a valid KU address.")]
+        [MaxLength(255)]
         public string Email { get; set; }
 
         [BindProperty]
@@ -62,21 +70,47 @@ namespace CS_Project_Manager.Pages
         // Handle email change
         public async Task<IActionResult> OnPostEmailChangedAsync()
         {
-            string username = User.FindFirstValue(ClaimTypes.Name);
-            if (!string.IsNullOrEmpty(username))
+            if (!ModelState.IsValid)
             {
-                StudentUser = await _studentUserService.GetUserByUsernameAsync(username);
+                await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
+                return Page();
+            }
+
+            string currentEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(currentEmail))
+            {
+                StudentUser = await _studentUserService.GetUserByEmailAsync(currentEmail);
 
                 if (StudentUser != null)
                 {
-                    // Update the user's email if it changed
+                    // Step 0: check for existing email
+                    var existingUser = await _studentUserService.GetUserByEmailAsync(Email);
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Email is already in use.");
+                        await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
+                        return Page(); // Display error if username is already in use
+                    }
+
+                    // Step 1: Update the email in DB
                     StudentUser.Email = Email;
                     await _studentUserService.UpdateUserEmailAsync(StudentUser.Id, Email);
+
+                    // Step 2: Rebuild the claims
+                    var claims = ClaimsHelper.GenerateClaims(StudentUser.FirstName, Email);
+
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    // Step 3: Refresh the auth cookie with the new claims
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
                 }
             }
 
             return RedirectToPage();
         }
+
 
         // Adding a class
         public async Task<IActionResult> OnPostAddClassAsync()
@@ -180,10 +214,10 @@ namespace CS_Project_Manager.Pages
         // Load user data and handle data conflicts
         private async Task LoadUserDataAsync()
         {
-            string username = User.FindFirstValue(ClaimTypes.Name);
-            if (!string.IsNullOrEmpty(username))
+            string email = User.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(email))
             {
-                StudentUser = await _studentUserService.GetUserByUsernameAsync(username);
+                StudentUser = await _studentUserService.GetUserByEmailAsync(email);
 
                 if (StudentUser != null)
                 {

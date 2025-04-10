@@ -1,4 +1,5 @@
-﻿@model dynamic
+﻿@using System.Security.Claims
+@model dynamic
 
 <div class="reply" style="margin-left: 40px; border-left: 2px solid #ccc; padding-left: 10px;">
     <small>@await Model.GetAuthorNameAsync.Invoke(Model.Reply.CreatedBy) replied: </small>
@@ -10,7 +11,7 @@
         <button type="button" class="btn btn-sm btn-primary reply-btn" data-post-id="@Model.Reply.Id">Reply</button>
 
         <!-- Delete button (only visible if authored by the logged-in user) -->
-        @if (User.Identity.IsAuthenticated && User.Identity.Name == (await Model.GetAuthorUsernameAsync.Invoke(Model.Reply.CreatedBy)))
+        @if (User.Identity.IsAuthenticated && User.FindFirstValue(ClaimTypes.Email) == (await Model.GetAuthorEmailAsync.Invoke(Model.Reply.CreatedBy)))
         {
             <form method="post" class="delete-form" id="delete-form-@Model.Reply.Id">
                 @Html.AntiForgeryToken()  <!-- CSRF Protection -->
@@ -46,7 +47,7 @@
                             Reply = subReply,
                             FetchPostById = Model.FetchPostById,
                             GetAuthorNameAsync = Model.GetAuthorNameAsync,
-                            GetAuthorUsernameAsync = Model.GetAuthorUsernameAsync
+                            GetAuthorEmailAsync = Model.GetAuthorEmailAsync
                         })
                 }
             }

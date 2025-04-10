@@ -13,9 +13,11 @@ Other faults: N/A
 
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -84,7 +86,7 @@ namespace CS_Project_Manager.Pages
         public async Task OnGetAsync(ObjectId teamId)
         {
             ProjectTeam = await _teamService.GetTeamByIdAsync(teamId);
-            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
+            var currentUser = await _userService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (currentUser != null)
             {
                 CurrentUserId = currentUser.Id;
@@ -129,7 +131,7 @@ namespace CS_Project_Manager.Pages
                 ModelState.AddModelError(string.Empty, "Team not found.");
                 return Page();
             }
-            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
+            var currentUser = await _userService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (currentUser == null)
             {
                 ModelState.AddModelError(string.Empty, "User not found.");
@@ -181,7 +183,7 @@ namespace CS_Project_Manager.Pages
             }
             UserAvailabilityItems = new List<UserAvailability>();
             TeamMemberDisplayOptions = new List<DisplayUserViewModel>();
-            var currentUser = await _userService.GetUserByUsernameAsync(User.Identity.Name);
+            var currentUser = await _userService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (ProjectTeam?.Members != null)
             {
                 foreach (var userId in ProjectTeam.Members)
@@ -192,7 +194,7 @@ namespace CS_Project_Manager.Pages
                         TeamMemberDisplayOptions.Add(new DisplayUserViewModel 
                         { 
                             UserId = teamMember.Id,
-                            Username = teamMember.Username,
+                            Name = $"{teamMember.FirstName} {teamMember.LastName}",
                             IsDisplayed = true
                         });
                     }
@@ -221,7 +223,7 @@ namespace CS_Project_Manager.Pages
     public class DisplayUserViewModel
     {
         public ObjectId UserId { get; set; }
-        public string Username { get; set; }
+        public string Name { get; set; }
         public bool IsDisplayed { get; set; } = true;
     }
 }

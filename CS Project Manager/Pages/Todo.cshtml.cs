@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -54,7 +55,7 @@ namespace CS_Project_Manager.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (user == null) return RedirectToPage("/Login");
 
             UserId = user.Id;
@@ -105,7 +106,7 @@ namespace CS_Project_Manager.Pages
                 return RedirectToPage();
             }
 
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (user == null) return RedirectToPage("/Login");
 
             NewTodo.AssocUserId = user.Id;

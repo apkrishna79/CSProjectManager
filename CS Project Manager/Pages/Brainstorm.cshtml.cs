@@ -18,6 +18,7 @@ using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
+using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
@@ -78,7 +79,7 @@ namespace CS_Project_Manager.Pages
                 await LoadAndSortBrainstormItemsAsync(ProjectId);
                 return Page();
             }
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             UserId = user.Id;
             NewBrainstormItem.CreatedBy = UserId;
             ProjectId = projectId;
@@ -146,7 +147,7 @@ namespace CS_Project_Manager.Pages
             var brainstormItem = await _brainstormService.GetBrainstormItemByIdAsync(id);
             if (brainstormItem == null)
                 return NotFound();
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             var userId = user.Id;
             if (brainstormItem.Upvotes.Contains(userId))
             {
@@ -170,7 +171,7 @@ namespace CS_Project_Manager.Pages
             var brainstormItem = await _brainstormService.GetBrainstormItemByIdAsync(id);
             if (brainstormItem == null)
                 return NotFound();
-            var user = await _studentUserService.GetUserByUsernameAsync(User.Identity.Name);
+            var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             var userId = user.Id;
             if (brainstormItem.Downvotes.Contains(userId))
             {

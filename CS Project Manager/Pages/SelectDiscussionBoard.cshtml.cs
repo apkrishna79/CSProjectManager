@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CS_Project_Manager.Pages
@@ -35,8 +36,7 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGet()
         {
-            var name = User.Identity.Name;
-            var userObj = await _studentUserService.GetUserByUsernameAsync(name);
+            var userObj = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
             var classes = await _classService.GetClassesForStudentAsync(userObj.Id);
             var classIdToNameMap = classes.ToDictionary(c => c.Id, c => c.Name);

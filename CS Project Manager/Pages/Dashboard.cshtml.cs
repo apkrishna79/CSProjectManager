@@ -54,8 +54,7 @@ namespace CS_Project_Manager.Pages
             if (User.Identity?.IsAuthenticated == true)
             {
                 // gets a list of all projects related to the user
-                var username = User.FindFirstValue(ClaimTypes.Name);
-                var userObj = await _userService.GetUserByUsernameAsync(username);
+                var userObj = await _userService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
                 Teams = await _teamService.GetTeamsByStudentIdAsync(userObj.Id);
                 foreach (var team in Teams)
                 {
