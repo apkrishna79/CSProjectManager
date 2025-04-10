@@ -61,6 +61,9 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public List<string> EnrolledClasses { get; set; } = [];
 
+        [BindProperty]
+        public Dictionary<string, string> SelectedTeams { get; set; } = new();
+
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -87,7 +90,6 @@ namespace CS_Project_Manager.Pages
             await _studentUserService.CreateUserAsync(newUser);
             var studentUserId = newUser.Id;
 
-            // Process each selected class
             foreach (var className in EnrolledClasses)
             {
                 var existingClass = await _classService.GetClassByNameAsync(className);
@@ -95,7 +97,6 @@ namespace CS_Project_Manager.Pages
 
                 if (existingClass == null)
                 {
-                    // If the class does not exist, create a new one and enroll the student
                     var newClass = new Class
                     {
                         Name = className,
@@ -104,7 +105,6 @@ namespace CS_Project_Manager.Pages
                     await _classService.CreateClassAsync(newClass);
                     classId = newClass.Id;
 
-                    // create discussion board for new class
                     await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
                     {
                         IsClassBoard = true,
@@ -116,13 +116,36 @@ namespace CS_Project_Manager.Pages
                 {
                     classId = existingClass.Id;
 
-                    // If the student is not already enrolled in the class, add them
                     if (!existingClass.EnrolledStudents.Contains(studentUserId))
                     {
                         await _classService.AddStudentToClassAsync(classId, studentUserId);
                     }
                 }
+
+                if (SelectedTeams.TryGetValue(className, out var teamName) && !string.IsNullOrWhiteSpace(teamName))
+                {
+                    var existingTeam = await _teamService.GetTeamByNameAndClassId(teamName, classId);
+                    ObjectId teamId;
+
+                    if (existingTeam == null)
+                    {
+                        var newTeam = new Team
+                        {
+                            Name = teamName,
+                            AssociatedClass = classId,
+                            Members = new List<ObjectId> { studentUserId }
+                        };
+                        await _teamService.CreateTeamAsync(newTeam);
+                        teamId = newTeam.Id;
+                    }
+                    else
+                    {
+                        teamId = existingTeam.Id;
+                        await _teamService.AddStudentToTeamAsync(teamId, studentUserId);
+                    }
+                }
             }
+
 
             // Generate claims for the new user to support authentication
             var claims = ClaimsHelper.GenerateClaims(newUser.FirstName, newUser.Email);
@@ -142,13 +165,23 @@ namespace CS_Project_Manager.Pages
             return new JsonResult(classList.Select(c => new { name = c.Name }));
         }
 
-        // Get teams for team search/dropdown based on selected classes
-        public async Task<IActionResult> OnGetGetTeamsForClassesAsync([FromQuery] string className)
+        public async Task<IActionResult> OnGetGetTeamsAsync(string term, string className)
         {
-            var classId = await _classService.GetClassByNameAsync(className);
-            var teams = await _teamService.GetTeamsByClassId(classId.Id);
-            return new JsonResult(teams);
-        }
+            var course = await _classService.GetClassByNameAsync(className);
 
+            // If the course doesn't exist, return an empty JSON array
+            if (course == null)
+            {
+                return new JsonResult(Enumerable.Empty<object>());
+            }
+
+            var classId = course.Id;
+            var allTeams = await _teamService.GetTeamsByClassId(classId);
+            var filteredTeams = allTeams
+                .Where(t => string.IsNullOrEmpty(term) || t.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .Select(t => new { name = t.Name });
+
+            return new JsonResult(filteredTeams);
+        }
     }
 }

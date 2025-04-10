@@ -42,6 +42,10 @@
         <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;"></select>
     </div>
 
+    
+<div id="teamSelectors"></div>
+
+
     <button type="submit">Register</button>
 </form>
 
@@ -93,12 +97,80 @@
             });
 
             $('#enrolledClasses').on('change', function () {
-                let newSelectedClasses = $(this).val() || [];
+                let newSelectedClasses = $(this).val()
+                updateTeamSelectors(newSelectedClasses);
             });
 
             $('#enrolledClasses').trigger('change');
         }
+
+        function updateTeamSelectors(selectedClasses) {
+            const container = $('#teamSelectors');
+            const currentSelectors = new Set();
+
+            // Track current team selectors in the DOM
+            container.find('.team-selector').each(function () {
+                const className = $(this).data('class');
+                currentSelectors.add(className);
+            });
+
+            // Add selectors for new classes
+            selectedClasses.forEach(className => {
+                if (!currentSelectors.has(className)) {
+                    const safeId = className.replace(/[^a-zA-Z0-9]/g, '_');
+                    const teamSelector = $(`
+                        <div class="team-selector" data-class="${className}">
+                            <label>Select team for ${className}</label>
+                            <select id="team_${safeId}" name="SelectedTeams[${className}]" style="width: 100%;"></select>
+                        </div>
+                    `);
+
+                    container.append(teamSelector);
+
+                    $(`#team_${safeId}`).select2({
+                        tags: true,
+                        placeholder: "Select or add a team",
+                        ajax: {
+                            url: '/Register?handler=GetTeams',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({ term: params.term, className }),
+                            processResults: data => ({
+                                results: data.map(team => ({ id: team.name, text: team.name }))
+                            }),
+                            cache: true
+                        },
+                        createTag: function (params) {
+                            let term = $.trim(params.term);
+                            if (!term || term.length > 100) return null;
+                            return {
+                                id: term,
+                                text: `Add New Team: ${term}`,
+                                newTag: true
+                            };
+                        },
+                        templateSelection: data => data.newTag ? data.id : data.text
+                    });
+                }
+            });
+
+            // Remove selectors for deselected classes
+            container.find('.team-selector').each(function () {
+                const className = $(this).data('class');
+                if (!selectedClasses.includes(className)) {
+                    $(this).remove();
+                }
+            });
+        }
+
+
+            $('#enrolledClasses').on('change', function () {
+        const selected = $(this).val() || [];
+        updateTeamSelectors(selected);
+    });
+
     });
 
 </script>
+
 
