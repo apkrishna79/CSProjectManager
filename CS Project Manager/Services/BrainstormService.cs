@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/15/25
-Last Revised By: Anakha Krishna
-Date Revised: 3/16/25 AK
+Last Revised By: Jackson Wunderlich
+Date Revised: 4/10/25
 Purpose: Provides data access methods for brainstorm-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, BrainstormItems table exists, BrainstormItem model defined
@@ -52,5 +52,9 @@ namespace CS_Project_Manager.Services
         // Deletes brainstorm item from database
         public async Task RemoveBrainstormItemAsync(ObjectId id) =>
             await _brainstormItems.DeleteOneAsync(b => b.Id == id);
+
+        // Deletes brainstorm item from database by project id
+        public async Task RemoveBrainstormItemsByProjectIdAsync(ObjectId projectId) =>
+            await _brainstormItems.DeleteManyAsync(b => b.AssocProjectId == projectId);
     }
 }
