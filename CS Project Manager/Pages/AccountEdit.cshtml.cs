@@ -72,7 +72,7 @@ namespace CS_Project_Manager.Pages
         {
             if (!ModelState.IsValid)
             {
-                await LoadUserDataAsync(); // Optional: to reload existing state
+                await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
                 return Page();
             }
 
@@ -83,6 +83,15 @@ namespace CS_Project_Manager.Pages
 
                 if (StudentUser != null)
                 {
+                    // Step 0: check for existing email
+                    var existingUser = await _studentUserService.GetUserByEmailAsync(Email);
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Email is already in use.");
+                        await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
+                        return Page(); // Display error if username is already in use
+                    }
+
                     // Step 1: Update the email in DB
                     StudentUser.Email = Email;
                     await _studentUserService.UpdateUserEmailAsync(StudentUser.Id, Email);
