@@ -82,4 +82,24 @@
     </select>
     <button type="submit">Add Team</button>
 </form>
+
+<h3>Create Team</h3>
+<form method="post" asp-page-handler="CreateTeam">
+    <div>
+        <label>Team Name</label>
+        <input asp-for="NewTeamName" required />
+    </div>
+    <div>
+        <label>Associated Class</label>
+        <select asp-for="AssociatedClassId" required>
+            <option value="">Select a class</option>
+            @foreach (var enrolledClass in Model.EnrolledClasses)
+            {
+                <option value="@enrolledClass.Id">@enrolledClass.Name</option>
+            }
+        </select>
+    </div>
+    <button type="submit">Create and Join Team</button>
+</form>
+
 <a href="/Account" class="btn btn-primary">Back to account page</a>

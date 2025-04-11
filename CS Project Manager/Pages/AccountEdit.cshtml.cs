@@ -57,11 +57,15 @@ namespace CS_Project_Manager.Pages
 
         [BindProperty]
         public ObjectId SelectedTeamId { get; set; }
+        [BindProperty]
+        public ObjectId AssociatedClassId { get; set; }
 
         public StudentUser StudentUser { get; set; }
         public Dictionary<ObjectId, string> ClassIdToName { get; set; } = new();
         [BindProperty]
         public string NewClassName { get; set; }
+        [BindProperty]
+        public string NewTeamName { get; set; }
         public string ErrorMessage { get; set; }
 
         // Handle GET request and load user data
@@ -86,6 +90,7 @@ namespace CS_Project_Manager.Pages
                     {
                         ModelState.AddModelError(string.Empty, "Email is already in use.");
                         ModelState.Remove("NewClassName");
+                        ModelState.Remove("NewTeamName");
                         await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
                         return Page(); // Display error if username is already in use
                     }
@@ -115,10 +120,10 @@ namespace CS_Project_Manager.Pages
         {
             await LoadUserDataAsync();
 
-            if (!string.IsNullOrEmpty(NewClassName))
+            if (!string.IsNullOrEmpty(NewClassName)) // If something is typed into the NewClassName field
             {
                 var existingClass = await _classService.GetClassByNameAsync(NewClassName);
-                if (existingClass != null)
+                if (existingClass != null) // If the class entered already exists
                 {
                     ErrorMessage = "Class already exists";
                     ModelState.Remove("Email");
@@ -126,6 +131,7 @@ namespace CS_Project_Manager.Pages
                     return Page();
                 }
 
+                // Else create new class
                 var newClass = new Class
                 {
                     Name = NewClassName,
@@ -136,7 +142,7 @@ namespace CS_Project_Manager.Pages
 
                 SelectedClassId = newClass.Id;
 
-                await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
+                await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard // Create new discussion board for that class
                 {
                     IsClassBoard = true,
                     ClassId = SelectedClassId,
@@ -144,7 +150,7 @@ namespace CS_Project_Manager.Pages
                 });
             }
 
-            if (StudentUser != null && SelectedClassId != ObjectId.Empty)
+            if (StudentUser != null && SelectedClassId != ObjectId.Empty) // Add student to the class
             {
                 await _classService.AddStudentToClassAsync(SelectedClassId, StudentUser.Id);
             }
@@ -189,6 +195,53 @@ namespace CS_Project_Manager.Pages
                     }
                 }
             }
+
+            return RedirectToPage();
+        }
+
+        // Create a new team
+        public async Task<IActionResult> OnPostCreateTeamAsync()
+        {
+            await LoadUserDataAsync();
+
+            // Check to make sure a new team that doesn't already exist with same name for that same class
+            var existingTeam = Teams.FirstOrDefault(t => t.Name == NewTeamName && t.AssociatedClass == AssociatedClassId);
+
+            if (existingTeam != null)
+            {
+                ErrorMessage = "Team already exists for this class";
+                ModelState.Remove("Email");
+                ModelState.Remove("NewClassName");
+                return Page();
+            }
+
+            // Check if user is already in a team for the class
+            var alreadyInTeam = Teams.FirstOrDefault(t => t.AssociatedClass == AssociatedClassId);
+            if (alreadyInTeam != null)
+            {
+                ErrorMessage = "You are already enrolled in a team for this class.";
+                ModelState.Remove("Email");
+                ModelState.Remove("NewClassName");
+                return Page();
+            }
+
+            // Else make new team
+            var newTeam = new Team
+            {
+                Name = NewTeamName,
+                AssociatedClass = AssociatedClassId,
+                Members = new List<ObjectId> { StudentUser.Id }
+            };
+
+            await _teamService.CreateTeamAsync(newTeam);
+            var teamId = newTeam.Id;
+
+            await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard // Make team discussion board
+            {
+                IsClassBoard = false,
+                ClassId = ObjectId.Empty,
+                TeamId = teamId
+            });
 
             return RedirectToPage();
         }
