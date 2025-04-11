@@ -26,13 +26,14 @@ using CS_Project_Manager.Utilities;
 
 namespace CS_Project_Manager.Pages
 {
-    public class AccountEditModel(StudentUserService studentUserService, ClassService classService, TeamService teamService, ProjectService projectService, RequirementService requirementService) : PageModel
+    public class AccountEditModel(StudentUserService studentUserService, ClassService classService, TeamService teamService, ProjectService projectService, RequirementService requirementService, DiscussionBoardService discussionBoardService) : PageModel
     {
         private readonly StudentUserService _studentUserService = studentUserService;
         private readonly ClassService _classService = classService;
         private readonly TeamService _teamService = teamService;
         private readonly ProjectService _projectService = projectService;
         private readonly RequirementService _requirementService = requirementService;
+        private readonly DiscussionBoardService _discussionBoardService = discussionBoardService;
 
         // Properties for user data and selections
         [BindProperty]
@@ -59,6 +60,8 @@ namespace CS_Project_Manager.Pages
 
         public StudentUser StudentUser { get; set; }
         public Dictionary<ObjectId, string> ClassIdToName { get; set; } = new();
+        [BindProperty]
+        public string NewClassName { get; set; }
         public string ErrorMessage { get; set; }
 
         // Handle GET request and load user data
@@ -70,12 +73,6 @@ namespace CS_Project_Manager.Pages
         // Handle email change
         public async Task<IActionResult> OnPostEmailChangedAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
-                return Page();
-            }
-
             string currentEmail = User.FindFirstValue(ClaimTypes.Email);
             if (!string.IsNullOrEmpty(currentEmail))
             {
@@ -88,6 +85,7 @@ namespace CS_Project_Manager.Pages
                     if (existingUser != null)
                     {
                         ModelState.AddModelError(string.Empty, "Email is already in use.");
+                        ModelState.Remove("NewClassName");
                         await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
                         return Page(); // Display error if username is already in use
                     }
@@ -116,6 +114,35 @@ namespace CS_Project_Manager.Pages
         public async Task<IActionResult> OnPostAddClassAsync()
         {
             await LoadUserDataAsync();
+
+            if (!string.IsNullOrEmpty(NewClassName))
+            {
+                var existingClass = await _classService.GetClassByNameAsync(NewClassName);
+                if (existingClass != null)
+                {
+                    ErrorMessage = "Class already exists";
+                    ModelState.Remove("Email");
+                    ModelState.Remove("SelectedClassId");
+                    return Page();
+                }
+
+                var newClass = new Class
+                {
+                    Name = NewClassName,
+                    EnrolledStudents = new List<ObjectId>{ }
+                };
+
+                await _classService.CreateClassAsync(newClass);
+
+                SelectedClassId = newClass.Id;
+
+                await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
+                {
+                    IsClassBoard = true,
+                    ClassId = SelectedClassId,
+                    TeamId = ObjectId.Empty
+                });
+            }
 
             if (StudentUser != null && SelectedClassId != ObjectId.Empty)
             {

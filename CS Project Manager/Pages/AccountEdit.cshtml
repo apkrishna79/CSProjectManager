@@ -48,11 +48,13 @@
 <h3>Add Class</h3>
 <form method="post" asp-page-handler="AddClass">
     <select asp-for="SelectedClassId">
+        <option value=""> Select a class </option>
         @foreach (var availableClass in Model.AvailableClasses)
         {
             <option value="@availableClass.Id">@availableClass.Name</option>
         }
     </select>
+    <input asp-for="NewClassName" placeholder="Or enter new class name" />
     <button type="submit">Add Class</button>
 </form>
 
