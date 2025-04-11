@@ -42,10 +42,9 @@
         <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;"></select>
     </div>
 
-    <div>
-        <label>Team</label>
-        <select id="team" name="Teams" multiple="multiple" style="width: 100%;"></select>
-    </div>
+    
+<div id="teamSelectors"></div>
+
 
     <button type="submit">Register</button>
 </form>
@@ -60,7 +59,6 @@
         // select2 cannot filter from ajax queries, item must have local data
         // perform queries and store results in these arrays
         let classData = [];
-        let teamData = [];
         let selectedClasses = [];
 
         // Fetch all classes initially and store them
@@ -73,38 +71,6 @@
                 initializeClassDropdown();
             }
         });
-
-        // Fetch teams for the selected classes
-        function fetchTeamsForClasses(newSelectedClasses) {
-            let removedClasses = selectedClasses.filter(cls => !newSelectedClasses.includes(cls));
-
-            // Remove teams belonging to deselected classes
-            teamData = teamData.filter(team => {
-                let className = team.text.match(/\((.*?)\)$/)?.[1]; // Extract class name from "Team (Class)"
-                return className && !removedClasses.includes(className);
-            });
-            
-            // Explicitly clear the team dropdown before reinitializing
-            $('#team').empty().trigger('change');
-
-            $.ajax({
-                type: 'get',
-                url: '/Register?handler=GetTeamsForClasses',
-                data: { "cs": newSelectedClasses },
-                traditional: true,
-                success: function (data) {
-                    let newTeams = data.map(item => ({ id: item.name, text: item.name }));
-
-                    // Avoid duplicate teams in the dropdown
-                    teamData = [...teamData, ...newTeams.filter(team => !teamData.some(t => t.id === team.id))];
-
-                    initializeTeamDropdown(); // Reinitialize dropdown with updated team data
-                }
-            });
-
-            // Update selected classes for future tracking
-            selectedClasses = newSelectedClasses;
-        }
 
         // Initialize class dropdown
         function initializeClassDropdown() {
@@ -131,74 +97,80 @@
             });
 
             $('#enrolledClasses').on('change', function () {
-                let newSelectedClasses = $(this).val() || [];
-                fetchTeamsForClasses(newSelectedClasses);
+                let newSelectedClasses = $(this).val()
+                updateTeamSelectors(newSelectedClasses);
             });
 
-            // Trigger an initial team fetch to load any pre-selected classes
             $('#enrolledClasses').trigger('change');
         }
 
-        // Initialize team dropdown
-        function initializeTeamDropdown() {
-            $('#team').select2({
-                tags: true,
-                placeholder: "Select or add a team",
-                data: selectedClasses.length === 0 ? [{ id: 'no-class', text: 'Please select a class', disabled: true }] : teamData,
-                createTag: function (params) {
-                    let term = $.trim(params.term);
-                    if (!term) return null;
+        function updateTeamSelectors(selectedClasses) {
+            const container = $('#teamSelectors');
+            const currentSelectors = new Set();
 
-                    // Show a message when no class is selected
-                    if (selectedClasses.length === 0) {
-                        return [{ id: 'no-class', text: 'Please select a class', disabled: true }]; // Prevents adding a team when no class is selected
-                    }
+            // Track current team selectors in the DOM
+            container.find('.team-selector').each(function () {
+                const className = $(this).data('class');
+                currentSelectors.add(className);
+            });
 
-                     // Create new team options for each selected class
-                    return selectedClasses.map(cls => ({
-                        id: `${term} (${cls})`,
-                        text: `Add New Team: ${term} (${cls})`,
-                        newTag: true
-                    }));
-                },
-                insertTag: function (data, newTags) {
-                    newTags.forEach(tag => {
-                        if (!data.some(existingTag => existingTag.text === tag.text)) {
-                            console.log("tag pushed");
-                            data.push(tag);
-                        }
+            // Add selectors for new classes
+            selectedClasses.forEach(className => {
+                if (!currentSelectors.has(className)) {
+                    const safeId = className.replace(/[^a-zA-Z0-9]/g, '_');
+                    const teamSelector = $(`
+                        <div class="team-selector" data-class="${className}">
+                            <label>Select team for ${className}</label>
+                            <select id="team_${safeId}" name="SelectedTeams[${className}]" style="width: 100%;"></select>
+                        </div>
+                    `);
+
+                    container.append(teamSelector);
+
+                    $(`#team_${safeId}`).select2({
+                        tags: true,
+                        placeholder: "Select or add a team",
+                        ajax: {
+                            url: '/Register?handler=GetTeams',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({ term: params.term, className }),
+                            processResults: data => ({
+                                results: data.map(team => ({ id: team.name, text: team.name }))
+                            }),
+                            cache: true
+                        },
+                        createTag: function (params) {
+                            let term = $.trim(params.term);
+                            if (!term || term.length > 100) return null;
+                            return {
+                                id: term,
+                                text: `Add New Team: ${term}`,
+                                newTag: true
+                            };
+                        },
+                        templateSelection: data => data.newTag ? data.id : data.text
                     });
-                },
-                templateSelection: function (data) {
-                    return data.newTag ? data.id : data.text;
                 }
             });
 
-            // Ensure dropdown updates when clicking on the field
-            $('#team').on('select2:open', function () {
-                let select2Data = $('#team').data('select2');
-                let $options = select2Data.$results.find('.select2-results__option');
-
-                // Remove duplicate "Please select a class" messages before adding a new one
-                $options.filter(function () {
-                    return $(this).text() === "Please select a class";
-                }).remove();
-
-                // If no class is selected, show the message
-                if (selectedClasses.length === 0) {
-                    // Add only if it does not already exist
-                    if ($('#team option[value="no-class"]').length === 0) {
-                        let $option = $('<option>')
-                            .val('no-class')
-                            .text('Please select a class')
-                            .prop('disabled', true);
-
-                        $('#team').append($option).trigger('change');
-                    }
+            // Remove selectors for deselected classes
+            container.find('.team-selector').each(function () {
+                const className = $(this).data('class');
+                if (!selectedClasses.includes(className)) {
+                    $(this).remove();
                 }
             });
         }
+
+
+        $('#enrolledClasses').on('change', function () {
+            const selected = $(this).val() || [];
+            updateTeamSelectors(selected);
+        });
+
     });
 
 </script>
+
 

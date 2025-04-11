@@ -2,8 +2,8 @@
 * Prologue
 Created By: Isabel Loney
 Date Created: 2/25/25
-Last Revised By: Anakha Krishna
-Date Revised: 3/2/25
+Last Revised By: Isabel Loney
+Date Revised: 4/10/25
 Purpose: Provides data access methods for class-related operations in the MongoDB database
 
 Preconditions: MongoDB setup, Class table exists, Class model defined
@@ -49,15 +49,6 @@ namespace CS_Project_Manager.Services
         public async Task<List<Class>> GetAllClasses()
         {
             return await _classes.Find(_ => true).ToListAsync();
-        }
-
-        public async Task<Dictionary<ObjectId, string>> GetClassIdToName(string[] cs)
-        {
-            var classMapping = await _classes
-                .Find(c => cs.Contains(c.Name))
-                .Project(c => new { c.Id, c.Name })
-                .ToListAsync();
-            return classMapping.ToDictionary(c => c.Id, c => c.Name);
         }
 
         public async Task<Dictionary<ObjectId, string>> GetClassIdToNameById(ObjectId[] classIds)
