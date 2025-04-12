@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Ginny Ke - added comments
-Date Revised: 4/4/25
+Last Revised By: Anakha Krishna - comments
+Date Revised: 4/12/25
 Purpose: model to handle todo list items 
 */
 using MongoDB.Bson;
@@ -16,18 +16,18 @@ namespace CS_Project_Manager.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; }
-        public bool IsTeamItem { get; set; }
+        public ObjectId Id { get; set; } // ObjectId identifier in Mongo
+        public bool IsTeamItem { get; set; } // IsTeamItem == true shows up on team to do list, IsTeamItem == false means it is a personal item
         [Required]
-        public required string ItemName { get; set; }
-        public bool ItemComplete { get; set; }
+        public required string ItemName { get; set; } // Name of item
+        public bool ItemComplete { get; set; } // Keep track of item completion
         [BsonElement("AssocUserId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId AssocUserId { get; set; }
+        public ObjectId AssocUserId { get; set; } // User that created the item if personal item
 
         [BsonElement("AssocTeamId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId AssocTeamId { get; set; }
+        public ObjectId AssocTeamId { get; set; } // Team associated with item if team item
     }
 
 }
