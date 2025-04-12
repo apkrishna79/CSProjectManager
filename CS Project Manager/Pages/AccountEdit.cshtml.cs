@@ -23,6 +23,7 @@ using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using CS_Project_Manager.Utilities;
+using System.Text.RegularExpressions;
 
 namespace CS_Project_Manager.Pages
 {
@@ -39,7 +40,6 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         [Required]
         [EmailAddress]
-        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@ku\.edu$", ErrorMessage = "Email must be a valid KU address.")]
         [MaxLength(255)]
         public string Email { get; set; }
 
@@ -84,7 +84,16 @@ namespace CS_Project_Manager.Pages
 
                 if (StudentUser != null)
                 {
-                    // Step 0: check for existing email
+                    var emailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@ku\.edu$");
+                    if (!emailRegex.IsMatch(Email))
+                    {
+                        ModelState.AddModelError(string.Empty, "Email must be a valid KU address.");
+                        ModelState.Remove("NewClassName");
+                        ModelState.Remove("NewTeamName");
+                        await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
+                        return Page();
+                    }
+                    // check for existing email
                     var existingUser = await _studentUserService.GetUserByEmailAsync(Email);
                     if (existingUser != null)
                     {
@@ -92,7 +101,7 @@ namespace CS_Project_Manager.Pages
                         ModelState.Remove("NewClassName");
                         ModelState.Remove("NewTeamName");
                         await LoadUserDataAsync(); // reload existing state so enrolled classes and teams still show on refresh
-                        return Page(); // Display error if username is already in use
+                        return Page(); // Display error if email is already in use
                     }
 
                     // Step 1: Update the email in DB

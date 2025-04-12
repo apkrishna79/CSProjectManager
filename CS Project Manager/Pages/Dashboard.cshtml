@@ -4,60 +4,70 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">CS Project Manager Dashboard</h1>
-</div>
-
-<!-- Displaying user login status -->
-<div class="navbar-text">
+<div class="text-left">
+    <h1 class="display-4">Dashboard</h1>
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <span>Hello, @User.Identity.Name!</span>
-        <br><br>
-        <b>Your Projects</b>
-        <br>
-        @if (Model.Projects.Count > 0)
-        {
-            <table>
-                <thead>
-                    <tr>
-                        <th>Project Name</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var project in Model.Projects)
-                {
-                    <tr>
-                        <td>
-                            <a asp-page="/RequirementsStack" asp-route-projectId="@project.Id.ToString()">@project.ProjectName</a>
-                        </td>
-                        <td>@project.Description</td>
+        <span class="navbar-text">Hello, @User.Identity.Name!</span>
+    }
+</div>
 
-                    </tr>
-                }
-                </tbody>
-            </table>
-        } else
-        {
-            <span>You have no projects!</span>
-        }
-        <form method="get" asp-page="/CreateProject">
-            <button type="submit" class="btn btn-primary">Create Project</button>
-        </form>
-        <br />
-        <form method="get" asp-page="/Todo">
-            <button type="submit" class="btn btn-primary">To-do Lists</button>
-        </form>
-        <br />
-        <form method="get" asp-page="/Account">
-            <button type="submit" class="btn btn-primary">Account</button>
-        </form>
-        <br />
-        <form method="post" asp-page-handler="Logout">
-            <button type="submit" class="btn btn-danger mt-3">Logout</button>
-        </form>
-        <br />
+<!-- Logout button at the top right -->
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <form method="post" asp-page-handler="Logout" class="d-inline" style="position: absolute; top: 10px; right: 10px;">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+}
+
+<!-- Displaying user login status -->
+<div class="container mt-5">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="mb-4">
+            <b>Your Projects</b>
+            <br>
+            @if (Model.Projects.Count > 0)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var project in Model.Projects)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-page="/RequirementsStack" asp-route-projectId="@project.Id.ToString()">@project.ProjectName</a>
+                                </td>
+                                <td>@project.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <span>You have no projects!</span>
+            }
+        </div>
+        <div class="button-group">
+            <form method="get" asp-page="/CreateProject" class="d-inline">
+                <button type="submit" class="btn btn-primary mb-2">Create Project</button>
+            </form>
+            <form method="get" asp-page="/Todo" class="d-inline">
+                <button type="submit" class="btn btn-primary mb-2">To-do Lists</button>
+            </form>
+            <form method="get" asp-page="/Account" class="d-inline">
+                <button type="submit" class="btn btn-primary mb-2">Account</button>
+            </form>
+            <form method="get" asp-page="/SelectDiscussionBoard" class="d-inline">
+                <button type="submit" class="btn btn-primary mb-2">Discussion Boards</button>
+            </form>
+        </div>
     }
     else
     {
