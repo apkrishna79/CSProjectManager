@@ -50,20 +50,20 @@
 
 <hr>
 <div style="display: flex; gap: 10px;">
-<form method="post">
-    <input type="hidden" name="projectId" value="@Model.ProjectId" />
-    <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
-</form>
+    <form method="post">
+        <input type="hidden" name="projectId" value="@Model.ProjectId" />
+        <button type="submit" asp-page-handler="Export" class="btn btn-primary">Export to Excel</button>
+    </form>
 
-<form method="get" asp-page="/Brainstorm">
-    <input type="hidden" name="projectId" value="@Model.ProjectId" />
-    <button type="submit" class="btn btn-primary">Brainstorming</button>
-</form>
+    <form method="get" asp-page="/Brainstorm">
+        <input type="hidden" name="projectId" value="@Model.ProjectId" />
+        <button type="submit" class="btn btn-primary">Brainstorming</button>
+    </form>
 
-<form method="get" asp-page="/Calendar">
-    <input type="hidden" name="teamId" value="@Model.AssocTeamId" />
-    <button type="submit" class="btn btn-primary">Calendar</button>
-</form>
+    <form method="get" asp-page="/Calendar">
+        <input type="hidden" name="teamId" value="@Model.AssocTeamId" />
+        <button type="submit" class="btn btn-primary">Calendar</button>
+    </form>
 </div>
 
 <h3>Added Requirements</h3>
@@ -102,24 +102,26 @@
                         </select>
                     </td>
                     <td>
-                        <button type="submit" asp-page-handler="Update"
-                                asp-route-id="@Model.Requirements[i].Id"
-                                asp-route-projectId="@Model.ProjectId"
-                                class="btn btn-warning">
-                            Update
-                        </button>
-                        <button type="submit" asp-page-handler="Remove"
-                                asp-route-id="@Model.Requirements[i].Id"
-                                asp-route-projectId="@Model.ProjectId"
-                                class="btn btn-danger">
-                            Remove
-                        </button>
-                        <button type="submit" asp-page-handler="ToggleComplete"
-                                asp-route-id="@Model.Requirements[i].Id"
-                                asp-route-projectId="@Model.ProjectId"
-                                class="btn @(Model.Requirements[i].IsComplete ? "btn-success" : "btn-outline-success")">
-                            @(Model.Requirements[i].IsComplete ? "Completed" : "Complete")
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" asp-page-handler="Update"
+                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-projectId="@Model.ProjectId"
+                                    class="btn btn-warning">
+                                Update
+                            </button>
+                            <button type="submit" asp-page-handler="Remove"
+                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-projectId="@Model.ProjectId"
+                                    class="btn btn-danger">
+                                Remove
+                            </button>
+                            <button type="submit" asp-page-handler="ToggleComplete"
+                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-projectId="@Model.ProjectId"
+                                    class="btn @(Model.Requirements[i].IsComplete ? "btn-success" : "btn-outline-success")">
+                                @(Model.Requirements[i].IsComplete ? "Completed" : "Complete")
+                            </button>
+                        </div>
                     </td>
                 </tr>
             }

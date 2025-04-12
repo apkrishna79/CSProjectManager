@@ -3,7 +3,7 @@
 Created By: Anakha Krishna
 Date Created: 3/1/25
 Last Revised By: Anakha Krishna
-Date Revised: 3/2/25
+Date Revised: 4/12/25
 Purpose: Handles the logic for editing account details: email, enrolled classes, and teams
 Preconditions: User must be logged in, services (StudentUserService, ClassService, TeamService) must be available
 Postconditions: Account details are updated, conflicting teams are removed
@@ -214,7 +214,8 @@ namespace CS_Project_Manager.Pages
             await LoadUserDataAsync();
 
             // Check to make sure a new team that doesn't already exist with same name for that same class
-            var existingTeam = Teams.FirstOrDefault(t => t.Name == NewTeamName && t.AssociatedClass == AssociatedClassId);
+            var teams = await _teamService.GetAllTeams();
+            var existingTeam = teams.FirstOrDefault(t => t.Name == NewTeamName && t.AssociatedClass == AssociatedClassId);
 
             if (existingTeam != null)
             {
