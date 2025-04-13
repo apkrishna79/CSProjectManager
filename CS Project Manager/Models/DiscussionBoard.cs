@@ -2,7 +2,7 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Ginny Ke - added comments
+Last Revised By: Anakha Krishna - comments
 Date Revised: 4/4/25
 Purpose: model to handle the discussion board in the database
 */
@@ -15,18 +15,16 @@ namespace CS_Project_Manager.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; }
+        public ObjectId Id { get; set; } // ObjectId identifier in Mongo
 
-        public bool IsClassBoard;
+        public bool IsClassBoard; // Boolean to indicate whether a board is a classboard or not. If false, it's a team discussion board
 
-        // null if team board
         [BsonElement("ClassId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId ClassId { get; set; }
+        public ObjectId ClassId { get; set; } // Associated class ObjectId with discussion board if IsClassBoard == true, else ObjectId.empty
 
-        // null if class board
         [BsonElement("TeamId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId TeamId { get; set; }
+        public ObjectId TeamId { get; set; } // ASsociated team ObjectId with discussionboard if IsClassBoard == false, else ObjectId.empty
     }
 }
