@@ -171,9 +171,13 @@
                             @foreach (var item in Model.TeamCalendarItems)
                             {
                                 <li>
-                                    <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
-                                        @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
-                                    </a>
+                                    <div style="padding:5px">
+                                        <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
+                                            @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
+                                        </a>
+                                        <br />
+                                        <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                    </div>
                                 </li>
                             }
                         </ul>

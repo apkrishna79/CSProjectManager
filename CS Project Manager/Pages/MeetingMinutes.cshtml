@@ -1,0 +1,19 @@
+@page
+@model CS_Project_Manager.Pages.MeetingMinutesModel
+@{
+    ViewData["Title"] = "Meeting Minutes";
+}
+
+<h2>Meeting Minutes - @Model.MeetingName</h2>
+
+<form method="post">
+    <input type="hidden" name="MeetingId" value="@Model.MeetingId" />
+    <textarea name="MeetingNotes" value="@Model.MeetingNotes" style="width:100%;height:400px">@Model.MeetingNotes</textarea>
+    <br>
+    <button type="submit" asp-page-handler="Update" asp-route-id="@Model.AssocMinutes.Id" asp-route-meetingId="@Model.MeetingId" class="btn btn-primary mt-3">Update</button>
+    <!--<button type="submit" asp-page-handler="Export" class="btn btn-primary mt-3">Export</button>-->
+</form>
+<br>
+<form method="get" asp-page="/Dashboard">
+    <button type="submit" class="btn btn-primary">Back</button>
+</form>

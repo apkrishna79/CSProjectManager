@@ -28,20 +28,24 @@ namespace CS_Project_Manager.Services
             _minutesItems = mongoDBService.GetCollection<MeetingMinutes>("MeetingMinutes");
         }
 
-        // Adds a new calendar item
+        // Adds a new meeting minutes item
         public async Task AddMinutesAsync(MeetingMinutes newMinutesItem) =>
             await _minutesItems.InsertOneAsync(newMinutesItem);
 
-        // Gets a calendar item by its ObjectId
-        public async Task<MeetingMinutes?> GetCalendarItemByIdAsync(ObjectId id) =>
+        // Gets a minutes item by its ObjectId
+        public async Task<MeetingMinutes?> GetMinutesByIdAsync(ObjectId id) =>
             await _minutesItems.Find(m => m.Id == id).FirstOrDefaultAsync();
 
-        // Removes a calendar item by its ObjectId
-        public async Task RemoveCalendarItemAsync(ObjectId id) =>
+        // Gets a minutes item by its meeting id
+        public async Task<MeetingMinutes?> GetMinutesByMeetingIdAsync(ObjectId meetingId) =>
+            await _minutesItems.Find(m => m.AssocMeetingId == meetingId).FirstOrDefaultAsync();
+
+        // Removes a minutes item by its ObjectId
+        public async Task RemoveMinutesAsync(ObjectId id) =>
             await _minutesItems.DeleteOneAsync(c => c.Id == id);
 
         // updates a minutes item
-        public async Task UpdateCalendarItemAsync(MeetingMinutes updatedMinutes)
+        public async Task UpdateMinutesAsync(MeetingMinutes updatedMinutes)
         {
             var filter = Builders<MeetingMinutes>.Filter.Eq(m => m.Id, updatedMinutes.Id);
             await _minutesItems.ReplaceOneAsync(filter, updatedMinutes);

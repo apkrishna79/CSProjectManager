@@ -151,9 +151,7 @@ namespace CS_Project_Manager.Pages
                 .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
-        //toggle requirements as complete
-
-
+        
         // Remove a requirement
         public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
         {
@@ -168,6 +166,7 @@ namespace CS_Project_Manager.Pages
                 .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
+
         // Export requirements to Excel
         public async Task<IActionResult> OnPostExportAsync(ObjectId projectId)
         {
@@ -229,6 +228,8 @@ namespace CS_Project_Manager.Pages
                 }
             }
         }
+
+        //toggle requirements as complete
         public async Task<IActionResult> OnPostToggleCompleteAsync(string id, string projectId)
         {
             if (!ObjectId.TryParse(id, out ObjectId requirementId))
