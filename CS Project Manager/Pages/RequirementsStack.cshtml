@@ -65,11 +65,10 @@
         <button type="submit" class="btn btn-primary">Calendar</button>
     </form>
 
-    <form method="post">
+    <form method="get" asp-page="/DeleteProject">
         <input type="hidden" name="projectId" value="@Model.ProjectId" />
-        <button type="submit" asp-page-handler="DeleteProject" class="btn btn-primary">Delete Project</button>
+        <button type="submit" class="btn btn-primary">Delete Project</button>
     </form>
-    
 </div>
 
 <h3>Added Requirements</h3>

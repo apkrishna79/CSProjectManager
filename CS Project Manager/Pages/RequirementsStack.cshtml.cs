@@ -250,14 +250,5 @@ namespace CS_Project_Manager.Pages
 
             return RedirectToPage(new { projectId = projectId });
         }
-
-        public async Task<IActionResult> OnPostDeleteProjectAsync(ObjectId projectId)
-        {
-            await _requirementService.RemoveRequirementsByProjectIdAsync(projectId);
-            await _brainstormService.RemoveBrainstormItemsByProjectIdAsync(projectId);
-            await _projectService.DeleteProjectByIdAsync(projectId);
-
-            return RedirectToPage("/Dashboard");
-        }
     }
 }
