@@ -262,6 +262,12 @@ namespace CS_Project_Manager.Pages
             var requirement = await _requirementService.GetRequirementByIdAsync(requirementId);
             if (requirement != null)
             {
+                if (!requirement.SprintNo.HasValue)
+                {
+                    TempData["UpdateValidationError"] = "Can't mark requirement complete without assigning it a sprint number.";
+                    TempData["ErrorRequirementId"] = requirementId.ToString();
+                    return RedirectToPage(new { projectId = projectId });
+                }
                 requirement.IsComplete = !requirement.IsComplete;
                 await _requirementService.UpdateRequirementAsync(requirement);
             }
