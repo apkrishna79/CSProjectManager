@@ -124,6 +124,7 @@
                     <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
 
                     <td>
+                        <div style="display: flex; gap: 10px;">
                         <button type="submit" asp-page-handler="UpdateReq"
                                 asp-route-id="@Model.Requirements[i].Id"
                                 asp-route-projectId="@Model.Requirements[i].AssocProjectId"
@@ -136,6 +137,7 @@
                                 class="btn btn-danger">
                             Remove
                         </button>
+                        </div>
                     </td>
                 </tr>
             }
