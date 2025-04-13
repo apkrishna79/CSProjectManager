@@ -4,7 +4,7 @@ Created By: Jackson Wunderlich
 Date Created: 4/13/25
 Last Revised By: ackson Wunderlich
 Date Revised: 4/13/25
-Purpose: model to handle calendar items in database
+Purpose: model to handle minutes items in database
 */
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -23,6 +23,6 @@ namespace CS_Project_Manager.Models
  
         [BsonElement("AssocMeetingId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId AssocMeetingId { get; set; } // Associated meeting ObjectId with notes
+        public ObjectId AssocMeetingId { get; set; } // Associated meeting ObjectId
     }
 }

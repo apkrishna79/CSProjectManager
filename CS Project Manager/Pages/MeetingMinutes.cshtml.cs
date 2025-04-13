@@ -81,8 +81,7 @@ namespace CS_Project_Manager.Pages
             return RedirectToPage(new { meetingId });
         }
 
-        // exports minutes to a text document
-        /*
+        // exports minutes to a text document (currently not functional)
         public async Task<IActionResult> OnPostExportAsync()
         {
             if (string.IsNullOrWhiteSpace(MeetingNotes))
@@ -103,6 +102,5 @@ namespace CS_Project_Manager.Pages
                 return File(stream.ToArray(), "text/plain", fileName);
             }
         }
-        */
     }
 }
