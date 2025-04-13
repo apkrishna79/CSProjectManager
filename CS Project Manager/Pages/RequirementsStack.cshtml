@@ -63,6 +63,11 @@
         <input type="hidden" name="teamId" value="@Model.AssocTeamId" />
         <button type="submit" class="btn btn-primary">Calendar</button>
     </form>
+
+    <form method="get" asp-page="/DeleteProject">
+        <input type="hidden" name="projectId" value="@Model.ProjectId" />
+        <button type="submit" class="btn btn-primary">Delete Project</button>
+    </form>
 </div>
 
 <div class="mt-4 mb-4">
