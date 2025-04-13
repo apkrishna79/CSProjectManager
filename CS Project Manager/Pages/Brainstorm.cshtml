@@ -1,6 +1,8 @@
 @page
 @model CS_Project_Manager.Pages.BrainstormModel
 
+<a href="/RequirementsStack?projectId=@Model.ProjectId" class="btn btn-primary" style="position: absolute; top: 10px; right: 10px;">Back to Requirement Stack</a>
+
 <h2>Brainstorming Ideas</h2>
 
 <form method="post">
@@ -40,32 +42,32 @@
             <tr>
                 <form method="post">
                     <input type="hidden" asp-for="BrainstormItems[i].Id" />
-                    <td>
-                        <input asp-for="BrainstormItems[i].Description" class="form-control" />
-                        <span asp-validation-for="BrainstormItems[i].Description" class="text-danger"></span>
-                    </td>
-                    <td>@Model.UserFullNames[item.CreatedBy]</td>
-                    <td>
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <input type="hidden" name="projectId" value="@Model.ProjectId" />
-                        <button type="submit" formaction="?handler=Upvote" class="btn btn-success">👍 @item.Upvotes.Count</button>
-                        <button type="submit" formaction="?handler=Downvote" class="btn btn-danger">👎 @item.Downvotes.Count</button>
-                    </td>
-                    <td>
-                        <button type="submit" formaction="?handler=Update"
-                                formmethod="post"
+                <td>
+                    <input asp-for="BrainstormItems[i].Description" class="form-control" />
+                    <span asp-validation-for="BrainstormItems[i].Description" class="text-danger"></span>
+                </td>
+                <td>@Model.UserFullNames[item.CreatedBy]</td>
+                <td>
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <input type="hidden" name="projectId" value="@Model.ProjectId" />
+                    <button type="submit" formaction="?handler=Upvote" class="btn btn-success">👍 @item.Upvotes.Count</button>
+                    <button type="submit" formaction="?handler=Downvote" class="btn btn-danger">👎 @item.Downvotes.Count</button>
+                </td>
+                <td>
+                    <button type="submit" formaction="?handler=Update"
+                            formmethod="post"
                                 formaction="?handler=Update"
-                                name="id" value="@item.Id"
-                                class="btn btn-warning">
-                            Update
-                        </button>
-                        <button type="submit" formaction="?handler=Remove"
-                                formmethod="post"
-                                name="id" value="@item.Id"
-                                class="btn btn-danger">
-                            Remove
-                        </button>
-                    </td>
+                            name="id" value="@item.Id"
+                            class="btn btn-warning">
+                        Update
+                    </button>
+                    <button type="submit" formaction="?handler=Remove"
+                            formmethod="post"
+                            name="id" value="@item.Id"
+                            class="btn btn-danger">
+                        Remove
+                    </button>
+                </td>
                 </form>
             </tr>
         }
