@@ -32,7 +32,6 @@ namespace CS_Project_Manager.Pages
         private readonly ProjectService _projectService;
         private readonly TeamService _teamService;
         private readonly StudentUserService _studentUserService;
-        private readonly BrainstormService _brainstormService;
 
         [BindProperty]
         public List<Requirement> Requirements { get; set; } = new List<Requirement>();
@@ -48,13 +47,12 @@ namespace CS_Project_Manager.Pages
         [BindProperty(SupportsGet = true)]
         public ObjectId AssocTeamId { get; set; }
         public List<StudentUser> TeamMembers = new List<StudentUser>();      
-        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService, BrainstormService brainstormService)
+        public RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService)
         {
             _requirementService = requirementService;
             _projectService = projectService;
             _teamService = teamService;
             _studentUserService = studentUserService;
-            _brainstormService = brainstormService;
         }
 
         public async Task OnGetAsync(string projectId)
