@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 3/30/25 GK - mark requirements as complete
+Date Revised: 4/12/25 DS - prevents user from updating requirements that have blank requirement ID and/or description
 Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -76,6 +76,10 @@ namespace CS_Project_Manager.Pages
                 .Select(member => _studentUserService.GetUserByIdAsync(member)));
 
             TeamMembers = users.Where(user => user != null).ToList();
+            if (TempData["UpdateValidationError"] != null && TempData["ErrorRequirementId"] != null)
+            {
+                ModelState.AddModelError(string.Empty, TempData["UpdateValidationError"].ToString());
+            }
         }
 
         // Add a new requirement
@@ -137,18 +141,32 @@ namespace CS_Project_Manager.Pages
             var updatedRequirement = Requirements.FirstOrDefault(r => r.Id == id);
             if (updatedRequirement != null)
             {
+                bool hasValidationErrors = false;
+                int requirementIndex = Requirements.IndexOf(updatedRequirement);
+                if (!updatedRequirement.RequirementID.HasValue)
+                {
+                    ModelState.AddModelError($"Requirements[{requirementIndex}].RequirementID", "Requirement ID cannot be empty.");
+                    hasValidationErrors = true;
+                }
+                if (string.IsNullOrWhiteSpace(updatedRequirement.Description))
+                {
+                    ModelState.AddModelError($"Requirements[{requirementIndex}].Description", "Description cannot be empty.");
+                    hasValidationErrors = true;
+                }
+                if (hasValidationErrors)
+                {
+                    TempData["UpdateValidationError"] = $"Cannot update requirement {existingRequirement.RequirementID}. Requirement ID and Description cannot be empty.";
+                    TempData["ErrorRequirementId"] = id.ToString();
+                    return RedirectToPage(new { projectId = projectId.ToString() });
+                }
                 existingRequirement.RequirementID = updatedRequirement.RequirementID;
                 existingRequirement.Description = updatedRequirement.Description;
                 existingRequirement.StoryPoints = updatedRequirement.StoryPoints;
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
                 existingRequirement.Assignees = updatedRequirement.Assignees?.ToList() ?? new List<ObjectId>();
-
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
-            Requirements = (await _requirementService.GetRequirementsByProjectIdAsync(projectId))
-                .OrderBy(r => r.RequirementID ?? int.MaxValue)
-                .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
         //toggle requirements as complete

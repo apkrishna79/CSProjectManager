@@ -67,6 +67,15 @@
 </div>
 
 <h3>Added Requirements</h3>
+@if (!ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
 <form method="post">
     <table class="table">
         <thead>
@@ -85,8 +94,14 @@
             {
                 <tr>
                     <input type="hidden" asp-for="Requirements[i].Id" />
-                    <td><input asp-for="Requirements[i].RequirementID" class="form-control" /></td>
-                    <td><input asp-for="Requirements[i].Description" class="form-control" /></td>
+                    <td>
+                        <input asp-for="Requirements[i].RequirementID" class="form-control" />
+                        <span asp-validation-for="Requirements[i].RequirementID" class="text-danger"></span>
+                    </td>
+                    <td>
+                        <input asp-for="Requirements[i].Description" class="form-control" />
+                        <span asp-validation-for="Requirements[i].Description" class="text-danger"></span>
+                    </td>
                     <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].Priority" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
