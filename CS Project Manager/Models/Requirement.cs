@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Anakha Krishna - comments
-Date Revised: 4/12/25
+Last Revised By: Dylan Sailors - added progress
+Date Revised: 4/13/25
 Purpose: model to handle requirements in the database
 */
 

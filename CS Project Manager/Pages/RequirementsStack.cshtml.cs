@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/1/25
 Last Revised By: Dylan Sailors
-Date Revised: 4/12/25 DS - prevents user from updating requirements that have blank requirement ID and/or description
+Date Revised: 4/13/25 DS - added progress bars for each sprint
 Purpose: Let users add/update/remove/export/mark requirements to a blank requirements stack generated once a project is created
 Preconditions: MongoDBService, ProjectService instances properly initialized and injected; Requirement must be correctly defined
 Postconditions: Users can add, update, and remove project requirements
@@ -188,7 +188,12 @@ namespace CS_Project_Manager.Pages
                     ModelState.AddModelError($"Requirements[{requirementIndex}].Description", "Description cannot be empty.");
                     hasValidationErrors = true;
                 }
-                if (updatedRequirement.Progress < 0 || updatedRequirement.Progress > 100)
+                if (updatedRequirement.Progress.HasValue && updatedRequirement.Progress > 0 && !updatedRequirement.SprintNo.HasValue)
+                {
+                    ModelState.AddModelError($"Requirements[{requirementIndex}].Progress", "Cannot set progress without assigning a sprint number.");
+                    hasValidationErrors = true;
+                }
+                if (updatedRequirement.Progress.HasValue && (updatedRequirement.Progress < 0 || updatedRequirement.Progress > 100))
                 {
                     ModelState.AddModelError($"Requirements[{requirementIndex}].Progress", "Progress must be between 0 and 100.");
                     hasValidationErrors = true;
@@ -205,15 +210,23 @@ namespace CS_Project_Manager.Pages
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
                 existingRequirement.Assignees = updatedRequirement.Assignees?.ToList() ?? new List<ObjectId>();
-                existingRequirement.Progress = updatedRequirement.Progress;
-                existingRequirement.IsComplete = updatedRequirement.Progress == 100;
+                if (!updatedRequirement.SprintNo.HasValue)
+                {
+                    existingRequirement.Progress = 0;
+                    existingRequirement.IsComplete = false;
+                }
+                else
+                {
+                    existingRequirement.Progress = updatedRequirement.Progress;
+                    existingRequirement.IsComplete = updatedRequirement.Progress == 100;
+                }
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
 
-        // Remove a requirement
-        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
+            // Remove a requirement
+            public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
         {
             var requirement = await _requirementService.GetRequirementByIdAsync(id);
             if (requirement == null)

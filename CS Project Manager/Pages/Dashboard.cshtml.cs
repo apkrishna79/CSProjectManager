@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 2/16/25
-Last Revised By: Anakha Krishna
-Date Revised: 3/28/25
+Last Revised By: Dylan Sailors
+Date Revised: 4/13/25
 Purpose: The main dashboard page for the website
 Preconditions: MongoDBService, ProjectService, TeamService instances properly initialized and injected; Project and Team models must be correctly defined
 Postconditions: shows a user a list of their projects and allows them to create a new one
@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
-
+using MongoDB.Bson;
 namespace CS_Project_Manager.Pages
 {
     public class DashboardModel : PageModel
@@ -27,27 +27,30 @@ namespace CS_Project_Manager.Pages
         private readonly ProjectService _projectService;
         private readonly TeamService _teamService;
         private readonly StudentUserService _userService;
-
+        private readonly RequirementService _requirementService;
         // bound property for list of teams and projects
         [BindProperty]
         public List<Team> Teams { get; set; }
-
         [BindProperty]
         public List<Project> Projects { get; set; }
-
+        // Dictionary to store project progress information
+        public Dictionary<ObjectId, decimal> ProjectProgress { get; set; } = new Dictionary<ObjectId, decimal>();
         private readonly ILogger<DashboardModel> _logger;
-
-        public DashboardModel(ILogger<DashboardModel> logger, ProjectService projectService, TeamService teamService, StudentUserService userService)
+        public DashboardModel(
+            ILogger<DashboardModel> logger,
+            ProjectService projectService,
+            TeamService teamService,
+            StudentUserService userService,
+            RequirementService requirementService)
         {
             _logger = logger;
             _teamService = teamService;
             _userService = userService;
-            // _classService = classService;
             _projectService = projectService;
+            _requirementService = requirementService;
             Teams = new List<Team>();
             Projects = new List<Project>();
         }
-
         public async Task OnGetAsync()
         {
             // check for user login
@@ -62,8 +65,68 @@ namespace CS_Project_Manager.Pages
                     foreach (var project in projects)
                     {
                         Projects.Add(project);
+                        // Calculate project progress
+                        await CalculateProjectProgressAsync(project.Id);
                     }
                 }
+            }
+        }
+
+        // Calculate the progress for a project based on requirement progress and sprint progress
+        private async Task CalculateProjectProgressAsync(ObjectId projectId)
+        {
+            var requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
+            if (requirements == null || !requirements.Any())
+            {
+                ProjectProgress[projectId] = 0;
+                return;
+            }
+            var sprintProgress = new Dictionary<int, decimal>();
+            var requirementsBySprint = requirements
+                .Where(r => r.SprintNo.HasValue)
+                .GroupBy(r => r.SprintNo.Value);
+            foreach (var sprintGroup in requirementsBySprint)
+            {
+                int sprintNumber = sprintGroup.Key;
+                decimal totalProgress = 0;
+                int requirementCount = 0;
+
+                foreach (var requirement in sprintGroup)
+                {
+                    if (requirement.Progress.HasValue)
+                    {
+                        totalProgress += requirement.Progress.Value;
+                        requirementCount++;
+                    }
+                }
+
+                if (requirementCount > 0)
+                {
+                    decimal averageProgress = Math.Round(totalProgress / requirementCount, 2);
+                    sprintProgress[sprintNumber] = averageProgress;
+                }
+            }
+            if (sprintProgress.Count > 0)
+            {
+                decimal totalSprintProgress = sprintProgress.Values.Sum();
+                decimal overallProgress = Math.Round(totalSprintProgress / sprintProgress.Count, 2);
+                ProjectProgress[projectId] = overallProgress;
+            }
+            else
+            {
+                decimal totalProgress = 0;
+                int progressCount = 0;
+                foreach (var requirement in requirements)
+                {
+                    if (requirement.Progress.HasValue)
+                    {
+                        totalProgress += requirement.Progress.Value;
+                        progressCount++;
+                    }
+                }
+                ProjectProgress[projectId] = progressCount > 0
+                    ? Math.Round(totalProgress / progressCount, 2)
+                    : 0;
             }
         }
 
