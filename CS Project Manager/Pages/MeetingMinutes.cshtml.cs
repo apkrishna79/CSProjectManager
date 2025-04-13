@@ -47,6 +47,10 @@ namespace CS_Project_Manager.Pages
 
         public async Task OnGetAsync(ObjectId meetingId)
         {
+            if (meetingId == ObjectId.Parse(null))
+            {
+                throw new ArgumentException("Invalid project ID");
+            }
             // gets the current meeting and its corresponding minutes
             var foundMinutes = await _meetingMinutesService.GetMinutesByMeetingIdAsync(meetingId);
             var meeting = await _calendarService.GetCalendarItemByIdAsync(meetingId);
