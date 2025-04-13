@@ -22,7 +22,7 @@ namespace CS_Project_Manager.Pages
 {
     public class DeleteProjectModel : PageModel
     {
-        // 
+        // services used in the page
         private readonly StudentUserService _studentUserService;
         private readonly RequirementService _requirementService;
         private readonly ProjectService _projectService;
@@ -39,9 +39,6 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public string GivenProjectName { get; set; }
 
-        [BindProperty]
-        public string ProjectIdString { get; set; }
-
         public DeleteProjectModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService, BrainstormService brainstormService)
         {
             _requirementService = requirementService;
@@ -49,19 +46,18 @@ namespace CS_Project_Manager.Pages
             _teamService = teamService;
             _studentUserService = studentUserService;
             _brainstormService = brainstormService;
-            ProjectIdString = "";
         }
 
+        // gets the current project and its name
         public async Task OnGetAsync(ObjectId projectId)
         {
             ProjectId = projectId;
-            ProjectIdString = projectId.ToString();
             var GivenProject = await _projectService.GetProjectById(projectId);
             
             GivenProjectName = GivenProject.ProjectName;
         }
 
-        // Handles login submission; verifies user credentials and initiates authentication if valid
+        // handles page submission, either deletes project and associated items or redirects to the same page
         public async Task<IActionResult> OnPostAsync()
         {
             var GivenProject = await _projectService.GetProjectById(ProjectId);
@@ -75,7 +71,6 @@ namespace CS_Project_Manager.Pages
                 return RedirectToPage("/Dashboard");
             } else
             {
-                ModelState.AddModelError(string.Empty, "Incorrect project name.");
                 return RedirectToPage(new { projectId = ProjectId });
             }
         }
