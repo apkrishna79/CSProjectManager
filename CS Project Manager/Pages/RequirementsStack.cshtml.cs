@@ -74,8 +74,10 @@ namespace CS_Project_Manager.Pages
             var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
             AssocTeamId = currentProject.AssociatedTeam;
 
-            TeamMembers = (await Task.WhenAll(curTeam.Members
-                .Select(member => _studentUserService.GetUserByIdAsync(member)))).ToList();
+            var users = await Task.WhenAll(curTeam.Members
+                .Select(member => _studentUserService.GetUserByIdAsync(member)));
+
+            TeamMembers = users.Where(user => user != null).ToList();
         }
 
         // Add a new requirement
