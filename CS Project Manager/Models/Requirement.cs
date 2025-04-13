@@ -30,5 +30,6 @@ namespace CS_Project_Manager.Models
         public ObjectId AssocProjectId { get; set; } // ObjectId of project the requirement is a part of
         public List<ObjectId> Assignees { get; set; } = []; // List of Student ObjectIds for those who are assigned to the requirement
         public bool IsComplete { get; set; } // Track completion of requirement
+        public int? Progress { get; set; } // Progress percentage (0-100)
     }
 }

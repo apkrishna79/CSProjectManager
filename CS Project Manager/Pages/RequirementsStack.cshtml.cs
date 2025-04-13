@@ -46,7 +46,8 @@ namespace CS_Project_Manager.Pages
         public ObjectId ProjectId { get; set; }
         [BindProperty(SupportsGet = true)]
         public ObjectId AssocTeamId { get; set; }
-        public List<StudentUser> TeamMembers = new List<StudentUser>();      
+        public List<StudentUser> TeamMembers = new List<StudentUser>();
+        public Dictionary<int, decimal> SprintProgress { get; set; } = new Dictionary<int, decimal>();
         public RequirementsStackModel(RequirementService requirementService, ProjectService projectService, TeamService teamService, StudentUserService studentUserService)
         {
             _requirementService = requirementService;
@@ -80,6 +81,35 @@ namespace CS_Project_Manager.Pages
             {
                 ModelState.AddModelError(string.Empty, TempData["UpdateValidationError"].ToString());
             }
+            CalculateSprintProgress();
+        }
+
+        // calculate sprint progress
+        private void CalculateSprintProgress()
+        {
+            SprintProgress.Clear();
+            var requirementsBySprint = Requirements
+                .Where(r => r.SprintNo.HasValue)
+                .GroupBy(r => r.SprintNo.Value);
+            foreach (var sprintGroup in requirementsBySprint)
+            {
+                int sprintNumber = sprintGroup.Key;
+                decimal totalProgress = 0;
+                int requirementCount = 0;
+                foreach (var requirement in sprintGroup)
+                {
+                    if (requirement.Progress.HasValue)
+                    {
+                        totalProgress += requirement.Progress.Value;
+                        requirementCount++;
+                    }
+                }
+                if (requirementCount > 0)
+                {
+                    decimal averageProgress = Math.Round(totalProgress / requirementCount, 2);
+                    SprintProgress[sprintNumber] = averageProgress;
+                }
+            }
         }
 
         // Add a new requirement
@@ -109,6 +139,10 @@ namespace CS_Project_Manager.Pages
                 Requirements = existingRequirements
                     .OrderBy(r => r.RequirementID ?? int.MaxValue)
                     .ToList();
+
+                // Recalculate sprint progress
+                CalculateSprintProgress();
+
                 return Page();
             }
 
@@ -118,7 +152,8 @@ namespace CS_Project_Manager.Pages
             {
                 return NotFound();
             }
-
+            NewRequirement.Progress = 0;
+            NewRequirement.IsComplete = false;
             NewRequirement.AssocProjectId = ProjectId;
             await _requirementService.AddRequirementAsync(NewRequirement);
 
@@ -153,9 +188,14 @@ namespace CS_Project_Manager.Pages
                     ModelState.AddModelError($"Requirements[{requirementIndex}].Description", "Description cannot be empty.");
                     hasValidationErrors = true;
                 }
+                if (updatedRequirement.Progress < 0 || updatedRequirement.Progress > 100)
+                {
+                    ModelState.AddModelError($"Requirements[{requirementIndex}].Progress", "Progress must be between 0 and 100.");
+                    hasValidationErrors = true;
+                }
                 if (hasValidationErrors)
                 {
-                    TempData["UpdateValidationError"] = $"Cannot update requirement {existingRequirement.RequirementID}. Requirement ID and Description cannot be empty.";
+                    TempData["UpdateValidationError"] = $"Cannot update requirement {existingRequirement.RequirementID}. Please check all fields are valid.";
                     TempData["ErrorRequirementId"] = id.ToString();
                     return RedirectToPage(new { projectId = projectId.ToString() });
                 }
@@ -165,12 +205,12 @@ namespace CS_Project_Manager.Pages
                 existingRequirement.Priority = updatedRequirement.Priority;
                 existingRequirement.SprintNo = updatedRequirement.SprintNo;
                 existingRequirement.Assignees = updatedRequirement.Assignees?.ToList() ?? new List<ObjectId>();
+                existingRequirement.Progress = updatedRequirement.Progress;
+                existingRequirement.IsComplete = updatedRequirement.Progress == 100;
                 await _requirementService.UpdateRequirementAsync(existingRequirement);
             }
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
-        //toggle requirements as complete
-
 
         // Remove a requirement
         public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
@@ -186,6 +226,7 @@ namespace CS_Project_Manager.Pages
                 .ToList();
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
+
         // Export requirements to Excel
         public async Task<IActionResult> OnPostExportAsync(ObjectId projectId)
         {
@@ -207,6 +248,8 @@ namespace CS_Project_Manager.Pages
                 worksheet.Cell(1, 4).Value = "Priority";
                 worksheet.Cell(1, 5).Value = "Sprint Number";
                 worksheet.Cell(1, 6).Value = "Assignees";
+                worksheet.Cell(1, 7).Value = "Progress (%)";
+                worksheet.Cell(1, 8).Value = "Status";
                 int row = 2;
                 foreach (var req in requirements)
                 {
@@ -233,7 +276,8 @@ namespace CS_Project_Manager.Pages
                     {
                         worksheet.Cell(row, 6).Value = "No Assignees";
                     }
-
+                    worksheet.Cell(row, 7).Value = req.Progress?.ToString() ?? "0";
+                    worksheet.Cell(row, 8).Value = req.IsComplete ? "Completed" : "In Progress";
                     row++;
                 }
                 // Auto-fit columns for better formatting
@@ -247,6 +291,7 @@ namespace CS_Project_Manager.Pages
                 }
             }
         }
+
         public async Task<IActionResult> OnPostToggleCompleteAsync(string id, string projectId)
         {
             if (!ObjectId.TryParse(id, out ObjectId requirementId))
@@ -269,6 +314,14 @@ namespace CS_Project_Manager.Pages
                     return RedirectToPage(new { projectId = projectId });
                 }
                 requirement.IsComplete = !requirement.IsComplete;
+                if (requirement.IsComplete)
+                {
+                    requirement.Progress = 100;
+                }
+                else if (requirement.Progress == 100)
+                {
+                    requirement.Progress = 0;
+                }
                 await _requirementService.UpdateRequirementAsync(requirement);
             }
 
