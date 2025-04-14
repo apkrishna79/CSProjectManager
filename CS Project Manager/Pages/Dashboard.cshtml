@@ -32,6 +32,7 @@
                             <th>Project Name</th>
                             <th>Description</th>
                             <th>Requirements Progress</th>
+                            <th>Sprint Board</th> <!-- New column -->
                         </tr>
                     </thead>
                     <tbody>
@@ -47,10 +48,10 @@
                                     {
                                         <div class="progress" style="height: 20px; position: relative;">
                                             <div class="progress-bar bg-success" role="progressbar"
-                                                 style="width: @progress%;"
-                                                 aria-valuenow="@progress"
-                                                 aria-valuemin="0"
-                                                 aria-valuemax="100">
+                                                style="width: @progress%;"
+                                                aria-valuenow="@progress"
+                                                aria-valuemin="0"
+                                                aria-valuemax="100">
                                             </div>
                                             <div class="progress-bar-text" style="position: absolute; width: 100%; text-align: center; top: 0; line-height: 20px;">
                                                 <strong>@progress.ToString("0.00")%</strong>
@@ -61,6 +62,12 @@
                                     {
                                         <span>No requirements</span>
                                     }
+                                </td>
+                                <td>
+                                    <form method="get" asp-page="/SprintBoard">
+                                        <input type="hidden" name="projectId" value="@project.Id" />
+                                        <button type="submit" class="btn btn-secondary">Sprint Board</button>
+                                    </form>
                                 </td>
                             </tr>
                         }
