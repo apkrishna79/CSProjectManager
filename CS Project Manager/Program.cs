@@ -77,6 +77,7 @@ builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<DiscussionBoardService>();
 builder.Services.AddScoped<DiscussionPostService>();
 builder.Services.AddScoped<UserAvailabilityService>();
+builder.Services.AddScoped<MeetingMinutesService>();
 builder.Services.AddScoped<SprintBoardService>(); // support for sprint retrospective board
 
 var app = builder.Build(); // Build app from configured builder

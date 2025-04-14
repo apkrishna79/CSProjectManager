@@ -225,8 +225,8 @@ namespace CS_Project_Manager.Pages
             return RedirectToPage(new { projectId = projectId.ToString() });
         }
 
-            // Remove a requirement
-            public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
+        // Remove a requirement
+        public async Task<IActionResult> OnPostRemoveAsync(ObjectId id, ObjectId projectId)
         {
             var requirement = await _requirementService.GetRequirementByIdAsync(id);
             if (requirement == null)
@@ -305,6 +305,7 @@ namespace CS_Project_Manager.Pages
             }
         }
 
+        //toggle requirements as complete
         public async Task<IActionResult> OnPostToggleCompleteAsync(string id, string projectId)
         {
             if (!ObjectId.TryParse(id, out ObjectId requirementId))
