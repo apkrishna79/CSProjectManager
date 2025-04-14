@@ -1,0 +1,79 @@
+
+@page
+@model CS_Project_Manager.Pages.SprintBoardModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<a href="/RequirementsStack?projectId=@Model.ProjectId" class="btn btn-primary" style="position: absolute; top: 10px; right: 10px;">Back to Requirement Stack</a>
+<!-- front end code for sprint retrospective build with appropriate headings and buttons -->
+<h2>Sprint Retrospective Board</h2> 
+
+<form method="post" asp-page-handler="Add">
+    <input type="hidden" name="ProjectId" value="@Model.ProjectId" />
+
+    <div class="mb-3">
+        <label asp-for="NewSprintBoardItem.Category" class="form-label">Category</label>
+        <select asp-for="NewSprintBoardItem.Category" class="form-select">
+            <option value="WentWell">What Went Well</option>
+            <option value="ToImprove">What Could Be Improved</option>
+            <option value="ActionItem">Action Items</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewSprintBoardItem.Description" class="form-label">Description</label>
+        <textarea asp-for="NewSprintBoardItem.Description" class="form-control" placeholder="Enter a note..." rows="2"></textarea>
+        <span asp-validation-for="NewSprintBoardItem.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewSprintBoardItem.SprintNumber" class="form-label">Sprint Number</label>
+        <input asp-for="NewSprintBoardItem.SprintNumber" class="form-control" />
+        <span asp-validation-for="NewSprintBoardItem.SprintNumber" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add to Sprint Board</button>
+</form>
+
+<hr />
+
+@if (Model.SprintBoardItems != null && Model.SprintBoardItems.Any())
+{
+    var orderedItems = Model.SprintBoardItems.OrderBy(i => i.SprintNumber).ToList();
+
+    <div class="row">
+        @foreach (var category in new[] { "WentWell", "ToImprove", "ActionItem" })
+        {
+            var displayTitle = category switch
+            {
+                "WentWell" => "What Went Well",
+                "ToImprove" => "What Could Be Improved",
+                "ActionItem" => "Action Items",
+                _ => category
+            };
+
+            <div class="col-md-4 mb-4">
+                <h4>@displayTitle</h4>
+                <ul class="list-group">
+                    @foreach (var item in orderedItems.Where(i => i.Category == category))
+                    {
+                        <li class="list-group-item">
+                            <form method="post" class="d-flex flex-column gap-2">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="projectId" value="@Model.ProjectId" />
+
+                                <textarea name="description" class="form-control" rows="2">@item.Description</textarea>
+
+                                <div class="d-flex align-items-center gap-2">
+                                    <input name="sprintNumber" type="number" class="form-control" style="width: 100px" value="@item.SprintNumber" />
+                                    <button type="submit" formaction="?handler=Update" class="btn btn-sm btn-primary">Update</button>
+                                    <button type="submit" formaction="?handler=Remove" class="btn btn-sm btn-danger">Remove</button>
+                                </div>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+}
+
