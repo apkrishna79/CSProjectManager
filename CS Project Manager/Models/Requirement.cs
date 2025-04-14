@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Anakha Krishna - comments
-Date Revised: 4/12/25
+Last Revised By: Dylan Sailors - added progress
+Date Revised: 4/13/25
 Purpose: model to handle requirements in the database
 */
 
@@ -30,5 +30,6 @@ namespace CS_Project_Manager.Models
         public ObjectId AssocProjectId { get; set; } // ObjectId of project the requirement is a part of
         public List<ObjectId> Assignees { get; set; } = []; // List of Student ObjectIds for those who are assigned to the requirement
         public bool IsComplete { get; set; } // Track completion of requirement
+        public int? Progress { get; set; } // Progress percentage (0-100)
     }
 }

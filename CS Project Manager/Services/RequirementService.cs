@@ -3,7 +3,7 @@
 Created By: Dylan Sailors
 Date Created: 3/8/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 3/16/25
+Date Revised: 4/10/25
 Purpose: Provides data access methods for requirements-related operations in the MongoDB database
 Preconditions: MongoDB setup, Requirements table exists, RequirementsStack model defined
 Postconditions: new Requirements can be added, Requirements can be updated and removed
@@ -53,6 +53,10 @@ namespace CS_Project_Manager.Services
         // Removes a requirement by its ObjectId
         public async Task RemoveRequirementAsync(ObjectId id) =>
             await _requirements.DeleteOneAsync(r => r.Id == id);
+
+        // removes requirements from the database by project id
+        public async Task RemoveRequirementsByProjectIdAsync(ObjectId projectId) =>
+            await _requirements.DeleteManyAsync(r => r.AssocProjectId == projectId);
 
         // Get requirements from multiple projects
         public async Task<List<Requirement>> GetRequirementsByProjectIdsAsync(List<ObjectId> projectIds)
