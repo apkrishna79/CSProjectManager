@@ -2,7 +2,7 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 4/13/25
-Last Revised By: ackson Wunderlich
+Last Revised By: Jackson Wunderlich
 Date Revised: 4/13/25
 Purpose: model to handle minutes items in database
 */
