@@ -72,7 +72,7 @@ namespace CS_Project_Manager.Pages
             }
         }
 
-        // Calculate the progress for a project based on requirement progress and sprint progress
+        // Calculate the progress for a project based on all requirements
         private async Task CalculateProjectProgressAsync(ObjectId projectId)
         {
             var requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
@@ -81,53 +81,16 @@ namespace CS_Project_Manager.Pages
                 ProjectProgress[projectId] = 0;
                 return;
             }
-            var sprintProgress = new Dictionary<int, decimal>();
-            var requirementsBySprint = requirements
-                .Where(r => r.SprintNo.HasValue)
-                .GroupBy(r => r.SprintNo.Value);
-            foreach (var sprintGroup in requirementsBySprint)
+            decimal totalProgress = 0;
+            int totalRequirements = requirements.Count;
+            foreach (var requirement in requirements)
             {
-                int sprintNumber = sprintGroup.Key;
-                decimal totalProgress = 0;
-                int requirementCount = 0;
-
-                foreach (var requirement in sprintGroup)
-                {
-                    if (requirement.Progress.HasValue)
-                    {
-                        totalProgress += requirement.Progress.Value;
-                        requirementCount++;
-                    }
-                }
-
-                if (requirementCount > 0)
-                {
-                    decimal averageProgress = Math.Round(totalProgress / requirementCount, 2);
-                    sprintProgress[sprintNumber] = averageProgress;
-                }
+                totalProgress += requirement.Progress ?? 0;
             }
-            if (sprintProgress.Count > 0)
-            {
-                decimal totalSprintProgress = sprintProgress.Values.Sum();
-                decimal overallProgress = Math.Round(totalSprintProgress / sprintProgress.Count, 2);
-                ProjectProgress[projectId] = overallProgress;
-            }
-            else
-            {
-                decimal totalProgress = 0;
-                int progressCount = 0;
-                foreach (var requirement in requirements)
-                {
-                    if (requirement.Progress.HasValue)
-                    {
-                        totalProgress += requirement.Progress.Value;
-                        progressCount++;
-                    }
-                }
-                ProjectProgress[projectId] = progressCount > 0
-                    ? Math.Round(totalProgress / progressCount, 2)
-                    : 0;
-            }
+            decimal overallProgress = totalRequirements > 0
+                ? Math.Round(totalProgress / totalRequirements, 2)
+                : 0;
+            ProjectProgress[projectId] = overallProgress;
         }
 
         // Handle logging out a user
