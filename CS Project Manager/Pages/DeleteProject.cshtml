@@ -25,10 +25,10 @@
     <br />
     <center><button type="submit" class="btn btn-primary">Confirm Deletion</button></center>
 </form>
-
+<br />
 <form method="get" asp-page="/RequirementsStack">
     <center>
         <input type="hidden" name="projectId" value="@Model.ProjectId.ToString()" />
-        <button type="submit" class="btn btn-primary">Cancel</button>
+        <button type="submit" class="btn btn-danger">Cancel</button>
     </center>
 </form>
