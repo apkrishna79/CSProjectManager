@@ -1,0 +1,34 @@
+﻿@page
+@model CS_Project_Manager.Pages.DeleteProjectModel
+@{
+    ViewData["Title"] = "DeleteProject";
+}
+
+<h1>Delete Project</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+<form method="post">
+    <center>
+        <p>Are you sure you want to delete @Model.GivenProjectName?</p>
+        <p>Type its name to confirm:</p>
+        <input asp-for="UserProjectName" class="form-control" />
+    </center>
+    <br />
+    <center><button type="submit" class="btn btn-primary">Confirm Deletion</button></center>
+</form>
+<br />
+<form method="get" asp-page="/RequirementsStack">
+    <center>
+        <input type="hidden" name="projectId" value="@Model.ProjectId.ToString()" />
+        <button type="submit" class="btn btn-danger">Cancel</button>
+    </center>
+</form>

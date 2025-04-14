@@ -2,8 +2,8 @@
  * Prologue: Program.cs
  * Programmers: Anakha Krishna, Ginny Ke, Jackson Wunderlich
  * Date Created: 2/13/25
- * Last revised by: Isabel Loney
- * Date Revised: 3/26/25 
+ * Last revised by: Ginny Ke - added support for sprint board
+ * Date Revised: 4/13/25 
  * Purpose: Configures and starts the web application using ASP.NET Core with Razor Pages.
  *
  * Preconditions:
@@ -78,6 +78,7 @@ builder.Services.AddScoped<DiscussionBoardService>();
 builder.Services.AddScoped<DiscussionPostService>();
 builder.Services.AddScoped<UserAvailabilityService>();
 builder.Services.AddScoped<MeetingMinutesService>();
+builder.Services.AddScoped<SprintBoardService>(); // support for sprint retrospective board
 
 var app = builder.Build(); // Build app from configured builder
 

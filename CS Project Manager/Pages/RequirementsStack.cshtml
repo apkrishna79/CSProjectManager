@@ -13,11 +13,11 @@
             <tr>
                 <th style="width: 12%;">Requirement ID</th>
                 <th style="width: 30%;">Description</th>
-                <th style="width: 11%;">Story Points</th>
+                <th style="width: 10%;">Story Points</th>
                 <th style="width: 8%;">Priority</th>
                 <th style="width: 8%;">Sprint No</th>
                 <th style="width: 20%;">Assignees</th>
-                <th style="width: 11%;">Actions</th>
+                <th style="width: 12%;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -44,7 +44,6 @@
                         }
                     </select>
                 </td>
-
                 <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add Requirement</button></td>
             </tr>
         </tbody>
@@ -67,63 +66,150 @@
         <input type="hidden" name="teamId" value="@Model.AssocTeamId" />
         <button type="submit" class="btn btn-primary">Calendar</button>
     </form>
+
+    <form method="get" asp-page="/DeleteProject">
+        <input type="hidden" name="projectId" value="@Model.ProjectId" />
+        <button type="submit" class="btn btn-danger">Delete Project</button>
+    </form>
+</div>
+
+<div class="mt-4 mb-4">
+    <h3>Sprint Progress</h3>
+    @if (Model.SprintProgress.Count > 0)
+    {
+        <div class="row">
+            <div class="col-md-8">
+                @foreach (var sprint in Model.SprintProgress.OrderBy(s => s.Key))
+                {
+                    <div class="mb-3">
+                        <strong>Sprint @sprint.Key: </strong>
+                        @sprint.Value.ToString("0.00")%
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: @sprint.Value%;"
+                                 aria-valuenow="@sprint.Value"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>No sprint progress data available. Assign requirements to sprints to see progress.</p>
+    }
 </div>
 
 <h3>Added Requirements</h3>
+
+@if (TempData["UpdateValidationError"] != null)
+{
+    <div class="alert alert-danger">
+        <p>@TempData["UpdateValidationError"]</p>
+    </div>
+}
+
 <form method="post">
     <table class="table">
         <thead>
             <tr>
                 <th style="width: 12%;">Requirement ID</th>
-                <th style="width: 30%;">Description</th>
-                <th style="width: 11%;">Story Points</th>
-                <th style="width: 8%;">Priority</th>
-                <th style="width: 8%;">Sprint No</th>
-                <th style="width: 20%;">Assignees</th>
-                <th style="width: 11%;">Actions</th>
+                <th style="width: 26%;">Description</th>
+                <th style="width: 8%;">Story Points</th>
+                <th style="width: 6%;">Priority</th>
+                <th style="width: 7%;">Sprint No</th>
+                <th style="width: 16%;">Assignees</th>
+                <th style="width: 10%;">Progress (%)</th>
+                <th style="width: 15%;">Actions</th>
             </tr>
         </thead>
         <tbody>
             @for (int i = 0; i < Model.Requirements.Count; i++)
             {
+                var requirement = Model.Requirements[i];
+                var hasSprintNo = requirement.SprintNo.HasValue;
+                var isComplete = requirement.IsComplete;
                 <tr>
                     <input type="hidden" asp-for="Requirements[i].Id" />
-                    <td><input asp-for="Requirements[i].RequirementID" class="form-control" /></td>
-                    <td><input asp-for="Requirements[i].Description" class="form-control" /></td>
+                    <td>
+                        <input asp-for="Requirements[i].RequirementID" class="form-control" />
+                        <span asp-validation-for="Requirements[i].RequirementID" class="text-danger"></span>
+                    </td>
+                    <td>
+                        <input asp-for="Requirements[i].Description" class="form-control" />
+                        <span asp-validation-for="Requirements[i].Description" class="text-danger"></span>
+                    </td>
                     <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
                     <td><input asp-for="Requirements[i].Priority" class="form-control" /></td>
-                    <td><input asp-for="Requirements[i].SprintNo" class="form-control" /></td>
+                    <td><input asp-for="Requirements[i].SprintNo" class="form-control sprint-input" data-index="@i" /></td>
 
                     <td>
                         <select asp-for="Requirements[i].Assignees" class="form-control assignedUsers" multiple="multiple">
                             @foreach (var member in Model.TeamMembers)
                             {
-                                <option value="@member.Id" selected="@(Model.Requirements[i].Assignees != null && Model.Requirements[i].Assignees.Contains(member.Id))">
+                                <option value="@member.Id" selected="@(requirement.Assignees != null && requirement.Assignees.Contains(member.Id))">
                                     @member.FirstName @member.LastName
                                 </option>
                             }
                         </select>
                     </td>
                     <td>
+                        @if (hasSprintNo)
+                        {
+                            <input asp-for="Requirements[i].Progress" class="form-control progress-input" type="number" min="0" max="100" data-index="@i" />
+                        }
+                        else
+                        {
+                            <input asp-for="Requirements[i].Progress" class="form-control progress-input" type="number" min="0" max="100" data-index="@i" disabled />
+                        }
+                        <div class="progress mt-1" style="height: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: @(requirement.Progress ?? 0)%;"
+                                 aria-valuenow="@(requirement.Progress ?? 0)"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100"></div>
+                        </div>
+                        @if (!hasSprintNo)
+                        {
+                            <span class="text-danger small">Sprint Number required to set progress</span>
+                        }
+                    </td>
+                    <td>
                         <div style="display: flex; gap: 10px;">
                             <button type="submit" asp-page-handler="Update"
-                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-id="@requirement.Id"
                                     asp-route-projectId="@Model.ProjectId"
                                     class="btn btn-warning">
                                 Update
                             </button>
                             <button type="submit" asp-page-handler="Remove"
-                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-id="@requirement.Id"
                                     asp-route-projectId="@Model.ProjectId"
                                     class="btn btn-danger">
                                 Remove
                             </button>
-                            <button type="submit" asp-page-handler="ToggleComplete"
-                                    asp-route-id="@Model.Requirements[i].Id"
-                                    asp-route-projectId="@Model.ProjectId"
-                                    class="btn @(Model.Requirements[i].IsComplete ? "btn-success" : "btn-outline-success")">
-                                @(Model.Requirements[i].IsComplete ? "Completed" : "Complete")
-                            </button>
+                            @if (hasSprintNo)
+                            {
+                                <button type="submit" asp-page-handler="ToggleComplete"
+                                        asp-route-id="@requirement.Id"
+                                        asp-route-projectId="@Model.ProjectId"
+                                        class="btn @(isComplete ? "btn-success" : "btn-outline-success") complete-button">
+                                    @(isComplete ? "Completed" : "Complete")
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit" asp-page-handler="ToggleComplete"
+                                        asp-route-id="@requirement.Id"
+                                        asp-route-projectId="@Model.ProjectId"
+                                        class="btn @(isComplete ? "btn-success" : "btn-outline-success") complete-button"
+                                        disabled>
+                                    @(isComplete ? "Completed" : "Complete")
+                                </button>
+                            }
                         </div>
                     </td>
                 </tr>
@@ -142,6 +228,73 @@
         $(".assignedUsers").select2({
             placeholder: "Select team members",
             allowClear: true
+        });
+
+        // Hide error messages on initial load for requirements with 0 progress
+        $('.progress-input').each(function () {
+            var progressValue = $(this).val();
+            if (progressValue == 0) {
+                $(this).siblings('.text-danger').hide();
+            }
+        });
+
+        // Enable/disable progress input based on sprint number
+        $('.sprint-input').on('input', function () {
+            var index = $(this).data('index');
+            var progressInput = $('.progress-input[data-index="' + index + '"]');
+            var completeButton = progressInput.closest('td').next().find('.complete-button');
+            if ($(this).val() === '') {
+                // If sprint is cleared, disable progress input and reset to 0
+                progressInput.prop('disabled', true);
+                progressInput.val(0);
+                progressInput.trigger('input');
+                completeButton.prop('disabled', true);
+                progressInput.siblings('.text-danger').show();
+            } else {
+                // If sprint is set, enable progress input
+                progressInput.prop('disabled', false);
+                completeButton.prop('disabled', false);
+                progressInput.siblings('.text-danger').hide();
+            }
+        });
+
+        // Update progress bar when progress input changes
+        $('.progress-input').on('input', function () {
+            var value = $(this).val();
+            var progressBar = $(this).siblings('.progress').find('.progress-bar');
+            progressBar.css('width', value + '%');
+            progressBar.attr('aria-valuenow', value);
+            var index = $(this).data('index');
+            var sprintInput = $('.sprint-input[data-index="' + index + '"]');
+            if (sprintInput.val() === '' && value > 0) {
+                $(this).siblings('.text-danger').show();
+            } else {
+                $(this).siblings('.text-danger').hide();
+            }
+            // Get the complete button for this row
+            var completeButton = $(this).closest('td').next().find('.complete-button');
+            if (value == 100) {
+                // If progress is 100% and not already marked complete, update button visual
+                if (!completeButton.hasClass('btn-success')) {
+                    completeButton.removeClass('btn-outline-success').addClass('btn-success');
+                    completeButton.text('Completed');
+                }
+            } else {
+                // If progress is less than 100% and marked as complete, update button visual
+                if (completeButton.hasClass('btn-success')) {
+                    completeButton.removeClass('btn-success').addClass('btn-outline-success');
+                    completeButton.text('Complete');
+                }
+            }
+        });
+
+        // Show error only if there's no sprint number
+        $('.progress-input').on('focus', function () {
+            var index = $(this).data('index');
+            var sprintInput = $('.sprint-input[data-index="' + index + '"]');
+            if (sprintInput.val() === '') {
+                $(this).siblings('.text-danger').show();
+            }
         });
     });
 </script>
