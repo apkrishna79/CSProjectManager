@@ -15,6 +15,9 @@ namespace CS_Project_Manager.Pages
         [BindProperty]
         public ObjectId TeamId { get; set; }
 
+        [BindProperty]
+        public string TeamName { get; set; }
+
         public async Task OnGetAsync(string teamId)
         {
             if (!ObjectId.TryParse(teamId, out ObjectId parsedTeamId))
@@ -22,13 +25,16 @@ namespace CS_Project_Manager.Pages
                 throw new ArgumentException("Invalid Team ID format");
             }
             TeamId = parsedTeamId;
+            Team team = await _teamService.GetTeamByIdAsync(TeamId);
 
             string currentEmail = User.FindFirstValue(ClaimTypes.Email);
             StudentUser currentUser = await _studentUserService.GetUserByEmailAsync(currentEmail);
-            if (!(await _teamService.GetTeamByIdAsync(TeamId)).Members.Contains(currentUser.Id))
+            if (!team.Members.Contains(currentUser.Id))
             {
                 throw new UnauthorizedAccessException("You do not have access to this team.");
             }
+
+            TeamName = team.Name;
         }
     }
 }
