@@ -137,6 +137,13 @@ namespace CS_Project_Manager.Pages
                         };
                         await _teamService.CreateTeamAsync(newTeam);
                         teamId = newTeam.Id;
+
+                        await _discussionBoardService.CreateDiscussionBoardAsync(new DiscussionBoard
+                        {
+                            IsClassBoard = false,
+                            ClassId = ObjectId.Empty,
+                            TeamId = teamId
+                        });
                     }
                     else
                     {
