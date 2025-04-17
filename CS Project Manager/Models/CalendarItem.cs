@@ -2,9 +2,9 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Ginny Ke - added comments
-Date Revised: 4/4/25
-Purpose: model to handle calendar items in databse
+Last Revised By: Anakha Krishna - comments
+Date Revised: 4/12/25
+Purpose: model to handle calendar items in database
 */
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -16,17 +16,17 @@ namespace CS_Project_Manager.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; }
+        public ObjectId Id { get; set; } // ObjectId identifier in Mongo
 
         [Required]
-        public required string EventName { get; set; }
+        public required string EventName { get; set; } // Name describing the event
         [Required]
-        public DateTime StartDateTime { get; set; }
+        public DateTime StartDateTime { get; set; } // Start date of event
         [Required]
-        public DateTime EndDateTime { get; set; }
+        public DateTime EndDateTime { get; set; } // End date of event
         [BsonElement("AssocTeamId")]
         [BsonRepresentation(BsonType.ObjectId)] 
-        public ObjectId AssocTeamId { get; set; }
+        public ObjectId AssocTeamId { get; set; } // Associated team ObjectId with event
         public string? Notes { get; set; }
     }
 }

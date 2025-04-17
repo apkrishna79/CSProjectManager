@@ -3,7 +3,7 @@
 Created By: Jackson Wunderlich
 Date Created: 2/25/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 3/2/25
+Date Revised: 4/10/25
 Revision: Added support to add requirements to a project along with updating it and removing it
 Purpose: Provides data access methods for project-related operations in the MongoDB database
 Preconditions: MongoDB setup, Project table exists, Project model defined
@@ -68,6 +68,13 @@ namespace CS_Project_Manager.Services
             if (project == null) return;
 
             await UpdateProjectAsync(project);
+        }
+
+       //deletes a project from the database
+        public async Task DeleteProjectByIdAsync(ObjectId projectId)
+        {
+            var filter = Builders<Project>.Filter.Eq(p => p.Id, projectId);
+            await _projects.DeleteOneAsync(filter);
         }
     }
 }

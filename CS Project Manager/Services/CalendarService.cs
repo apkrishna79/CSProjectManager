@@ -22,12 +22,10 @@ namespace CS_Project_Manager.Services
     public class CalendarService
     {
         private readonly IMongoCollection<CalendarItem> _calendarItems;
-        private readonly IMongoCollection<UserAvailability> _userAvailability;
 
         public CalendarService(MongoDBService mongoDBService)
         {
             _calendarItems = mongoDBService.GetCollection<CalendarItem>("CalendarItems");
-            _userAvailability = mongoDBService.GetCollection<UserAvailability>("UserAvailabilityItems");
         }
 
         // Adds a new calendar item

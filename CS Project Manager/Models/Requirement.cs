@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Ginny Ke - added comments
-Date Revised: 4/4/25
+Last Revised By: Dylan Sailors - added progress
+Date Revised: 4/13/25
 Purpose: model to handle requirements in the database
 */
 
@@ -17,18 +17,19 @@ namespace CS_Project_Manager.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; }
+        public ObjectId Id { get; set; } // ObjectId identifier in Mongo
         [BsonElement("RequirementID")]
-        public int? RequirementID { get; set; }
+        public int? RequirementID { get; set; } // Requirement Id
         [Required]
-        public required string Description { get; set; }
-        public int? StoryPoints { get; set; }
-        public int? Priority { get; set; }
-        public int? SprintNo { get; set; }
+        public required string Description { get; set; } // Description of requirement
+        public int? StoryPoints { get; set; } // Story points for requirement
+        public int? Priority { get; set; } // Priority of requirement
+        public int? SprintNo { get; set; } // Sprint no for requirement
         [BsonElement("AssocProjectId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId AssocProjectId { get; set; }
-        public List<ObjectId> Assignees { get; set; } = [];
-        public bool IsComplete { get; set; } 
+        public ObjectId AssocProjectId { get; set; } // ObjectId of project the requirement is a part of
+        public List<ObjectId> Assignees { get; set; } = []; // List of Student ObjectIds for those who are assigned to the requirement
+        public bool IsComplete { get; set; } // Track completion of requirement
+        public int? Progress { get; set; } // Progress percentage (0-100)
     }
 }

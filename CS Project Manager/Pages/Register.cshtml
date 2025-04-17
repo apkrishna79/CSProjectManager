@@ -4,50 +4,48 @@
     ViewData["Title"] = "Register";
 }
 
-<h2>Register a New Student</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">Register</h2>
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <p>@error.ErrorMessage</p>
-        }
-    </div>
-}
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
 
-<form method="post">
-    <div>
-        <label>KU Email</label>
-        <input asp-for="Email" type="email" maxlength="255" />
-    </div>
-
-    <div>
-        <label>Password</label>
-        <input asp-for="Password" type="password" required />
-    </div>
-
-    <div>
-        <label>First Name</label>
-        <input asp-for="FirstName" required maxlength="100" />
-    </div>
-
-    <div>
-        <label>Last Name</label>
-        <input asp-for="LastName" required maxlength="100" />
-    </div>
-
-    <div>
-        <label>Enrolled Classes</label>
-        <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" style="width: 100%;"></select>
-    </div>
-
-    
-<div id="teamSelectors"></div>
-
-
-    <button type="submit">Register</button>
-</form>
+    <form method="post">
+        <div class="form-group">
+            <label asp-for="Email">KU Email</label>
+            <input asp-for="Email" type="email" maxlength="255" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <label asp-for="Password">Password</label>
+            <input asp-for="Password" type="password" required class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <label asp-for="FirstName">First Name</label>
+            <input asp-for="FirstName" required maxlength="100" class="form-control" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <label asp-for="LastName">Last Name</label>
+            <input asp-for="LastName" required maxlength="100" class="form-control" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <label asp-for="EnrolledClasses">Enrolled Classes</label>
+            <select id="enrolledClasses" name="EnrolledClasses" multiple="multiple" class="form-control"></select>
+        </div>
+        <div id="teamSelectors" class="mt-3"></div>
+        <button type="submit" class="btn btn-primary mt-4">Register</button>
+    </form>
+</div>
 
 <!--import select2 functionality-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -57,120 +55,115 @@
 <script>
     $(document).ready(function () {
         // select2 cannot filter from ajax queries, item must have local data
-        // perform queries and store results in these arrays
-        let classData = [];
-        let selectedClasses = [];
+            // perform queries and store results in these arrays
+            let classData = [];
+    let selectedClasses = [];
 
-        // Fetch all classes initially and store them
-        $.ajax({
-            url: '/Register?handler=GetClasses',
-            dataType: 'json',
-            success: function (data) {
-                // Convert fetched data into Select2-compatible format
-                classData = data.map(item => ({ id: item.name, text: item.name }));
-                initializeClassDropdown();
+    // Fetch all classes initially and store them
+    $.ajax({
+        url: '/Register?handler=GetClasses',
+        dataType: 'json',
+        success: function (data) {
+            // Convert fetched data into Select2-compatible format
+            classData = data.map(item => ({ id: item.name, text: item.name }));
+            initializeClassDropdown();
+        }
+    });
+
+    // Initialize class dropdown
+    function initializeClassDropdown() {
+        $('#enrolledClasses').select2({
+            tags: true,
+            placeholder: "Select or add a class",
+            data: classData,
+            createTag: (params) => {
+                let term = $.trim(params.term);
+
+                // Prevent adding an empty or duplicate class
+                if (!term || classData.some(item => item.text.toLowerCase() === term.toLowerCase())) return null;
+                if (term.length > 100) return null;
+
+                return { id: term, text: `Add New Class: ${term}`, newTag: true };
+            },
+            templateSelection: (data) => data.newTag ? data.id : data.text,
+            insertTag: (data, tag) => {
+                // Ensure new classes appear in the dropdown if not already present
+                if (!data.some(existingTag => existingTag.text === tag.text)) {
+                    data.unshift(tag);
+                }
             }
         });
 
-        // Initialize class dropdown
-        function initializeClassDropdown() {
-            $('#enrolledClasses').select2({
-                tags: true,
-                placeholder: "Select or add a class",
-                data: classData,
-                createTag: (params) => {
-                    let term = $.trim(params.term);
-
-                    // Prevent adding an empty or duplicate class
-                    if (!term || classData.some(item => item.text.toLowerCase() === term.toLowerCase())) return null;
-                    if (term.length > 100) return null;
-
-                    return { id: term, text: `Add New Class: ${term}`, newTag: true };
-                },
-                templateSelection: (data) => data.newTag ? data.id : data.text,
-                insertTag: (data, tag) => {
-                    // Ensure new classes appear in the dropdown if not already present
-                    if (!data.some(existingTag => existingTag.text === tag.text)) {
-                        data.unshift(tag);
-                    }
-                }
-            });
-
-            $('#enrolledClasses').on('change', function () {
-                let newSelectedClasses = $(this).val()
-                updateTeamSelectors(newSelectedClasses);
-            });
-
-            $('#enrolledClasses').trigger('change');
-        }
-
-        function updateTeamSelectors(selectedClasses) {
-            const container = $('#teamSelectors');
-            const currentSelectors = new Set();
-
-            // Track current team selectors in the DOM
-            container.find('.team-selector').each(function () {
-                const className = $(this).data('class');
-                currentSelectors.add(className);
-            });
-
-            // Add selectors for new classes
-            selectedClasses.forEach(className => {
-                if (!currentSelectors.has(className)) {
-                    const safeId = className.replace(/[^a-zA-Z0-9]/g, '_');
-                    const teamSelector = $(`
-                        <div class="team-selector" data-class="${className}">
-                            <label>Select team for ${className}</label>
-                            <select id="team_${safeId}" name="SelectedTeams[${className}]" style="width: 100%;"></select>
-                        </div>
-                    `);
-
-                    container.append(teamSelector);
-
-                    $(`#team_${safeId}`).select2({
-                        tags: true,
-                        placeholder: "Select or add a team",
-                        ajax: {
-                            url: '/Register?handler=GetTeams',
-                            dataType: 'json',
-                            delay: 250,
-                            data: params => ({ term: params.term, className }),
-                            processResults: data => ({
-                                results: data.map(team => ({ id: team.name, text: team.name }))
-                            }),
-                            cache: true
-                        },
-                        createTag: function (params) {
-                            let term = $.trim(params.term);
-                            if (!term || term.length > 100) return null;
-                            return {
-                                id: term,
-                                text: `Add New Team: ${term}`,
-                                newTag: true
-                            };
-                        },
-                        templateSelection: data => data.newTag ? data.id : data.text
-                    });
-                }
-            });
-
-            // Remove selectors for deselected classes
-            container.find('.team-selector').each(function () {
-                const className = $(this).data('class');
-                if (!selectedClasses.includes(className)) {
-                    $(this).remove();
-                }
-            });
-        }
-
-
         $('#enrolledClasses').on('change', function () {
-            const selected = $(this).val() || [];
-            updateTeamSelectors(selected);
+                let newSelectedClasses = $(this).val()
+            updateTeamSelectors(newSelectedClasses);
         });
 
+        $('#enrolledClasses').trigger('change');
+    }
+
+    function updateTeamSelectors(selectedClasses) {
+        const container = $('#teamSelectors');
+        const currentSelectors = new Set();
+
+        // Track current team selectors in the DOM
+        container.find('.team-selector').each(function () {
+            const className = $(this).data('class');
+            currentSelectors.add(className);
+        });
+
+        // Add selectors for new classes
+        selectedClasses.forEach(className => {
+            if (!currentSelectors.has(className)) {
+                const safeId = className.replace(/[^a-zA-Z0-9]/g, '_');
+                const teamSelector = $(`
+                            <div class="team-selector mt-3" data-class="${className}">
+                                <label>Select team for ${className}</label>
+                                <select id="team_${safeId}" name="SelectedTeams[${className}]" class="form-control"></select>
+                            </div>
+                        `);
+
+                container.append(teamSelector);
+
+                $(`#team_${safeId}`).select2({
+                    tags: true,
+                    placeholder: "Select or add a team",
+                    ajax: {
+                        url: '/Register?handler=GetTeams',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({ term: params.term, className }),
+                        processResults: data => ({
+                            results: data.map(team => ({ id: team.name, text: team.name }))
+                        }),
+                        cache: true
+                    },
+                    createTag: function (params) {
+                        let term = $.trim(params.term);
+                        if (!term || term.length > 100) return null;
+                        return {
+                            id: term,
+                            text: `Add New Team: ${term}`,
+                            newTag: true
+                        };
+                    },
+                    templateSelection: data => data.newTag ? data.id : data.text
+                });
+            }
+        });
+
+        // Remove selectors for deselected classes
+        container.find('.team-selector').each(function () {
+            const className = $(this).data('class');
+            if (!selectedClasses.includes(className)) {
+                $(this).remove();
+            }
+        });
+    }
+
+    $('#enrolledClasses').on('change', function () {
+        const selected = $(this).val() || [];
+        updateTeamSelectors(selected);
     });
-
+        });
 </script>
-
-
