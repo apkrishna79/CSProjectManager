@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 using MongoDB.Bson;
+using CS_Project_Manager.Utilities;
 namespace CS_Project_Manager.Pages
 {
     public class DashboardModel : PageModel
@@ -66,31 +67,10 @@ namespace CS_Project_Manager.Pages
                     {
                         Projects.Add(project);
                         // Calculate project progress
-                        await CalculateProjectProgressAsync(project.Id);
+                        await ProjectDisplayHelper.CalculateProjectProgressAsync(project.Id, ProjectProgress, _requirementService);
                     }
                 }
             }
-        }
-
-        // Calculate the progress for a project based on all requirements
-        private async Task CalculateProjectProgressAsync(ObjectId projectId)
-        {
-            var requirements = await _requirementService.GetRequirementsByProjectIdAsync(projectId);
-            if (requirements == null || !requirements.Any())
-            {
-                ProjectProgress[projectId] = 0;
-                return;
-            }
-            decimal totalProgress = 0;
-            int totalRequirements = requirements.Count;
-            foreach (var requirement in requirements)
-            {
-                totalProgress += requirement.Progress ?? 0;
-            }
-            decimal overallProgress = totalRequirements > 0
-                ? Math.Round(totalProgress / totalRequirements, 2)
-                : 0;
-            ProjectProgress[projectId] = overallProgress;
         }
 
         // Handle logging out a user

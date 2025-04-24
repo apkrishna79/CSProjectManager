@@ -1,6 +1,71 @@
 ﻿@page
 @model CS_Project_Manager.Pages.TeamLandingModel
 @{
-	<h2>@Model.TeamName</h2>
+	<h2>@Model.TeamName Dashboard</h2>
 
+    <!-- Projects Section -->
+    <div class="mb-4">
+        <b>Team Projects</b><br />
+        @if (Model.Projects.Count > 0)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Description</th>
+                        <th>Requirements Progress</th>
+                        <th>Sprint Board</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Model.Projects)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-page="/RequirementsStack" asp-route-projectId="@project.Id.ToString()">@project.ProjectName</a>
+                            </td>
+                            <td>@project.Description</td>
+                            <td>
+                                @if (Model.ProjectProgress.TryGetValue(project.Id, out decimal progress))
+                                {
+                                    <div class="progress" style="height: 20px; position: relative;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                             style="width: @progress%;"
+                                             aria-valuenow="@progress"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
+                                        </div>
+                                        <div class="progress-bar-text" style="position: absolute; width: 100%; text-align: center; top: 0; line-height: 20px;">
+                                            <strong>@progress.ToString("0.00")%</strong>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>No requirements</span>
+                                }
+                            </td>
+                            <td>
+                                <form method="get" asp-page="/SprintBoard">
+                                    <input type="hidden" name="projectId" value="@project.Id" />
+                                    <button type="submit" class="btn btn-secondary">Sprint Board</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <span>You have no projects!</span>
+        }
+    </div>
+
+    <!-- Create Project Button -->
+    <div class="button-group">
+        <form method="get" asp-page="/CreateProject" class="d-inline">
+            <button type="submit" class="btn btn-primary mb-2">Create Project</button>
+        </form>
+    </div>
 }

@@ -1,5 +1,6 @@
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
+using CS_Project_Manager.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
@@ -7,16 +8,22 @@ using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
-    public class TeamLandingModel(TeamService teamService, StudentUserService studentUserService) : PageModel
+    public class TeamLandingModel(TeamService teamService, StudentUserService studentUserService, ProjectService projectService, RequirementService requirementService) : PageModel
     {
         private readonly TeamService _teamService = teamService;
         private readonly StudentUserService _studentUserService = studentUserService;
+        private readonly ProjectService _projectService = projectService;
+        private readonly RequirementService _requirementService = requirementService;
 
         [BindProperty]
         public ObjectId TeamId { get; set; }
 
         [BindProperty]
         public string TeamName { get; set; }
+
+        [BindProperty]
+        public List<Project> Projects { get; set; }
+        public Dictionary<ObjectId, decimal> ProjectProgress { get; set; } = new Dictionary<ObjectId, decimal>();
 
         public async Task OnGetAsync(string teamId)
         {
@@ -35,6 +42,13 @@ namespace CS_Project_Manager.Pages
             }
 
             TeamName = team.Name;
+
+            Projects = await _projectService.GetProjectsByTeamIdAsync(team.Id);
+            foreach (var project in Projects)
+            {
+                // Calculate project progress
+                await ProjectDisplayHelper.CalculateProjectProgressAsync(project.Id, ProjectProgress, _requirementService);
+            }
         }
     }
 }
