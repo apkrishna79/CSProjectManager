@@ -13,7 +13,6 @@ Invariants: _projectService and _teamService fields are always initialized with 
 Other faults: N/A
 */
 
-using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -48,11 +47,6 @@ namespace CS_Project_Manager.Pages
             var currentProject = await _projectService.GetProjectById(ProjectId);
             AssocTeamId = currentProject.AssociatedTeam;
             ProjectName = currentProject.ProjectName;
-
-            if (TempData["UpdateValidationError"] != null && TempData["ErrorRequirementId"] != null)
-            {
-                ModelState.AddModelError(string.Empty, TempData["UpdateValidationError"].ToString());
-            }
         }
     }
 }
