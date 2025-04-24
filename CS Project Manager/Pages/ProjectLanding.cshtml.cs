@@ -24,7 +24,6 @@ namespace CS_Project_Manager.Pages
     public class ProjectLandingModel : PageModel
     {
         private readonly ProjectService _projectService;
-        private readonly TeamService _teamService;
 
         [BindProperty(SupportsGet = true)]
         public ObjectId ProjectId { get; set; }
@@ -32,11 +31,10 @@ namespace CS_Project_Manager.Pages
         public ObjectId AssocTeamId { get; set; }
         [BindProperty(SupportsGet = true)]
         public string ProjectName { get; set; }
-        public List<StudentUser> TeamMembers = new List<StudentUser>();
-        public ProjectLandingModel(ProjectService projectService, TeamService teamService)
+
+        public ProjectLandingModel(ProjectService projectService)
         {
             _projectService = projectService;
-            _teamService = teamService;
         }
 
         public async Task OnGetAsync(string projectId)
@@ -48,7 +46,6 @@ namespace CS_Project_Manager.Pages
             ProjectId = parsedProjectId;
 
             var currentProject = await _projectService.GetProjectById(ProjectId);
-            var curTeam = await _teamService.GetTeamByIdAsync(currentProject.AssociatedTeam);
             AssocTeamId = currentProject.AssociatedTeam;
             ProjectName = currentProject.ProjectName;
 
