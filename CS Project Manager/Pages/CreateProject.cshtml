@@ -20,7 +20,7 @@
 
         <div class="form-group mb-4">
             <label for="SelectedTeamId">Team Working on this Project:</label>
-            <select asp-for="SelectedTeamId" class="form-control custom-select">
+            <select asp-for="SelectedTeamId" class="form-control custom-select" required>
                 @foreach (var team in Model.TeamAndClass)
                 {
                     <option value="@team.Key.Id">@team.Key.Name (@team.Value)</option>
