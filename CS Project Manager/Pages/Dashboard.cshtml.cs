@@ -72,12 +72,5 @@ namespace CS_Project_Manager.Pages
                 }
             }
         }
-
-        // Handle logging out a user
-        public async Task<IActionResult> OnPostLogoutAsync()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToPage("/Landing");
-        }
     }
 }
