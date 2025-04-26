@@ -49,7 +49,7 @@
                             <ul>
                                 @foreach (var team in Model.Teams)
                                 {
-                                    <li>@team.Name (@Model.ClassIdToName[team.AssociatedClass])</li>
+                                    <li><a asp-page="/TeamLanding" asp-route-teamId="@team.Id">@team.Name (@Model.ClassIdToName[team.AssociatedClass])</a></li>
                                 }
                             </ul>
                         }

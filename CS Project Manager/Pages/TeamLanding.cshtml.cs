@@ -1,3 +1,18 @@
+/*
+ * Prologue
+Created By: Isabel Loney
+Date Created: 4/17/25
+Last Revised By: Isabel Loney
+Date Revised: 4/26/25
+Purpose: Team landing page to display team members, team projects, and events
+Preconditions: Services properly initialized and injected; models correctly defined
+Postconditions: Can create new projects
+Error and exceptions: ArgumentNullException (required field empty)
+Side effects: N/A
+Invariants: private service fields are always initialized with valid instance
+Other faults: N/A
+*/
+
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
 using CS_Project_Manager.Utilities;
