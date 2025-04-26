@@ -8,12 +8,13 @@ using System.Security.Claims;
 
 namespace CS_Project_Manager.Pages
 {
-    public class TeamLandingModel(TeamService teamService, StudentUserService studentUserService, ProjectService projectService, RequirementService requirementService) : PageModel
+    public class TeamLandingModel(TeamService teamService, StudentUserService studentUserService, ProjectService projectService, RequirementService requirementService, CalendarService calendarService) : PageModel
     {
         private readonly TeamService _teamService = teamService;
         private readonly StudentUserService _studentUserService = studentUserService;
         private readonly ProjectService _projectService = projectService;
         private readonly RequirementService _requirementService = requirementService;
+        private readonly CalendarService _calendarService = calendarService;
 
         [BindProperty]
         public ObjectId TeamId { get; set; }
@@ -22,7 +23,13 @@ namespace CS_Project_Manager.Pages
         public string TeamName { get; set; }
 
         [BindProperty]
-        public List<Project> Projects { get; set; }
+        public List<Project> Projects { get; set; } = [];
+
+        [BindProperty]
+        public List<CalendarItem> TeamCalendarItems { get; set; }
+        [BindProperty]
+        public List<string> Members { get; set; } = [];
+
         public Dictionary<ObjectId, decimal> ProjectProgress { get; set; } = new Dictionary<ObjectId, decimal>();
 
         public async Task OnGetAsync(string teamId)
@@ -43,12 +50,27 @@ namespace CS_Project_Manager.Pages
 
             TeamName = team.Name;
 
-            Projects = await _projectService.GetProjectsByTeamIdAsync(team.Id);
+            Projects = await _projectService.GetProjectsByTeamIdAsync(TeamId);
             foreach (var project in Projects)
             {
                 // Calculate project progress
                 await ProjectDisplayHelper.CalculateProjectProgressAsync(project.Id, ProjectProgress, _requirementService);
             }
+
+            TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
+
+            foreach (var memberId in team.Members)
+            {
+                var user = await _studentUserService.GetUserByIdAsync(memberId);
+                Members.Add($"{user.FirstName} {user.LastName}");
+            }
+        }
+
+        // converts UTC time to Central Standard Time
+        public DateTime ConvertToCentralTime(DateTime utcDateTime)
+        {
+            TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, centralZone);
         }
     }
 }
