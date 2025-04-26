@@ -62,11 +62,6 @@
         <button type="submit" class="btn btn-primary">Brainstorming</button>
     </form>
 
-    <form method="get" asp-page="/Calendar">
-        <input type="hidden" name="teamId" value="@Model.AssocTeamId" />
-        <button type="submit" class="btn btn-primary">Calendar</button>
-    </form>
-
     <form method="get" asp-page="/DeleteProject">
         <input type="hidden" name="projectId" value="@Model.ProjectId" />
         <button type="submit" class="btn btn-danger">Delete Project</button>
