@@ -169,12 +169,12 @@
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
                         var sortedItems = Model.TeamCalendarItems.Where(item => item.EndDateTime > DateTime.UtcNow).OrderBy(item => item.StartDateTime).ToList();
-                        <table style="width: 150%;">
+                        <table style="width: 100%;">
                             <thead>
                                 <tr>
-                                    <th style="width: 40%;">Event Name</th>
-                                    <th style="width: 40%;">Start Date</th>
-                                    <th style="width: 70%;">Meeting Minutes</th>
+                                    <th style="width: 30%;">Event Name</th>
+                                    <th style="width: 30%;">Start Date</th>
+                                    <th style="width: 40%;">Meeting Minutes</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -217,12 +217,12 @@
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
                         var pastMeetings = Model.TeamCalendarItems.Where(item => item.EndDateTime < DateTime.UtcNow).OrderBy(item => item.StartDateTime).ToList();
-                        <table style="width: 150%;">
+                        <table style="width: 100%;">
                             <thead>
                                 <tr>
-                                    <th style="width: 40%;">Event Name</th>
-                                    <th style="width: 40%;">Start Date</th>
-                                    <th style="width: 70%;">Meeting Minutes</th>
+                                    <th style="width: 30%;">Event Name</th>
+                                    <th style="width: 30%;">Start Date</th>
+                                    <th style="width: 40%;">Meeting Minutes</th>
                                 </tr>
                             </thead>
                             <tbody>
