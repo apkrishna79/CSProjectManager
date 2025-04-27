@@ -168,6 +168,7 @@
                 <div id="EventList">
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
+                        var sortedItems = Model.TeamCalendarItems.OrderBy(item => item.StartDateTime).ToList();
                         <table style="width: 150%;">
                             <thead>
                                 <tr>
@@ -177,7 +178,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.TeamCalendarItems)
+                                @foreach (var item in sortedItems)
                                 {
                                     <tr>
                                         <td>
