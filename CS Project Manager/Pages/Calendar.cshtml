@@ -163,24 +163,38 @@
                 </form>
             </div>
             <div class="col-md-6">
+
                 <h2>Event List</h2>
                 <div id="EventList">
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
-                        <ul>
-                            @foreach (var item in Model.TeamCalendarItems)
-                            {
-                                <li>
-                                    <div style="padding:5px">
-                                        <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
-                                            @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
-                                        </a>
-                                        <br />
-                                        <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
+                        <table style="width: 150%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40%;">Event Name</th>
+                                    <th style="width: 40%;">Date</th>
+                                    <th style="width: 70%;">Meeting Minutes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.TeamCalendarItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
+                                                @item.EventName
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @Model.ConvertToCentralTime(item.StartDateTime).ToString()
+                                        </td>
+                                        <td>
+                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     }
                     else
                     {
@@ -188,6 +202,7 @@
                     }
                 </div>
                 <button onclick="openDialog()">Add Meeting</button>
+
             </div>
         </div>
 
