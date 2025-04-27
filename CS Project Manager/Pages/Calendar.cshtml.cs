@@ -2,8 +2,8 @@
 * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/24/25
-Last Revised By: Dylan Sailors
-Date Revised: 3/30/25
+Last Revised By: Anakha Krishna
+Date Revised: 4/27/25
 Purpose: page displaying a calendar that allows users to set and view availability and create meetings
 Preconditions: MongoDBService, other service instances properly initialized and injected; CalendarItem must be correctly defined
 Error and exceptions: ArgumentNullException: username is null or empty; MongoException: issue with the MongoDB connection or operation; InvalidOperationException: data cannot be retrieved
@@ -13,7 +13,6 @@ Other faults: N/A
 
 using CS_Project_Manager.Models;
 using CS_Project_Manager.Services;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
@@ -27,6 +26,7 @@ namespace CS_Project_Manager.Pages
         private readonly StudentUserService _userService;
         private readonly CalendarService _calendarService;
         private readonly UserAvailabilityService _userAvailabilityService;
+        private readonly MeetingMinutesService _meetingMinutesService;
 
         // bound property for the team related to the project
         [BindProperty]
@@ -69,13 +69,14 @@ namespace CS_Project_Manager.Pages
 
         private readonly ILogger<DashboardModel> _logger;
 
-        public CalendarModel(ILogger<DashboardModel> logger, TeamService teamService, StudentUserService userService, CalendarService calendarService, UserAvailabilityService userAvailabilityService)
+        public CalendarModel(ILogger<DashboardModel> logger, TeamService teamService, StudentUserService userService, CalendarService calendarService, UserAvailabilityService userAvailabilityService, MeetingMinutesService meetingMinutesService)
         {
             _logger = logger;
             _teamService = teamService;
             _userService = userService;
             _calendarService = calendarService;
             _userAvailabilityService = userAvailabilityService;
+            _meetingMinutesService = meetingMinutesService;
             UserAvailabilityItems = new List<UserAvailability>();
             // creates lists of days and times for the calendar
             Days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -116,6 +117,28 @@ namespace CS_Project_Manager.Pages
                 NewCalendarItem.AssocTeamId = TeamId;
                 await _calendarService.AddCalendarItemAsync(NewCalendarItem);
             }
+            TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
+            await LoadUserAvailabilityAsync(teamId);
+            return RedirectToPage("/Calendar", new { teamId = TeamId });
+        }
+
+        public async Task<IActionResult> OnPostDeleteCalendarItemAsync(ObjectId teamId, ObjectId calendarItemId)
+        {
+            TeamId = teamId;
+
+            var calendarItem = await _calendarService.GetCalendarItemByIdAsync(calendarItemId);
+            
+            if (calendarItem != null)
+            {
+                var meetingMinuteItem = await _meetingMinutesService.GetMinutesByMeetingIdAsync(calendarItemId);
+                if (meetingMinuteItem != null)
+                {
+                    await _meetingMinutesService.RemoveMinutesAsync(meetingMinuteItem.Id);
+                }
+
+                await _calendarService.RemoveCalendarItemAsync(calendarItemId);
+            }
+
             TeamCalendarItems = await _calendarService.GetCalendarItemsByTeamIdAsync(TeamId);
             await LoadUserAvailabilityAsync(teamId);
             return RedirectToPage("/Calendar", new { teamId = TeamId });

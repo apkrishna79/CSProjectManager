@@ -163,31 +163,93 @@
                 </form>
             </div>
             <div class="col-md-6">
-                <h2>Event List</h2>
+
+                <h2>Upcoming & Ongoing Events</h2>
                 <div id="EventList">
                     @if (Model.TeamCalendarItems.Count > 0)
                     {
-                        <ul>
-                            @foreach (var item in Model.TeamCalendarItems)
-                            {
-                                <li>
-                                    <div style="padding:5px">
-                                        <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
-                                            @item.EventName: @Model.ConvertToCentralTime(item.StartDateTime).ToString()
-                                        </a>
-                                        <br />
-                                        <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
+                        var sortedItems = Model.TeamCalendarItems.Where(item => item.EndDateTime > DateTime.UtcNow).OrderBy(item => item.StartDateTime).ToList();
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30%;">Event Name</th>
+                                    <th style="width: 30%;">Start Date</th>
+                                    <th style="width: 40%;">Meeting Minutes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in sortedItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id')">
+                                                @item.EventName
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @Model.ConvertToCentralTime(item.StartDateTime).ToString()
+                                        </td>
+                                        <td>
+                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                        </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="DeleteCalendarItem">
+                                                <input type="hidden" name="teamId" value="@Model.TeamId" />
+                                                <input type="hidden" name="calendarItemId" value="@item.Id"/>
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     }
                     else
                     {
                         <p>No scheduled events!</p>
                     }
                 </div>
-                <button onclick="openDialog()">Add Meeting</button>
+                <br />
+                <button onclick="openDialog()" class="btn btn-primary">Add Meeting</button>
+                <br />
+                <h2>Past Meetings</h2>
+                <div id="PastMeetings">
+                    @if (Model.TeamCalendarItems.Count > 0)
+                    {
+                        var pastMeetings = Model.TeamCalendarItems.Where(item => item.EndDateTime < DateTime.UtcNow).OrderBy(item => item.StartDateTime).ToList();
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30%;">Event Name</th>
+                                    <th style="width: 30%;">Start Date</th>
+                                    <th style="width: 40%;">Meeting Minutes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in pastMeetings)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="javascript:void(0)" onclick="openDialog('@item.EventName', '@Model.ConvertToCentralTime(item.StartDateTime).ToString("yyyy-MM-ddTHH:mm")', '@Model.ConvertToCentralTime(item.EndDateTime).ToString("yyyy-MM-ddTHH:mm")', '@item.Notes', '@item.Id', true)">
+                                                @item.EventName
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @Model.ConvertToCentralTime(item.StartDateTime).ToString()
+                                        </td>
+                                        <td>
+                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>No past meetings!</p>
+                    }
+                </div>
             </div>
         </div>
 
@@ -213,8 +275,8 @@
                     <textarea id="notes" name="NewCalendarItem.Notes"></textarea>
                 </div>
                 <div>
-                    <button type="submit">Confirm</button>
-                    <button type="button" onclick="closeDialog()">Cancel</button>
+                    <button type="submit" id="confirmButton">Confirm</button>
+                    <button type="button" id="cancelButton" onclick="closeDialog()">Cancel</button>
                 </div>
             </form>
         </div>
@@ -336,12 +398,30 @@
         document.getElementById('availabilityForm').submit();
     }
 
-    function openDialog(eventName = '', startTime = '', endTime = '', notes = '', id = '') {
+
+    function openDialog(eventName = '', startTime = '', endTime = '', notes = '', id = '', readOnly = false) {
         document.getElementById('meetingName').value = eventName;
         document.getElementById('startTime').value = startTime;
         document.getElementById('endTime').value = endTime;
         document.getElementById('notes').value = notes;
         document.getElementById('calendarItemId').value = id;
+
+        if (readOnly) {
+            document.getElementById('meetingName').setAttribute('readonly', true);
+            document.getElementById('startTime').setAttribute('readonly', true);
+            document.getElementById('endTime').setAttribute('readonly', true);
+            document.getElementById('notes').setAttribute('readonly', true);
+            document.getElementById('confirmButton').style.display = 'none';
+            document.getElementById('cancelButton').textContent = 'Close';
+        } else {
+            document.getElementById('meetingName').removeAttribute('readonly');
+            document.getElementById('startTime').removeAttribute('readonly');
+            document.getElementById('endTime').removeAttribute('readonly');
+            document.getElementById('notes').removeAttribute('readonly');
+            document.getElementById('confirmButton').style.display = 'inline-block';
+            document.getElementById('cancelButton').textContent = 'Cancel';
+        }
+
         document.getElementById('addMeetingDialog').style.display = 'block';
         document.getElementById('dialogOverlay').style.display = 'block';
     }
@@ -354,8 +434,14 @@
     function validateForm() {
         var startTime = document.getElementById('startTime').value;
         var endTime = document.getElementById('endTime').value;
+        var currentTime = new Date().toISOString();
+
         if (new Date(startTime) >= new Date(endTime)) {
             alert('End Time must be later than Start Time.');
+            return false;
+        }
+        if (new Date(endTime) < new Date(currentTime)) {
+            alert('End Time must be later than the current UTC time.');
             return false;
         }
         return true;
