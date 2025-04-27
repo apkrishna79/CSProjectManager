@@ -10,20 +10,37 @@
         <span class="navbar-text">Hello, @User.Identity.Name!</span>
     }
 </div>
-<!-- Logout button at the top right -->
-@if (User.Identity?.IsAuthenticated == true)
-{
-    <form method="post" asp-page-handler="Logout" class="d-inline" style="position: absolute; top: 10px; right: 10px;">
-        <button type="submit" class="btn btn-danger">Logout</button>
-    </form>
-}
-<!-- Displaying user login status -->
+
 <div class="container mt-5">
     @if (User.Identity?.IsAuthenticated == true)
     {
+        <!-- Teams Section -->
         <div class="mb-4">
-            <b>Your Projects</b>
-            <br>
+            <b>Your Teams</b><br />
+            @if (Model.Teams.Count > 0)
+            {
+                <table class="table">
+                    <tbody>
+                        @foreach (var team in Model.Teams)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-page="/TeamLanding" asp-route-teamId="@team.Id">@team.Name</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <span>You are not in any teams.</span>
+            }
+        </div>
+
+        <!-- Projects Section -->
+        <div class="mb-4">
+            <b>Your Projects</b><br />
             @if (Model.Projects.Count > 0)
             {
                 <table class="table">
@@ -32,7 +49,7 @@
                             <th>Project Name</th>
                             <th>Description</th>
                             <th>Requirements Progress</th>
-                            <th>Sprint Board</th> <!-- New column -->
+                            <th>Sprint Board</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,10 +65,10 @@
                                     {
                                         <div class="progress" style="height: 20px; position: relative;">
                                             <div class="progress-bar bg-success" role="progressbar"
-                                                style="width: @progress%;"
-                                                aria-valuenow="@progress"
-                                                aria-valuemin="0"
-                                                aria-valuemax="100">
+                                                 style="width: @progress%;"
+                                                 aria-valuenow="@progress"
+                                                 aria-valuemin="0"
+                                                 aria-valuemax="100">
                                             </div>
                                             <div class="progress-bar-text" style="position: absolute; width: 100%; text-align: center; top: 0; line-height: 20px;">
                                                 <strong>@progress.ToString("0.00")%</strong>
@@ -79,18 +96,11 @@
                 <span>You have no projects!</span>
             }
         </div>
+
+        <!-- Create Project Button -->
         <div class="button-group">
             <form method="get" asp-page="/CreateProject" class="d-inline">
                 <button type="submit" class="btn btn-primary mb-2">Create Project</button>
-            </form>
-            <form method="get" asp-page="/Todo" class="d-inline">
-                <button type="submit" class="btn btn-primary mb-2">To-do Lists</button>
-            </form>
-            <form method="get" asp-page="/Account" class="d-inline">
-                <button type="submit" class="btn btn-primary mb-2">Account</button>
-            </form>
-            <form method="get" asp-page="/SelectDiscussionBoard" class="d-inline">
-                <button type="submit" class="btn btn-primary mb-2">Discussion Boards</button>
             </form>
         </div>
     }
