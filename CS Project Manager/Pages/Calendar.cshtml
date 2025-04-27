@@ -354,8 +354,14 @@
     function validateForm() {
         var startTime = document.getElementById('startTime').value;
         var endTime = document.getElementById('endTime').value;
+        var currentTime = new Date().toISOString();
+
         if (new Date(startTime) >= new Date(endTime)) {
             alert('End Time must be later than Start Time.');
+            return false;
+        }
+        if (new Date(startTime) < new Date(currentTime) || new Date(endTime) < new Date(currentTime)) {
+            alert('Start Time and End Time must be later than the current UTC time.');
             return false;
         }
         return true;
