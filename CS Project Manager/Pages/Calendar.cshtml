@@ -192,6 +192,13 @@
                                         <td>
                                             <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
                                         </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="DeleteCalendarItem">
+                                                <input type="hidden" name="teamId" value="@Model.TeamId" />
+                                                <input type="hidden" name="calendarItemId" value="@item.Id"/>
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -203,7 +210,7 @@
                     }
                 </div>
                 <br />
-                <button onclick="openDialog()">Add Meeting</button>
+                <button onclick="openDialog()" class="btn btn-primary">Add Meeting</button>
                 <br />
                 <h2>Past Meetings</h2>
                 <div id="PastMeetings">
