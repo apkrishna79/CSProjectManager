@@ -289,5 +289,43 @@
                 $(this).siblings('.text-danger').show();
             }
         });
+
+        // Validate numeric inputs to ensure they're positive
+        $('input[type="number"]').on('input', function() {
+            // Skip progress inputs which can be 0
+            if (!$(this).hasClass('progress-input')) {
+                var value = parseInt($(this).val());
+                if (value <= 0) {
+                    $(this).val(''); // Clear invalid value
+                }
+            }
+        });
+
+        // For progress inputs specifically
+        $('.progress-input').on('input', function() {
+            var value = parseInt($(this).val());
+            if (value < 0) {
+                $(this).val(0);
+            } else if (value > 100) {
+                $(this).val(100);
+            }
+        });
+
+        // Check Sprint input specifically
+        $('.sprint-input').on('input', function() {
+            var value = parseInt($(this).val());
+            if (value < 1) {
+                $(this).val(''); // Clear invalid value
+                // Also handle disabling related UI elements
+                var index = $(this).data('index');
+                var progressInput = $('.progress-input[data-index="' + index + '"]');
+                var completeButton = progressInput.closest('td').next().find('.complete-button');
+                progressInput.prop('disabled', true);
+                progressInput.val(0);
+                progressInput.trigger('input');
+                completeButton.prop('disabled', true);
+                progressInput.siblings('.text-danger').show();
+            }
+        });
     });
 </script>
