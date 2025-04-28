@@ -292,11 +292,10 @@
 
         // Validate numeric inputs to ensure they're positive
         $('input[type="number"]').on('input', function() {
-            // Skip progress inputs which can be 0
             if (!$(this).hasClass('progress-input')) {
                 var value = parseInt($(this).val());
                 if (value <= 0) {
-                    $(this).val(''); // Clear invalid value
+                    $(this).val('');
                 }
             }
         });
@@ -315,8 +314,7 @@
         $('.sprint-input').on('input', function() {
             var value = parseInt($(this).val());
             if (value < 1) {
-                $(this).val(''); // Clear invalid value
-                // Also handle disabling related UI elements
+                $(this).val('');
                 var index = $(this).data('index');
                 var progressInput = $('.progress-input[data-index="' + index + '"]');
                 var completeButton = progressInput.closest('td').next().find('.complete-button');
