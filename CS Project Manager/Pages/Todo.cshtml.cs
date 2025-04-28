@@ -149,7 +149,7 @@ namespace CS_Project_Manager.Pages
 
             await _todoService.AddTodoAsync(NewTodo);
 
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         // Toggle the completion status of a task
@@ -157,7 +157,7 @@ namespace CS_Project_Manager.Pages
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                return RedirectToPage();
+                return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
             }
 
             var todo = await _todoService.GetTodoByIdAsync(objectId);
@@ -167,7 +167,7 @@ namespace CS_Project_Manager.Pages
                 await _todoService.UpdateTodoAsync(todo);
             }
 
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         // Remove a task
@@ -175,12 +175,11 @@ namespace CS_Project_Manager.Pages
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                return RedirectToPage();
+                return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
             }
 
             await _todoService.RemoveTodoAsync(objectId);
-
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         // Update a task's tag
@@ -188,7 +187,7 @@ namespace CS_Project_Manager.Pages
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
             {
-                return RedirectToPage();
+                return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
             }
             var todo = await _todoService.GetTodoByIdAsync(objectId);
             if (todo != null)
@@ -196,7 +195,19 @@ namespace CS_Project_Manager.Pages
                 todo.Tag = tag;
                 await _todoService.UpdateTodoAsync(todo);
             }
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
+        }
+
+        // Filter personal tasks only
+        public IActionResult OnPostFilterPersonalAsync()
+        {
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
+        }
+
+        // Filter team tasks only
+        public IActionResult OnPostFilterTeamAsync()
+        {
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         // Handles filtering by tag
@@ -231,7 +242,7 @@ namespace CS_Project_Manager.Pages
             Requirements = (await _requirementService.GetRequirementsByUserIdAsync(UserId))
                 .OrderBy(r => r.RequirementID ?? int.MaxValue)
                 .ToList();
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         public async Task<IActionResult> OnPostRemoveReqAsync(ObjectId id, ObjectId projectId)
@@ -245,7 +256,7 @@ namespace CS_Project_Manager.Pages
             Requirements = (await _requirementService.GetRequirementsByUserIdAsync(UserId))
                 .OrderBy(r => r.RequirementID ?? int.MaxValue)
                 .ToList();
-            return RedirectToPage();
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
     }
 }
