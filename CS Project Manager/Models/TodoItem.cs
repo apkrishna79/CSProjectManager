@@ -2,8 +2,8 @@
 * Prologue
 Created By: Anakha Krishna
 Date Created: 3/1/25
-Last Revised By: Anakha Krishna - comments
-Date Revised: 4/12/25
+Last Revised By: Dylan Sailors - support for tags
+Date Revised: 4/27/25
 Purpose: model to handle todo list items 
 */
 using MongoDB.Bson;
@@ -28,6 +28,7 @@ namespace CS_Project_Manager.Models
         [BsonElement("AssocTeamId")]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId AssocTeamId { get; set; } // Team associated with item if team item
+        public string Tag { get; set; } = "No tag"; // Tag associated with todo item
     }
 
 }

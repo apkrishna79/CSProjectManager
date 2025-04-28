@@ -13,6 +13,7 @@
             <tr>
                 <th>Name</th>
                 <th>Team Task?</th>
+                <th>Tag</th>
                 <th></th>
             </tr>
         </thead>
@@ -23,6 +24,17 @@
                     <span class="text-danger" asp-validation-for="NewTodo.ItemName"></span>
                 </td>
                 <td><input type="checkbox" asp-for="NewTodo.IsTeamItem" /></td>
+                <td>
+                    <select asp-for="NewTodo.Tag" class="form-control">
+                        <option value="No tag">No tag chosen</option>
+                        <option value="General">General</option>
+                        <option value="Code">Code</option>
+                        <option value="Documentation">Documentation</option>
+                        <option value="Brainstorm">Brainstorm</option>
+                        <option value="Bug Fix">Bug Fix</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </td>
                 <td><button type="submit" asp-page-handler="Add" class="btn btn-primary">Add To-do</button></td>
             </tr>
         </tbody>
@@ -34,10 +46,28 @@
 <div class="row">
     <div class="col-md-6">
         <h3>Personal To-do List</h3>
+        <form method="post" asp-page-handler="Filter" class="mb-3">
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Filter by:</label>
+                <div class="col-sm-6">
+                    <select asp-for="PersonalTagFilter" class="form-control">
+                        @foreach (var tag in Model.TagOptions)
+                        {
+                            <option value="@tag">@(tag == "No tag" ? "No tag chosen" : tag)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <button type="submit" class="btn btn-secondary">Apply Filter</button>
+                </div>
+            </div>
+        </form>
+
         <table class="table">
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Tag</th>
                     <th>Completed</th>
                     <th>Remove Task</th>
                 </tr>
@@ -48,9 +78,23 @@
                     <tr>
                         <td>@todo.ItemName</td>
                         <td>
+                            <form method="post" asp-page-handler="UpdateTag">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <select name="tag" class="form-control" onchange="this.form.submit()">
+                                    <option value="No tag" selected="@(todo.Tag == "No tag")">No tag chosen</option>
+                                    <option value="General" selected="@(todo.Tag == "General")">General</option>
+                                    <option value="Code" selected="@(todo.Tag == "Code")">Code</option>
+                                    <option value="Documentation" selected="@(todo.Tag == "Documentation")">Documentation</option>
+                                    <option value="Brainstorm" selected="@(todo.Tag == "Brainstorm")">Brainstorm</option>
+                                    <option value="Bug Fix" selected="@(todo.Tag == "Bug Fix")">Bug Fix</option>
+                                    <option value="Other" selected="@(todo.Tag == "Other")">Other</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
                             <form method="post" asp-page-handler="ToggleComplete">
                                 <input type="hidden" name="id" value="@todo.Id" />
-                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" checked="@todo.ItemComplete" />
                             </form>
                         </td>
                         <td>
@@ -67,10 +111,27 @@
 
     <div class="col-md-6">
         <h3>Team To-do List</h3>
+        <form method="post" asp-page-handler="Filter" class="mb-3">
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Filter by:</label>
+                <div class="col-sm-6">
+                    <select asp-for="TeamTagFilter" class="form-control">
+                        @foreach (var tag in Model.TagOptions)
+                        {
+                            <option value="@tag">@(tag == "No tag" ? "No tag chosen" : tag)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <button type="submit" class="btn btn-secondary">Apply Filter</button>
+                </div>
+            </div>
+        </form>
         <table class="table">
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Tag</th>
                     <th>Completed</th>
                     <th>Remove Task</th>
                 </tr>
@@ -81,9 +142,23 @@
                     <tr>
                         <td>@todo.ItemName</td>
                         <td>
+                            <form method="post" asp-page-handler="UpdateTag">
+                                <input type="hidden" name="id" value="@todo.Id" />
+                                <select name="tag" class="form-control" onchange="this.form.submit()">
+                                    <option value="No tag" selected="@(todo.Tag == "No tag")">No tag chosen</option>
+                                    <option value="General" selected="@(todo.Tag == "General")">General</option>
+                                    <option value="Code" selected="@(todo.Tag == "Code")">Code</option>
+                                    <option value="Documentation" selected="@(todo.Tag == "Documentation")">Documentation</option>
+                                    <option value="Brainstorm" selected="@(todo.Tag == "Brainstorm")">Brainstorm</option>
+                                    <option value="Bug Fix" selected="@(todo.Tag == "Bug Fix")">Bug Fix</option>
+                                    <option value="Other" selected="@(todo.Tag == "Other")">Other</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
                             <form method="post" asp-page-handler="ToggleComplete">
                                 <input type="hidden" name="id" value="@todo.Id" />
-                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" @(todo.ItemComplete ? "checked" : "") />
+                                <input type="checkbox" name="isComplete" value="true" onchange="this.form.submit()" checked="@todo.ItemComplete" />
                             </form>
                         </td>
                         <td>
@@ -128,18 +203,18 @@
 
                     <td>
                         <div style="display: flex; gap: 10px;">
-                        <button type="submit" asp-page-handler="UpdateReq"
-                                asp-route-id="@Model.Requirements[i].Id"
-                                asp-route-projectId="@Model.Requirements[i].AssocProjectId"
-                                class="btn btn-warning">
-                            Update
-                        </button>
-                        <button type="submit" asp-page-handler="RemoveReq"
-                                asp-route-id="@Model.Requirements[i].Id"
-                                asp-route-projectId="@Model.Requirements[i].AssocProjectId"
-                                class="btn btn-danger">
-                            Remove
-                        </button>
+                            <button type="submit" asp-page-handler="UpdateReq"
+                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-projectId="@Model.Requirements[i].AssocProjectId"
+                                    class="btn btn-warning">
+                                Update
+                            </button>
+                            <button type="submit" asp-page-handler="RemoveReq"
+                                    asp-route-id="@Model.Requirements[i].Id"
+                                    asp-route-projectId="@Model.Requirements[i].AssocProjectId"
+                                    class="btn btn-danger">
+                                Remove
+                            </button>
                         </div>
                     </td>
                 </tr>

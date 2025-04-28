@@ -2,8 +2,8 @@
  * Prologue
 Created By: Jackson Wunderlich
 Date Created: 3/13/25
-Last Revised By: Jackson Wunderlich
-Date Revised: 3/16/25
+Last Revised By: Dylan Sailors
+Date Revised: 4/27/25
 Purpose: Page displaying Team To-Do list and Personal To-Do list with the ability to add more tasks, mark task as complete, and remove a task
 Preconditions: MongoDBService, other service instances properly initialized and injected; Requirement/Todo must be correctly defined
 Postconditions: gets personal and team todo items and personal requirements from the database and shows them to the user
@@ -53,11 +53,31 @@ namespace CS_Project_Manager.Pages
         public List<Project> Projects { get; set; } = new List<Project>();
         public ObjectId UserId { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        [BindProperty]
+        public string PersonalTagFilter { get; set; } = "All";
+
+        [BindProperty]
+        public string TeamTagFilter { get; set; } = "All";
+
+        public List<string> TagOptions { get; set; } = new List<string>
+        {
+            "All",
+            "No tag",
+            "General",
+            "Code",
+            "Documentation",
+            "Brainstorm",
+            "Bug Fix",
+            "Other"
+        };
+
+        public async Task<IActionResult> OnGetAsync(string personalTagFilter = "All", string teamTagFilter = "All")
         {
             var user = await _studentUserService.GetUserByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
             if (user == null) return RedirectToPage("/Login");
 
+            PersonalTagFilter = personalTagFilter;
+            TeamTagFilter = teamTagFilter;
             UserId = user.Id;
             var teamIds = (await _teamService.GetTeamsByStudentIdAsync(UserId)).ConvertAll(t => t.Id);
             Requirements = await _requirementService.GetRequirementsByUserIdAsync(UserId);
@@ -77,23 +97,27 @@ namespace CS_Project_Manager.Pages
                 .OrderBy(r => r.RequirementID ?? int.MaxValue)
                 .ToList();
 
-            // Fetch personal and team tasks using the TodoService
-            PersonalTodo = (await _todoService.GetTodoByUserIdAsync(UserId))
+            // Fetch personal tasks and apply filter
+            var allPersonalTodos = await _todoService.GetTodoByUserIdAsync(UserId);
+            PersonalTodo = allPersonalTodos
                 .Where(t => !t.IsTeamItem)
+                .Where(t => PersonalTagFilter == "All" || t.Tag == PersonalTagFilter)
                 .OrderBy(t => t.ItemComplete)
                 .ToList();
 
-            // get all todo items based on user's teams
-            foreach (var team in teamIds)
+            // Fetch team tasks and apply filter
+            TeamTodo = new List<TodoItem>();
+            foreach (var teamId in teamIds)
             {
-                var todoItems = await _todoService.GetTodoByTeamIdAsync(team);
-                foreach (var todoItem in todoItems)
-                {
-                    TeamTodo.Add(todoItem);
-                }
+                var todoItems = await _todoService.GetTodoByTeamIdAsync(teamId);
+                TeamTodo.AddRange(todoItems);
             }
-            TeamTodo.OrderBy(t => t.ItemComplete);
-            
+
+            TeamTodo = TeamTodo
+                .Where(t => TeamTagFilter == "All" || t.Tag == TeamTagFilter)
+                .OrderBy(t => t.ItemComplete)
+                .ToList();
+
             return Page();
         }
 
@@ -110,6 +134,10 @@ namespace CS_Project_Manager.Pages
             if (user == null) return RedirectToPage("/Login");
 
             NewTodo.AssocUserId = user.Id;
+            if (string.IsNullOrEmpty(NewTodo.Tag))
+            {
+                NewTodo.Tag = "No tag";
+            }
             if (NewTodo.IsTeamItem)
             {
                 var team = (await _teamService.GetTeamsByStudentIdAsync(user.Id)).FirstOrDefault();
@@ -153,6 +181,28 @@ namespace CS_Project_Manager.Pages
             await _todoService.RemoveTodoAsync(objectId);
 
             return RedirectToPage();
+        }
+
+        // Update a task's tag
+        public async Task<IActionResult> OnPostUpdateTagAsync(string id, string tag)
+        {
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+            {
+                return RedirectToPage();
+            }
+            var todo = await _todoService.GetTodoByIdAsync(objectId);
+            if (todo != null)
+            {
+                todo.Tag = tag;
+                await _todoService.UpdateTodoAsync(todo);
+            }
+            return RedirectToPage();
+        }
+
+        // Handles filtering by tag
+        public IActionResult OnPostFilterAsync()
+        {
+            return RedirectToPage(new { personalTagFilter = PersonalTagFilter, teamTagFilter = TeamTagFilter });
         }
 
         // Update a requirement
