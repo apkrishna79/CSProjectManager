@@ -6,10 +6,10 @@
 
 <h1>Delete Project</h1>
 
-@if (!ViewData.ModelState.IsValid)
+@if (!ModelState.IsValid)
 {
     <div class="alert alert-danger">
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
         {
             <p>@error.ErrorMessage</p>
         }

@@ -3,7 +3,7 @@
 Created By: Jackson Wunderlich
 Date Created: 4/13/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 4/13/25
+Date Revised: 4/27/25
 Purpose: allows users to take notes for a meeting and save them to the database
 Preconditions: MongoDBService, CalendarService, MeetingMinutes Service, instances properly initialized and injected; MeetingMinutes model must be correctly defined
 Postconditions: Users can update meeting minutes for a given meeting
@@ -30,6 +30,9 @@ namespace CS_Project_Manager.Pages
         [BindProperty(SupportsGet = true)]
         public ObjectId MeetingId { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public ObjectId TeamId { get; set; }
+
         [BindProperty]
         public MeetingMinutes AssocMinutes { get; set; } = new MeetingMinutes { Notes = "" };
 
@@ -45,7 +48,7 @@ namespace CS_Project_Manager.Pages
             _meetingMinutesService = meetingMinutesService;
         }
 
-        public async Task OnGetAsync(ObjectId meetingId)
+        public async Task OnGetAsync(ObjectId meetingId, ObjectId teamId)
         {
             // gets the current meeting and its corresponding minutes
             var foundMinutes = await _meetingMinutesService.GetMinutesByMeetingIdAsync(meetingId);
@@ -62,6 +65,7 @@ namespace CS_Project_Manager.Pages
             MeetingNotes = AssocMinutes.Notes;
             MeetingName = meeting.EventName;
             MeetingId = meetingId;
+            TeamId = teamId;
 
         }
 

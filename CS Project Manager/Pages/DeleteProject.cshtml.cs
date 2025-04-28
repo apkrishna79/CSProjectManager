@@ -3,7 +3,7 @@
 Created By: Jackson Wunderlich
 Date Created: 4/12/25
 Last Revised By: Jackson Wunderlich
-Date Revised: 4/12/25
+Date Revised: 4/27/25
 Purpose: confirm deletion of a project from the database
 Preconditions: service instances must be properly initialized and injected, models must be correctly defined
 Postconditions: project is deleted or user is redirected to the project page
@@ -60,6 +60,8 @@ namespace CS_Project_Manager.Pages
         // handles page submission, either deletes project and associated items or redirects to the same page
         public async Task<IActionResult> OnPostAsync()
         {
+            await OnGetAsync(ProjectId);
+
             var GivenProject = await _projectService.GetProjectById(ProjectId);
             // checks if project name is the same as the given project to be deleted
             if (GivenProject.ProjectName == UserProjectName)
@@ -71,7 +73,10 @@ namespace CS_Project_Manager.Pages
                 return RedirectToPage("/Dashboard");
             } else
             {
-                return RedirectToPage(new { projectId = ProjectId });
+                ModelState.AddModelError(string.Empty, "Incorrect project name!");
+                ModelState.Remove("GivenProjectName");
+                ModelState.Remove("UserProjectName");
+                return Page();
             }
         }
     }
