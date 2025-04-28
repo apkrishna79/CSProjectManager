@@ -13,6 +13,7 @@
     <button type="submit" asp-page-handler="Update" asp-route-id="@Model.AssocMinutes.Id" asp-route-meetingId="@Model.MeetingId" class="btn btn-primary mt-3">Update</button>
 </form>
 <br>
-<form method="get" asp-page="/Dashboard">
+<form method="get" asp-page="/Calendar">
+    <input type="hidden" name="teamId" value="@Model.TeamId" />
     <button type="submit" class="btn btn-primary">Back</button>
 </form>

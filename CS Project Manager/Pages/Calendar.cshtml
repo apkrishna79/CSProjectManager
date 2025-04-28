@@ -190,7 +190,7 @@
                                             @Model.ConvertToCentralTime(item.StartDateTime).ToString()
                                         </td>
                                         <td>
-                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id" asp-route-teamId="@Model.TeamId">Edit Meeting Minutes</a>
                                         </td>
                                         <td>
                                             <form method="post" asp-page-handler="DeleteCalendarItem">
@@ -238,7 +238,7 @@
                                             @Model.ConvertToCentralTime(item.StartDateTime).ToString()
                                         </td>
                                         <td>
-                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id">Edit Meeting Minutes</a>
+                                            <a asp-page="/MeetingMinutes" asp-route-meetingId="@item.Id" asp-route-teamId="@Model.TeamId">Edit Meeting Minutes</a>
                                         </td>
                                     </tr>
                                 }
