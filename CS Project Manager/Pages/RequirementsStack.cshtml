@@ -23,17 +23,16 @@
         <tbody>
             <tr>
                 <td>
-                    <input asp-for="NewRequirement.RequirementID" class="form-control" />
+                    <input asp-for="NewRequirement.RequirementID" class="form-control" type="number" min="1"/>
                     <span asp-validation-for="NewRequirement.RequirementID" class="text-danger"></span>
                 </td>
                 <td>
                     <input asp-for="NewRequirement.Description" class="form-control" />
                     <span asp-validation-for="NewRequirement.Description" class="text-danger"></span>
                 </td>
-                <td><input asp-for="NewRequirement.StoryPoints" class="form-control" /></td>
-                <td><input asp-for="NewRequirement.Priority" class="form-control" /></td>
-                <td><input asp-for="NewRequirement.SprintNo" class="form-control" /></td>
-
+                <td><input asp-for="NewRequirement.StoryPoints" class="form-control" type="number" min="1" /></td>
+                <td><input asp-for="NewRequirement.Priority" class="form-control" type="number" min="1" /></td>
+                <td><input asp-for="NewRequirement.SprintNo" class="form-control" type="number" min="1" /></td>
                 <td>
                     <select asp-for="NewRequirement.Assignees" class="form-control assignedUsers" multiple="multiple">
                         @foreach (var member in Model.TeamMembers)
@@ -130,17 +129,16 @@
                 <tr>
                     <input type="hidden" asp-for="Requirements[i].Id" />
                     <td>
-                        <input asp-for="Requirements[i].RequirementID" class="form-control" />
+                        <input asp-for="Requirements[i].RequirementID" class="form-control" type="number" min="1" />
                         <span asp-validation-for="Requirements[i].RequirementID" class="text-danger"></span>
                     </td>
                     <td>
                         <input asp-for="Requirements[i].Description" class="form-control" />
                         <span asp-validation-for="Requirements[i].Description" class="text-danger"></span>
                     </td>
-                    <td><input asp-for="Requirements[i].StoryPoints" class="form-control" /></td>
-                    <td><input asp-for="Requirements[i].Priority" class="form-control" /></td>
-                    <td><input asp-for="Requirements[i].SprintNo" class="form-control sprint-input" data-index="@i" /></td>
-
+                    <td><input asp-for="Requirements[i].StoryPoints" class="form-control" type="number" min="1" /></td>
+                    <td><input asp-for="Requirements[i].Priority" class="form-control" type="number" min="1" /></td>
+                    <td><input asp-for="Requirements[i].SprintNo" class="form-control sprint-input" data-index="@i" type="number" min="1" /></td>
                     <td>
                         <select asp-for="Requirements[i].Assignees" class="form-control assignedUsers" multiple="multiple">
                             @foreach (var member in Model.TeamMembers)
@@ -289,6 +287,42 @@
             var sprintInput = $('.sprint-input[data-index="' + index + '"]');
             if (sprintInput.val() === '') {
                 $(this).siblings('.text-danger').show();
+            }
+        });
+
+        // Validate numeric inputs to ensure they're positive
+        $('input[type="number"]').on('input', function() {
+            if (!$(this).hasClass('progress-input')) {
+                var value = parseInt($(this).val());
+                if (value <= 0) {
+                    $(this).val('');
+                }
+            }
+        });
+
+        // For progress inputs specifically
+        $('.progress-input').on('input', function() {
+            var value = parseInt($(this).val());
+            if (value < 0) {
+                $(this).val(0);
+            } else if (value > 100) {
+                $(this).val(100);
+            }
+        });
+
+        // Check Sprint input specifically
+        $('.sprint-input').on('input', function() {
+            var value = parseInt($(this).val());
+            if (value < 1) {
+                $(this).val('');
+                var index = $(this).data('index');
+                var progressInput = $('.progress-input[data-index="' + index + '"]');
+                var completeButton = progressInput.closest('td').next().find('.complete-button');
+                progressInput.prop('disabled', true);
+                progressInput.val(0);
+                progressInput.trigger('input');
+                completeButton.prop('disabled', true);
+                progressInput.siblings('.text-danger').show();
             }
         });
     });
